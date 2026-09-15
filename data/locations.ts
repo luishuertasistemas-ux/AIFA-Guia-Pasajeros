@@ -1,85 +1,70 @@
-import { Location, NavigationRoute } from '@/types/location';
+import { Location, NavigationRoute } from '../types/location';
 
-export const AIRPORT_LOCATIONS: Location[] = [
-  // --- Puntos de Escaneo / Origen ---
-  {
+export const MOCK_LOCATIONS: Record<string, Location> = {
+  'entrada-principal': {
     id: 'entrada-principal',
     name: 'Entrada Principal - Acceso A',
-    category: 'servicio',
-    terminal: 'Terminal Pasajeros',
-    level: 1,
-    zone: 'Principal',
-    description: 'Frente a los mostradores de documentación.'
+    level: 'Nivel 1',
+    zone: 'Zona Principal',
+    category: 'servicio'
   },
-  {
+  'filtro-seguridad': {
     id: 'filtro-seguridad',
     name: 'Filtro de Seguridad Central',
-    category: 'servicio',
-    terminal: 'Terminal Pasajeros',
-    level: 2,
-    zone: 'Centro',
-    description: 'Salida del área de inspección de equipaje.'
+    level: 'Nivel 2',
+    zone: 'Zona Centro',
+    category: 'servicio'
   },
-
-  // --- Destinos: Puertas de Abordaje ---
-  {
+  'puerta-105': {
     id: 'puerta-105',
     name: 'Puerta de Abordaje 105',
-    category: 'puerta',
-    terminal: 'Terminal Pasajeros',
-    level: 2,
-    zone: 'Norte'
+    level: 'Nivel 2',
+    zone: 'Zona Norte',
+    category: 'puerta'
   },
-  {
+  'puerta-108': {
     id: 'puerta-108',
     name: 'Puerta de Abordaje 108',
-    category: 'puerta',
-    terminal: 'Terminal Pasajeros',
-    level: 2,
-    zone: 'Sur'
+    level: 'Nivel 2',
+    zone: 'Zona Sur',
+    category: 'puerta'
   },
-
-  // --- Destinos: Servicios y Sanitarios ---
-  {
+  'banos-lucha-libre': {
     id: 'banos-lucha-libre',
     name: 'Sanitarios Temáticos (Lucha Libre)',
-    category: 'bano',
-    terminal: 'Terminal Pasajeros',
-    level: 2,
-    zone: 'Norte',
-    description: 'Pasillo principal norte, cerca de la puerta 104.'
+    level: 'Nivel 2',
+    zone: 'Zona Norte',
+    category: 'bano'
   },
-  {
+  'sala-vip': {
     id: 'sala-vip',
     name: 'Sala VIP Centurion',
-    category: 'restaurante',
-    terminal: 'Terminal Pasajeros',
-    level: 2,
-    zone: 'Centro',
-    description: 'Planta alta, mezzanine central.'
+    level: 'Nivel 2',
+    zone: 'Zona Centro',
+    category: 'restaurante'
   }
-];
+};
 
-// Rutas de ejemplo para simular la navegación
 export const MOCK_ROUTES: Record<string, NavigationRoute> = {
-  'entrada-principal_puerta-105': {
+  'entrada-principal-puerta-105': {
     originId: 'entrada-principal',
     destinationId: 'puerta-105',
-    estimatedMinutes: 5,
+    estimatedMinutes: 8,
     steps: [
-      { step: 1, instruction: 'Avanza recto hacia las escaleras eléctricas.', distanceMeters: 50 },
-      { step: 2, instruction: 'Sube al Nivel 2 (Filtro de seguridad).', distanceMeters: 20 },
-      { step: 3, instruction: 'Gira a la izquierda dirigiéndote a la Zona Norte.', distanceMeters: 100 },
-      { step: 4, instruction: 'Camina hasta encontrar la Puerta 105 a tu derecha.', distanceMeters: 80 }
+      { step: 1, instruction: 'Ingresa por los detectores del Acceso A.' },
+      { step: 2, instruction: 'Toma las escaleras eléctricas hacia el Nivel 2.' },
+      { step: 3, instruction: 'Pasa por el Filtro de Seguridad Central.' },
+      { step: 4, instruction: 'Gira a la izquierda en el pasillo principal hacia la Zona Norte.' },
+      { step: 5, instruction: 'Camina 150 metros. La Puerta 105 estará a tu derecha.' }
     ]
   },
-  'filtro-seguridad_banos-lucha-libre': {
+  'filtro-seguridad-banos-lucha-libre': {
     originId: 'filtro-seguridad',
     destinationId: 'banos-lucha-libre',
     estimatedMinutes: 3,
     steps: [
-      { step: 1, instruction: 'Camina hacia el pasillo comercial de la Zona Norte.', distanceMeters: 60 },
-      { step: 2, instruction: 'Los sanitarios temáticos están a la izquierda junto a la tienda oficial.', distanceMeters: 40 }
+      { step: 1, instruction: 'Camina hacia el pasillo de la Zona Norte.' },
+      { step: 2, instruction: 'Los sanitarios temáticos están a 50 metros a la izquierda.' }
     ]
   }
 };
