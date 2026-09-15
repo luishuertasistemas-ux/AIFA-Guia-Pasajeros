@@ -10,6 +10,7 @@ function NavigationContent() {
 
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const currentOrigin = MOCK_LOCATIONS[origenParam] || MOCK_LOCATIONS['entrada-principal'];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
@@ -17,8 +18,14 @@ function NavigationContent() {
   );
 
   const filteredDestinations = availableDestinations.filter((loc) => {
-    if (selectedCategory === 'todas') return true;
-    return loc.category === selectedCategory;
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !normalizedSearchTerm ||
+      loc.name.toLowerCase().includes(normalizedSearchTerm) ||
+      loc.zone.toLowerCase().includes(normalizedSearchTerm);
+    const matchesCategory = selectedCategory === 'todas' || loc.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
   });
 
   const routeKey = `${currentOrigin.id}-${selectedDestination}`;
@@ -51,6 +58,28 @@ function NavigationContent() {
           {!selectedDestination ? (
             <>
               <h2 className="text-lg font-bold text-slate-800 mb-3">¿A dónde quieres ir?</h2>
+
+              {/* Búsqueda de destinos */}
+              <div className="relative mb-4">
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Buscar destino (ej. Puerta 105, Baños)..."
+                  aria-label="Buscar destino"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-11 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    aria-label="Limpiar búsqueda"
+                    className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                  >
+                    X
+                  </button>
+                )}
+              </div>
 
               {/* Botones de Filtro por Categoría */}
               <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
@@ -91,7 +120,9 @@ function NavigationContent() {
                   ))
                 ) : (
                   <p className="text-sm text-slate-500 text-center py-6">
-                    No hay destinos en esta categoría.
+                    {searchTerm.trim()
+                      ? `No se encontraron destinos que coincidan con '${searchTerm}'.`
+                      : 'No hay destinos en esta categoría.'}
                   </p>
                 )}
               </div>
