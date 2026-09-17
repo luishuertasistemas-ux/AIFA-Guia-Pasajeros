@@ -7,11 +7,37 @@ import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
 type Language = 'ES' | 'EN' | 'FR' | 'ZH';
 type Attraction = {
-  name: string;
-  description: string;
-  badge: string;
+  key: 'museo' | 'torre' | 'banos';
   image: string;
   searchTerm: string;
+};
+
+type Translation = {
+  hero: Record<HeroPeriod, { title: string; subtitle: string; badge: string }>;
+  origin: string;
+  explore: string;
+  discover: string;
+  swipe: string;
+  destination: string;
+  search: string;
+  searchLabel: string;
+  clearSearch: string;
+  categories: string[];
+  museum: { name: string; description: string; badge: string };
+  locationCategories: Record<string, string>;
+  locations: Record<string, { name: string; level: string; zone: string }>;
+  actionGo: string;
+  noCategoryResults: string;
+  noSearchResults: (term: string) => string;
+  changeDestination: string;
+  routeTo: string;
+  estimatedTime: string;
+  walkingMinutes: (minutes: number) => string;
+  routeBuilding: string;
+  routeSuggestions: string;
+  routeSteps: Record<string, string[]>;
+  attractions: Record<string, { name: string; description: string; badge: string; label?: string; schedule?: string }>;
+  quickActions: { bathrooms: string; food: string; search: string; label: string };
 };
 
 const HERO_CONFIG: Record<HeroPeriod, { image: string; title: string; subtitle: string; badge: string }> = {
@@ -45,7 +71,7 @@ const LANGUAGE_OPTIONS: { code: Language; label: string; flag: string; locale: s
   { code: 'ZH', label: '中文', flag: '🇨🇳', locale: 'zh-CN' }
 ];
 
-const translations = {
+const translations: Record<Language, Translation> = {
   ES: {
     hero: {
       manana: { title: '¡Buenos días! Bienvenido al AIFA', subtitle: 'Explora la terminal bajo la luz de la mañana.', badge: '🌅 Mañana' },
@@ -58,7 +84,38 @@ const translations = {
     destination: '¿A dónde quieres ir?',
     search: 'Buscar destino (ej. Puerta 105, Baños)...',
     categories: ['Todas', 'Puertas', 'Baños', 'Salas & Comida', 'Servicios'],
-    museum: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia' }
+    museum: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia' },
+    discover: 'Descubre',
+    searchLabel: 'Buscar destino',
+    clearSearch: 'Limpiar búsqueda',
+    locationCategories: { puerta: 'Puerta', bano: 'Baño', restaurante: 'Salas & Comida', servicio: 'Servicio' },
+    locations: {
+      'entrada-principal': { name: 'Entrada Principal - Acceso A', level: 'Nivel 1', zone: 'Zona Principal' },
+      'filtro-seguridad': { name: 'Filtro de Seguridad Central', level: 'Nivel 2', zone: 'Zona Centro' },
+      'puerta-105': { name: 'Puerta de Abordaje 105', level: 'Nivel 2', zone: 'Zona Norte' },
+      'puerta-108': { name: 'Puerta de Abordaje 108', level: 'Nivel 2', zone: 'Zona Sur' },
+      'banos-lucha-libre': { name: 'Sanitarios Temáticos (Lucha Libre)', level: 'Nivel 2', zone: 'Zona Norte' },
+      'sala-vip': { name: 'Sala VIP Centurion', level: 'Nivel 2', zone: 'Zona Centro' }
+    },
+    actionGo: 'Ir →',
+    noCategoryResults: 'No hay destinos en esta categoría.',
+    noSearchResults: (term: string) => `No se encontraron destinos que coincidan con '${term}'.`,
+    changeDestination: '← Cambiar destino',
+    routeTo: 'Ruta a:',
+    estimatedTime: 'Tiempo estimado:',
+    walkingMinutes: (minutes: number) => `${minutes} min a pie`,
+    routeBuilding: 'Ruta en construcción para este destino.',
+    routeSuggestions: 'Selecciona Puerta 105 (desde Entrada Principal) o Baños Lucha Libre (desde Filtro de Seguridad) para probar la guía.',
+    routeSteps: {
+      'entrada-principal-puerta-105': ['Ingresa por los detectores del Acceso A.', 'Toma las escaleras eléctricas hacia el Nivel 2.', 'Pasa por el Filtro de Seguridad Central.', 'Gira a la izquierda en el pasillo principal hacia la Zona Norte.', 'Camina 150 metros. La Puerta 105 estará a tu derecha.'],
+      'filtro-seguridad-banos-lucha-libre': ['Camina hacia el pasillo de la Zona Norte.', 'Los sanitarios temáticos están a 50 metros a la izquierda.']
+    },
+    attractions: {
+      museo: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia', label: 'Atracción Cultural · Photo Spot Imperdible', schedule: 'Abierto todos los días · 09:00 - 17:00' },
+      torre: { name: 'Torre de Control', description: 'Descubre el corazón operativo del aeropuerto.', badge: 'Vistas' },
+      banos: { name: 'Baños Temáticos', description: 'Servicios únicos para hacer más cómodo tu viaje.', badge: 'Experiencia' }
+    },
+    quickActions: { bathrooms: 'Baños', food: 'Comida', search: 'Buscar', label: 'Acciones rápidas' }
   },
   EN: {
     hero: {
@@ -72,7 +129,30 @@ const translations = {
     destination: 'Where do you want to go?',
     search: 'Search destination (e.g. Gate 105, Restrooms)...',
     categories: ['All', 'Gates', 'Restrooms', 'Lounges & Food', 'Services'],
-    museum: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History' }
+    museum: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History' },
+    discover: 'Discover', searchLabel: 'Search destination', clearSearch: 'Clear search',
+    locationCategories: { puerta: 'Gate', bano: 'Restroom', restaurante: 'Lounges & Food', servicio: 'Service' },
+    locations: {
+      'entrada-principal': { name: 'Main Entrance - Access A', level: 'Level 1', zone: 'Main Zone' },
+      'filtro-seguridad': { name: 'Central Security Checkpoint', level: 'Level 2', zone: 'Central Zone' },
+      'puerta-105': { name: 'Boarding Gate 105', level: 'Level 2', zone: 'North Zone' },
+      'puerta-108': { name: 'Boarding Gate 108', level: 'Level 2', zone: 'South Zone' },
+      'banos-lucha-libre': { name: 'Themed Restrooms (Lucha Libre)', level: 'Level 2', zone: 'North Zone' },
+      'sala-vip': { name: 'Centurion VIP Lounge', level: 'Level 2', zone: 'Central Zone' }
+    },
+    actionGo: 'Go →', noCategoryResults: 'No destinations in this category.', noSearchResults: (term: string) => `No destinations match '${term}'.`,
+    changeDestination: '← Change destination', routeTo: 'Route to:', estimatedTime: 'Estimated time:', walkingMinutes: (minutes: number) => `${minutes} min walk`,
+    routeBuilding: 'Route under construction for this destination.', routeSuggestions: 'Select Gate 105 (from Main Entrance) or Lucha Libre Restrooms (from Security Checkpoint) to try the guide.',
+    routeSteps: {
+      'entrada-principal-puerta-105': ['Enter through the Access A detectors.', 'Take the escalators to Level 2.', 'Go through the Central Security Checkpoint.', 'Turn left in the main hallway toward the North Zone.', 'Walk 150 meters. Gate 105 will be on your right.'],
+      'filtro-seguridad-banos-lucha-libre': ['Walk toward the North Zone hallway.', 'The themed restrooms are 50 meters to the left.']
+    },
+    attractions: {
+      museo: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History', label: 'Cultural Attraction · Must-See Photo Spot', schedule: 'Open daily · 09:00 - 17:00' },
+      torre: { name: 'Control Tower', description: 'Discover the operational heart of the airport.', badge: 'Views' },
+      banos: { name: 'Themed Restrooms', description: 'Unique services for a more comfortable journey.', badge: 'Experience' }
+    },
+    quickActions: { bathrooms: 'Restrooms', food: 'Food', search: 'Search', label: 'Quick actions' }
   },
   FR: {
     hero: {
@@ -86,7 +166,30 @@ const translations = {
     destination: 'Où souhaitez-vous aller ?',
     search: 'Rechercher une destination (ex. Porte 105, Toilettes)...',
     categories: ['Toutes', 'Portes', 'Toilettes', 'Salons & Restauration', 'Services'],
-    museum: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire' }
+    museum: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire' },
+    discover: 'Découvrez', searchLabel: 'Rechercher une destination', clearSearch: 'Effacer la recherche',
+    locationCategories: { puerta: 'Porte', bano: 'Toilettes', restaurante: 'Salons & Restauration', servicio: 'Service' },
+    locations: {
+      'entrada-principal': { name: 'Entrée principale - Accès A', level: 'Niveau 1', zone: 'Zone principale' },
+      'filtro-seguridad': { name: 'Contrôle de sécurité central', level: 'Niveau 2', zone: 'Zone centrale' },
+      'puerta-105': { name: 'Porte d’embarquement 105', level: 'Niveau 2', zone: 'Zone nord' },
+      'puerta-108': { name: 'Porte d’embarquement 108', level: 'Niveau 2', zone: 'Zone sud' },
+      'banos-lucha-libre': { name: 'Toilettes thématiques (Lucha Libre)', level: 'Niveau 2', zone: 'Zone nord' },
+      'sala-vip': { name: 'Salon VIP Centurion', level: 'Niveau 2', zone: 'Zone centrale' }
+    },
+    actionGo: 'Aller →', noCategoryResults: 'Aucune destination dans cette catégorie.', noSearchResults: (term: string) => `Aucune destination ne correspond à « ${term} » .`,
+    changeDestination: '← Changer de destination', routeTo: 'Itinéraire vers :', estimatedTime: 'Temps estimé :', walkingMinutes: (minutes: number) => `${minutes} min à pied`,
+    routeBuilding: 'Itinéraire en cours de construction pour cette destination.', routeSuggestions: 'Sélectionnez la porte 105 (depuis l’entrée principale) ou les toilettes Lucha Libre (depuis le contrôle de sécurité) pour tester le guide.',
+    routeSteps: {
+      'entrada-principal-puerta-105': ['Entrez par les détecteurs de l’accès A.', 'Prenez les escalators vers le niveau 2.', 'Passez le contrôle de sécurité central.', 'Tournez à gauche dans le couloir principal vers la zone nord.', 'Marchez 150 mètres. La porte 105 sera sur votre droite.'],
+      'filtro-seguridad-banos-lucha-libre': ['Marchez vers le couloir de la zone nord.', 'Les toilettes thématiques sont à 50 mètres sur la gauche.']
+    },
+    attractions: {
+      museo: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire', label: 'Attraction culturelle · Photo incontournable', schedule: 'Ouvert tous les jours · 09:00 - 17:00' },
+      torre: { name: 'Tour de contrôle', description: 'Découvrez le cœur opérationnel de l’aéroport.', badge: 'Vues' },
+      banos: { name: 'Toilettes thématiques', description: 'Des services uniques pour un voyage plus confortable.', badge: 'Expérience' }
+    },
+    quickActions: { bathrooms: 'Toilettes', food: 'Restauration', search: 'Rechercher', label: 'Actions rapides' }
   },
   ZH: {
     hero: {
@@ -100,29 +203,46 @@ const translations = {
     destination: '您想去哪里？',
     search: '搜索目的地（例如：105号登机口、洗手间）...',
     categories: ['全部', '登机口', '洗手间', '休息室和餐饮', '服务'],
-    museum: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史' }
+    museum: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史' },
+    discover: '探索', searchLabel: '搜索目的地', clearSearch: '清除搜索',
+    locationCategories: { puerta: '登机口', bano: '洗手间', restaurante: '休息室和餐饮', servicio: '服务' },
+    locations: {
+      'entrada-principal': { name: '主入口 - A 入口', level: '1层', zone: '主区域' },
+      'filtro-seguridad': { name: '中央安检处', level: '2层', zone: '中央区域' },
+      'puerta-105': { name: '105号登机口', level: '2层', zone: '北区' },
+      'puerta-108': { name: '108号登机口', level: '2层', zone: '南区' },
+      'banos-lucha-libre': { name: '主题洗手间（自由摔跤）', level: '2层', zone: '北区' },
+      'sala-vip': { name: 'Centurion 贵宾休息室', level: '2层', zone: '中央区域' }
+    },
+    actionGo: '前往 →', noCategoryResults: '此类别中没有目的地。', noSearchResults: (term: string) => `没有找到与“${term}”匹配的目的地。`,
+    changeDestination: '← 更换目的地', routeTo: '前往：', estimatedTime: '预计时间：', walkingMinutes: (minutes: number) => `步行 ${minutes} 分钟`,
+    routeBuilding: '该目的地的路线正在建设中。', routeSuggestions: '请选择105号登机口（从主入口出发）或自由摔跤洗手间（从中央安检处出发）来试用指南。',
+    routeSteps: {
+      'entrada-principal-puerta-105': ['从 A 入口通过安检门。', '乘自动扶梯前往2层。', '通过中央安检处。', '在主走廊向左转，前往北区。', '步行150米，105号登机口就在右侧。'],
+      'filtro-seguridad-banos-lucha-libre': ['沿北区走廊前行。', '主题洗手间在左侧50米处。']
+    },
+    attractions: {
+      museo: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史', label: '文化景点 · 必拍照片打卡地', schedule: '每日开放 · 09:00 - 17:00' },
+      torre: { name: '控制塔', description: '探索机场的运营中心。', badge: '景观' },
+      banos: { name: '主题洗手间', description: '让旅程更加舒适的独特服务。', badge: '体验' }
+    },
+    quickActions: { bathrooms: '洗手间', food: '餐饮', search: '搜索', label: '快捷操作' }
   }
 } satisfies Record<Language, unknown>;
 
 const ATTRACTIONS: Attraction[] = [
   {
-    name: 'Museo del Mamut',
-    description: 'Una parada inolvidable antes de tu vuelo.',
-    badge: 'Historia',
+    key: 'museo',
     image: '/images/museo-mamut.jpg',
     searchTerm: 'mamut'
   },
   {
-    name: 'Torre de Control',
-    description: 'Descubre el corazón operativo del aeropuerto.',
-    badge: 'Vistas',
+    key: 'torre',
     image: '/images/hero-tarde.jpg',
     searchTerm: 'torre'
   },
   {
-    name: 'Baños Temáticos',
-    description: 'Servicios únicos para hacer más cómodo tu viaje.',
-    badge: 'Experiencia',
+    key: 'banos',
     image: '/images/hero-noche.jpg',
     searchTerm: 'baños'
   }
@@ -167,16 +287,18 @@ function NavigationContent() {
   }, []);
 
   const currentOrigin = MOCK_LOCATIONS[origenParam] || MOCK_LOCATIONS['entrada-principal'];
+  const copy = translations[language];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
     (loc) => loc.id !== currentOrigin.id
   );
 
   const filteredDestinations = availableDestinations.filter((loc) => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const localizedLocation = copy.locations[loc.id];
     const matchesSearch =
       !normalizedSearchTerm ||
-      loc.name.toLowerCase().includes(normalizedSearchTerm) ||
-      loc.zone.toLowerCase().includes(normalizedSearchTerm);
+      localizedLocation.name.toLowerCase().includes(normalizedSearchTerm) ||
+      localizedLocation.zone.toLowerCase().includes(normalizedSearchTerm);
     const matchesCategory = selectedCategory === 'todas' || loc.category === selectedCategory;
 
     return matchesSearch && matchesCategory;
@@ -184,7 +306,6 @@ function NavigationContent() {
 
   const routeKey = `${currentOrigin.id}-${selectedDestination}`;
   const currentRoute = selectedDestination ? MOCK_ROUTES[routeKey] : null;
-  const copy = translations[language];
   const hero = heroIndex === null
     ? null
     : { ...HERO_SLIDES[heroIndex], ...copy.hero[HERO_PERIODS[heroIndex]] };
@@ -213,7 +334,7 @@ function NavigationContent() {
                 }
               : undefined
           }
-          aria-label={hero?.title || 'Cargando bienvenida'}
+          aria-label={hero?.title || copy.hero.noche.title}
         >
           <div className="absolute inset-0 bg-slate-900/60" />
           <div className="relative flex min-h-72 flex-col justify-end p-5 sm:min-h-80 sm:p-8">
@@ -229,7 +350,7 @@ function NavigationContent() {
                   onClick={() => setIsLanguageMenuOpen((isOpen) => !isOpen)}
                   aria-expanded={isLanguageMenuOpen}
                   aria-haspopup="listbox"
-                  aria-label="Seleccionar idioma"
+                  aria-label={selectedLanguage.label}
                   className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65"
                 >
                   {selectedLanguage.flag} {language}
@@ -274,9 +395,9 @@ function NavigationContent() {
         {/* Encabezado: Ubicación actual */}
         <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
           <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{copy.origin}</p>
-          <h1 className="text-xl font-bold mt-1">{currentOrigin.name}</h1>
+          <h1 className="text-xl font-bold mt-1">{copy.locations[currentOrigin.id].name}</h1>
           <p className="text-xs opacity-90 mt-1">
-            Terminal Pasajeros • {currentOrigin.level} • {currentOrigin.zone}
+            {copy.locations[currentOrigin.id].level} • {copy.locations[currentOrigin.id].zone}
           </p>
         </header>
 
@@ -287,7 +408,7 @@ function NavigationContent() {
               <section className="mb-8">
                 <div className="mb-3 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Descubre</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">{copy.discover}</p>
                     <h2 className="mt-1 text-2xl font-bold text-slate-800">{copy.explore}</h2>
                   </div>
                   <span className="text-xs font-semibold text-slate-400">{copy.swipe}</span>
@@ -295,10 +416,10 @@ function NavigationContent() {
                 <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 scrollbar-none sm:-mx-8 sm:px-8">
                   {ATTRACTIONS.map((attraction) => (
                     <button
-                      key={attraction.name}
+                      key={attraction.key}
                       type="button"
                       onClick={() => {
-                        setSearchTerm(attraction.searchTerm);
+                        setSearchTerm(attraction.key === 'banos' ? copy.categories[2] : '');
                         setSelectedCategory('todas');
                       }}
                       className="group relative min-w-[84%] snap-start overflow-hidden rounded-2xl text-left shadow-lg transition-transform duration-300 hover:-translate-y-1 sm:min-w-[42%] lg:min-w-[32%]"
@@ -309,15 +430,25 @@ function NavigationContent() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent" />
                       <span className="absolute left-3 top-3 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md animate-[float_4s_ease-in-out_infinite] transition-transform duration-300 group-hover:scale-105">
-                        {attraction.name === 'Museo del Mamut' ? copy.museum.badge : attraction.badge}
+                        {copy.attractions[attraction.key].badge}
                       </span>
                       <div className="absolute inset-x-4 bottom-4 text-white">
                         <h3 className="text-lg font-bold">
-                          {attraction.name === 'Museo del Mamut' ? copy.museum.name : attraction.name}
+                          {copy.attractions[attraction.key].name}
                         </h3>
                         <p className="mt-1 text-xs text-slate-200">
-                          {attraction.name === 'Museo del Mamut' ? copy.museum.description : attraction.description}
+                          {copy.attractions[attraction.key].description}
                         </p>
+                        {copy.attractions[attraction.key].label && (
+                          <span className="mt-2 inline-block text-[10px] font-semibold uppercase tracking-wide text-blue-200">
+                            {copy.attractions[attraction.key].label}
+                          </span>
+                        )}
+                        {copy.attractions[attraction.key].schedule && (
+                          <span className="mt-1 block text-[10px] text-slate-300">
+                            {copy.attractions[attraction.key].schedule}
+                          </span>
+                        )}
                       </div>
                     </button>
                   ))}
@@ -334,14 +465,14 @@ function NavigationContent() {
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder={copy.search}
                   id="destination-search"
-                  aria-label="Buscar destino"
+                  aria-label={copy.searchLabel}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-11 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    aria-label="Limpiar búsqueda"
+                    aria-label={copy.clearSearch}
                     className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
                   >
                     X
@@ -379,21 +510,17 @@ function NavigationContent() {
                       className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition flex justify-between items-center group"
                     >
                       <div>
-                        <h3 className="font-semibold text-slate-800 group-hover:text-blue-600">
-                          {loc.name}
-                        </h3>
+                        <h3 className="font-semibold text-slate-800 group-hover:text-blue-600">{copy.locations[loc.id].name}</h3>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {loc.category.toUpperCase()} • {loc.zone}
+                          {copy.locationCategories[loc.category]} • {copy.locations[loc.id].zone}
                         </p>
                       </div>
-                      <span className="text-blue-600 font-bold text-sm">Ir →</span>
+                      <span className="text-blue-600 font-bold text-sm">{copy.actionGo}</span>
                     </button>
                   ))
                 ) : (
                   <p className="text-sm text-slate-500 text-center py-6">
-                    {searchTerm.trim()
-                      ? `No se encontraron destinos que coincidan con '${searchTerm}'.`
-                      : 'No hay destinos en esta categoría.'}
+                    {searchTerm.trim() ? copy.noSearchResults(searchTerm) : copy.noCategoryResults}
                   </p>
                 )}
               </div>
@@ -405,48 +532,48 @@ function NavigationContent() {
                 onClick={() => setSelectedDestination(null)}
                 className="text-xs text-blue-600 font-semibold mb-4 hover:underline self-start flex items-center gap-1"
               >
-                ← Cambiar destino
+                {copy.changeDestination}
               </button>
 
               <h2 className="text-lg font-bold text-slate-800">
-                Ruta a: {MOCK_LOCATIONS[selectedDestination]?.name}
+                {copy.routeTo} {copy.locations[selectedDestination]?.name}
               </h2>
 
               {currentRoute ? (
                 <div className="mt-4 flex-1">
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-800 flex justify-between items-center font-medium">
-                    <span>Tiempo estimado:</span>
-                    <span className="font-bold">{currentRoute.estimatedMinutes} min a pie</span>
+                    <span>{copy.estimatedTime}</span>
+                    <span className="font-bold">{copy.walkingMinutes(currentRoute.estimatedMinutes)}</span>
                   </div>
 
                   <div className="space-y-4">
-                    {currentRoute.steps.map((s) => (
-                      <div key={s.step} className="flex items-start gap-3">
+                    {(copy.routeSteps[routeKey] || currentRoute.steps.map((step) => step.instruction)).map((instruction, index) => (
+                      <div key={index} className="flex items-start gap-3">
                         <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                          {s.step}
+                          {index + 1}
                         </span>
-                        <p className="text-sm text-slate-700">{s.instruction}</p>
+                        <p className="text-sm text-slate-700">{instruction}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
                 <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                  Ruta en construcción para este destino. Selecciona <strong>Puerta 105</strong> (desde Entrada Principal) o <strong>Baños Lucha Libre</strong> (desde Filtro de Seguridad) para probar la guía.
+                  {copy.routeBuilding} {copy.routeSuggestions}
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
-      <nav className="fixed inset-x-4 bottom-4 z-20 mx-auto flex max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label="Acciones rápidas">
+      <nav className="fixed inset-x-4 bottom-4 z-20 mx-auto flex max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label={copy.quickActions.label}>
         <button
           type="button"
-          onClick={() => { setSelectedDestination(null); setSearchTerm('baños'); setSelectedCategory('bano'); }}
+          onClick={() => { setSelectedDestination(null); setSearchTerm(copy.categories[2]); setSelectedCategory('bano'); }}
           className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
           <span className="text-xl transition-transform duration-300 hover:scale-125">🚽</span>
-          Baños
+          {copy.quickActions.bathrooms}
         </button>
         <button
           type="button"
@@ -454,7 +581,7 @@ function NavigationContent() {
           className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
           <span className="text-xl transition-transform duration-300 hover:scale-125">🍔</span>
-          Comida
+          {copy.quickActions.food}
         </button>
         <button
           type="button"
@@ -462,7 +589,7 @@ function NavigationContent() {
           className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
           <span className="text-xl transition-transform duration-300 hover:scale-125">🔍</span>
-          Buscar
+          {copy.quickActions.search}
         </button>
       </nav>
     </main>
@@ -471,7 +598,7 @@ function NavigationContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="p-4 text-center">Cargando guía...</div>}>
+    <Suspense fallback={<div className="p-4 text-center" aria-busy="true" />}>
       <NavigationContent />
     </Suspense>
   );
