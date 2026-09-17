@@ -1,16 +1,50 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
+
+type HeroPeriod = 'manana' | 'tarde' | 'noche';
+
+const HERO_CONFIG: Record<HeroPeriod, { image: string; title: string; subtitle: string; badge: string }> = {
+  manana: {
+    image: '/images/hero-manana.jpg',
+    title: '¡Buenos días! Bienvenido al AIFA',
+    subtitle: 'Explora la terminal bajo la luz de la mañana.',
+    badge: '🌅 Mañana'
+  },
+  tarde: {
+    image: '/images/hero-tarde.jpg',
+    title: '¡Buenas tardes! Explora tu terminal',
+    subtitle: 'Encuentra tus puertas, servicios y amenidades.',
+    badge: '☀️ Tarde'
+  },
+  noche: {
+    image: '/images/hero-noche.jpg',
+    title: '¡Buenas noches! Tu guía nocturna en AIFA',
+    subtitle: 'Navega fácilmente por el aeropuerto a cualquier hora.',
+    badge: '🌙 Noche'
+  }
+};
+
+function getHeroPeriod(hour: number): HeroPeriod {
+  if (hour >= 6 && hour < 12) return 'manana';
+  if (hour >= 12 && hour < 19) return 'tarde';
+  return 'noche';
+}
 
 function NavigationContent() {
   const searchParams = useSearchParams();
   const origenParam = searchParams.get('origen') || 'entrada-principal';
 
+  const [heroPeriod, setHeroPeriod] = useState<HeroPeriod | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    setHeroPeriod(getHeroPeriod(new Date().getHours()));
+  }, []);
 
   const currentOrigin = MOCK_LOCATIONS[origenParam] || MOCK_LOCATIONS['entrada-principal'];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
@@ -30,6 +64,7 @@ function NavigationContent() {
 
   const routeKey = `${currentOrigin.id}-${selectedDestination}`;
   const currentRoute = selectedDestination ? MOCK_ROUTES[routeKey] : null;
+  const hero = heroPeriod ? HERO_CONFIG[heroPeriod] : null;
 
   const categories = [
     { id: 'todas', label: 'Todas' },
@@ -42,6 +77,27 @@ function NavigationContent() {
   return (
     <main className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4">
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl overflow-hidden min-h-[90vh] flex flex-col">
+        <section
+          className="relative min-h-64 overflow-hidden bg-slate-700 text-white sm:min-h-72"
+          style={hero ? { backgroundImage: `url(${hero.image})`, backgroundPosition: 'center' } : undefined}
+          aria-label={hero?.title || 'Cargando bienvenida'}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/35 to-slate-900/10" />
+          <div className="relative flex min-h-64 flex-col justify-end p-5 sm:min-h-72 sm:p-6">
+            {hero ? (
+              <>
+                <span className="mb-3 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
+                  {hero.badge}
+                </span>
+                <h1 className="max-w-sm text-2xl font-bold leading-tight sm:text-3xl">{hero.title}</h1>
+                <p className="mt-2 max-w-sm text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
+              </>
+            ) : (
+              <div className="h-24 animate-pulse rounded-lg bg-white/10" />
+            )}
+          </div>
+        </section>
+
         {/* Encabezado: Ubicación actual */}
         <header className="bg-blue-600 text-white p-5 rounded-b-2xl shadow-md">
           <p className="text-xs uppercase tracking-wider font-semibold opacity-80">
