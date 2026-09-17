@@ -5,6 +5,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
+type Language = 'ES' | 'EN' | 'FR' | 'ZH';
 type Attraction = {
   name: string;
   description: string;
@@ -35,6 +36,73 @@ const HERO_CONFIG: Record<HeroPeriod, { image: string; title: string; subtitle: 
 };
 
 const HERO_SLIDES = Object.values(HERO_CONFIG);
+const HERO_PERIODS: HeroPeriod[] = ['manana', 'tarde', 'noche'];
+
+const LANGUAGE_OPTIONS: { code: Language; label: string; flag: string; locale: string }[] = [
+  { code: 'ES', label: 'Español', flag: '🇲🇽', locale: 'es-MX' },
+  { code: 'EN', label: 'English', flag: '🇺🇸', locale: 'en-US' },
+  { code: 'FR', label: 'Français', flag: '🇫🇷', locale: 'fr-FR' },
+  { code: 'ZH', label: '中文', flag: '🇨🇳', locale: 'zh-CN' }
+];
+
+const translations = {
+  ES: {
+    hero: {
+      manana: { title: '¡Buenos días! Bienvenido al AIFA', subtitle: 'Explora la terminal bajo la luz de la mañana.', badge: '🌅 Mañana' },
+      tarde: { title: '¡Buenas tardes! Explora tu terminal', subtitle: 'Encuentra tus puertas, servicios y amenidades.', badge: '☀️ Tarde' },
+      noche: { title: '¡Buenas noches! Tu guía nocturna en AIFA', subtitle: 'Navega fácilmente por el aeropuerto a cualquier hora.', badge: '🌙 Noche' }
+    },
+    origin: 'Punto de inicio (QR Escaneado)',
+    explore: 'Explora AIFA',
+    swipe: 'Desliza para ver más →',
+    destination: '¿A dónde quieres ir?',
+    search: 'Buscar destino (ej. Puerta 105, Baños)...',
+    categories: ['Todas', 'Puertas', 'Baños', 'Salas & Comida', 'Servicios'],
+    museum: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia' }
+  },
+  EN: {
+    hero: {
+      manana: { title: 'Good morning! Welcome to AIFA', subtitle: 'Explore the terminal in the morning light.', badge: '🌅 Morning' },
+      tarde: { title: 'Good afternoon! Explore your terminal', subtitle: 'Find your gates, services, and amenities.', badge: '☀️ Afternoon' },
+      noche: { title: 'Good evening! Your night guide to AIFA', subtitle: 'Navigate the airport easily at any hour.', badge: '🌙 Night' }
+    },
+    origin: 'Starting point (QR Scanned)',
+    explore: 'Explore AIFA',
+    swipe: 'Swipe to see more →',
+    destination: 'Where do you want to go?',
+    search: 'Search destination (e.g. Gate 105, Restrooms)...',
+    categories: ['All', 'Gates', 'Restrooms', 'Lounges & Food', 'Services'],
+    museum: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History' }
+  },
+  FR: {
+    hero: {
+      manana: { title: 'Bonjour ! Bienvenue à l’AIFA', subtitle: 'Explorez le terminal dans la lumière du matin.', badge: '🌅 Matin' },
+      tarde: { title: 'Bon après-midi ! Explorez votre terminal', subtitle: 'Trouvez vos portes, services et commodités.', badge: '☀️ Après-midi' },
+      noche: { title: 'Bonsoir ! Votre guide nocturne à l’AIFA', subtitle: 'Naviguez facilement dans l’aéroport à toute heure.', badge: '🌙 Nuit' }
+    },
+    origin: 'Point de départ (QR scanné)',
+    explore: 'Explorez l’AIFA',
+    swipe: 'Faites glisser pour voir plus →',
+    destination: 'Où souhaitez-vous aller ?',
+    search: 'Rechercher une destination (ex. Porte 105, Toilettes)...',
+    categories: ['Toutes', 'Portes', 'Toilettes', 'Salons & Restauration', 'Services'],
+    museum: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire' }
+  },
+  ZH: {
+    hero: {
+      manana: { title: '早上好！欢迎来到 AIFA', subtitle: '在晨光中探索航站楼。', badge: '🌅 早晨' },
+      tarde: { title: '下午好！探索您的航站楼', subtitle: '查找登机口、服务和设施。', badge: '☀️ 下午' },
+      noche: { title: '晚上好！您的 AIFA 夜间指南', subtitle: '随时轻松探索机场。', badge: '🌙 夜晚' }
+    },
+    origin: '起点（已扫描二维码）',
+    explore: '探索 AIFA',
+    swipe: '滑动查看更多 →',
+    destination: '您想去哪里？',
+    search: '搜索目的地（例如：105号登机口、洗手间）...',
+    categories: ['全部', '登机口', '洗手间', '休息室和餐饮', '服务'],
+    museum: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史' }
+  }
+} satisfies Record<Language, unknown>;
 
 const ATTRACTIONS: Attraction[] = [
   {
@@ -71,6 +139,9 @@ function NavigationContent() {
   const origenParam = searchParams.get('origen') || 'entrada-principal';
 
   const [heroIndex, setHeroIndex] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [language, setLanguage] = useState<Language>('ES');
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,6 +154,14 @@ function NavigationContent() {
     const intervalId = window.setInterval(() => {
       setHeroIndex((currentIndex) => (currentIndex === null ? 0 : (currentIndex + 1) % HERO_SLIDES.length));
     }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const updateClock = () => setCurrentTime(new Date());
+    updateClock();
+    const intervalId = window.setInterval(updateClock, 1000);
 
     return () => window.clearInterval(intervalId);
   }, []);
@@ -105,14 +184,18 @@ function NavigationContent() {
 
   const routeKey = `${currentOrigin.id}-${selectedDestination}`;
   const currentRoute = selectedDestination ? MOCK_ROUTES[routeKey] : null;
-  const hero = heroIndex === null ? null : HERO_SLIDES[heroIndex];
+  const copy = translations[language];
+  const hero = heroIndex === null
+    ? null
+    : { ...HERO_SLIDES[heroIndex], ...copy.hero[HERO_PERIODS[heroIndex]] };
+  const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === language) || LANGUAGE_OPTIONS[0];
 
   const categories = [
-    { id: 'todas', label: 'Todas' },
-    { id: 'puerta', label: 'Puertas' },
-    { id: 'bano', label: 'Baños' },
-    { id: 'restaurante', label: 'Salas & Comida' },
-    { id: 'servicio', label: 'Servicios' }
+    { id: 'todas', label: copy.categories[0] },
+    { id: 'puerta', label: copy.categories[1] },
+    { id: 'bano', label: copy.categories[2] },
+    { id: 'restaurante', label: copy.categories[3] },
+    { id: 'servicio', label: copy.categories[4] }
   ];
 
   return (
@@ -134,6 +217,46 @@ function NavigationContent() {
         >
           <div className="absolute inset-0 bg-slate-900/60" />
           <div className="relative flex min-h-72 flex-col justify-end p-5 sm:min-h-80 sm:p-8">
+            <div className="absolute right-5 top-5 flex items-start gap-2 sm:right-8 sm:top-8">
+              <time className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
+                {currentTime
+                  ? currentTime.toLocaleTimeString(selectedLanguage.locale, { hour: '2-digit', minute: '2-digit', hour12: true })
+                  : '--:--'}
+              </time>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsLanguageMenuOpen((isOpen) => !isOpen)}
+                  aria-expanded={isLanguageMenuOpen}
+                  aria-haspopup="listbox"
+                  aria-label="Seleccionar idioma"
+                  className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65"
+                >
+                  {selectedLanguage.flag} {language}
+                </button>
+                {isLanguageMenuOpen && (
+                  <div className="absolute right-0 top-11 z-30 min-w-36 overflow-hidden rounded-xl border border-white/20 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur-md" role="listbox">
+                    {LANGUAGE_OPTIONS.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        role="option"
+                        aria-selected={language === option.code}
+                        onClick={() => {
+                          setLanguage(option.code);
+                          setIsLanguageMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-white transition hover:bg-white/15"
+                      >
+                        <span>{option.flag}</span>
+                        <span>{option.label}</span>
+                        <span className="ml-auto text-xs text-slate-400">{option.code}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
             {hero ? (
               <>
                 <span className="mb-3 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
@@ -150,9 +273,7 @@ function NavigationContent() {
 
         {/* Encabezado: Ubicación actual */}
         <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
-          <p className="text-xs uppercase tracking-wider font-semibold opacity-80">
-            Punto de inicio (QR Escaneado)
-          </p>
+          <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{copy.origin}</p>
           <h1 className="text-xl font-bold mt-1">{currentOrigin.name}</h1>
           <p className="text-xs opacity-90 mt-1">
             Terminal Pasajeros • {currentOrigin.level} • {currentOrigin.zone}
@@ -167,9 +288,9 @@ function NavigationContent() {
                 <div className="mb-3 flex items-end justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Descubre</p>
-                    <h2 className="mt-1 text-2xl font-bold text-slate-800">Explora AIFA</h2>
+                    <h2 className="mt-1 text-2xl font-bold text-slate-800">{copy.explore}</h2>
                   </div>
-                  <span className="text-xs font-semibold text-slate-400">Desliza para ver más →</span>
+                  <span className="text-xs font-semibold text-slate-400">{copy.swipe}</span>
                 </div>
                 <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 scrollbar-none sm:-mx-8 sm:px-8">
                   {ATTRACTIONS.map((attraction) => (
@@ -188,18 +309,22 @@ function NavigationContent() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent" />
                       <span className="absolute left-3 top-3 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md animate-[float_4s_ease-in-out_infinite] transition-transform duration-300 group-hover:scale-105">
-                        {attraction.badge}
+                        {attraction.name === 'Museo del Mamut' ? copy.museum.badge : attraction.badge}
                       </span>
                       <div className="absolute inset-x-4 bottom-4 text-white">
-                        <h3 className="text-lg font-bold">{attraction.name}</h3>
-                        <p className="mt-1 text-xs text-slate-200">{attraction.description}</p>
+                        <h3 className="text-lg font-bold">
+                          {attraction.name === 'Museo del Mamut' ? copy.museum.name : attraction.name}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-200">
+                          {attraction.name === 'Museo del Mamut' ? copy.museum.description : attraction.description}
+                        </p>
                       </div>
                     </button>
                   ))}
                 </div>
               </section>
 
-              <h2 className="mb-3 text-lg font-bold text-slate-800">¿A dónde quieres ir?</h2>
+              <h2 className="mb-3 text-lg font-bold text-slate-800">{copy.destination}</h2>
 
               {/* Búsqueda de destinos */}
               <div className="relative mb-4">
@@ -207,7 +332,7 @@ function NavigationContent() {
                   type="search"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Buscar destino (ej. Puerta 105, Baños)..."
+                  placeholder={copy.search}
                   id="destination-search"
                   aria-label="Buscar destino"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-11 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
