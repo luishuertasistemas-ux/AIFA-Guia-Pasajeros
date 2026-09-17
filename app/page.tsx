@@ -79,10 +79,18 @@ function NavigationContent() {
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl overflow-hidden min-h-[90vh] flex flex-col">
         <section
           className="relative min-h-64 overflow-hidden bg-slate-700 text-white sm:min-h-72"
-          style={hero ? { backgroundImage: `url(${hero.image})`, backgroundPosition: 'center' } : undefined}
+          style={
+            hero
+              ? {
+                  backgroundImage: `url("${hero.image}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }
+              : undefined
+          }
           aria-label={hero?.title || 'Cargando bienvenida'}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/35 to-slate-900/10" />
+          <div className="absolute inset-0 bg-slate-900/60" />
           <div className="relative flex min-h-64 flex-col justify-end p-5 sm:min-h-72 sm:p-6">
             {hero ? (
               <>
