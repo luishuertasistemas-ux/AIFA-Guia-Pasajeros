@@ -27,6 +27,25 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     images: ['/images/hero-tarde.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 2 - Concourse Central'
   },
+  'banos-mujeres-nivel-1': {
+    id: 'banos-mujeres-nivel-1',
+    category: 'servicios',
+    translations: {
+      ES: { title: 'Sanitarios de Mujeres - Nivel 1', description: 'Baños de mujeres cerca de la zona comercial.' },
+      EN: { title: 'Women’s Restrooms - Level 1', description: 'Women’s restrooms near the shopping zone.' },
+      FR: { title: 'Toilettes pour femmes - Niveau 1', description: 'Toilettes pour femmes près de la zone commerciale.' },
+      ZH: { title: '女洗手间 - 1层', description: '位于商业区附近的女洗手间。' }
+    },
+    walkTime: '5 min a pie',
+    images: ['/images/hero-noche.jpg', '/images/hero-manana.jpg'],
+    mapZone: 'Nivel 1 - Zona Comercial',
+    quickTip: {
+      ES: 'Los baños de mujeres están en el Nivel 1, cerca de la zona comercial.',
+      EN: 'The women’s restrooms are on Level 1, near the shopping zone.',
+      FR: 'Les toilettes pour femmes sont au niveau 1, près de la zone commerciale.',
+      ZH: '女洗手间位于1层，靠近商业区。'
+    }
+  },
   'puerta-105': {
     id: 'puerta-105',
     category: 'puertas',

@@ -52,7 +52,7 @@ type Translation = {
 };
 
 const QUICK_TIP_DESTINATIONS: Record<QuickTipKey, { id: string; minutes: number }> = {
-  bathrooms: { id: 'banos-lucha-libre', minutes: 5 },
+  bathrooms: { id: 'banos-mujeres-nivel-1', minutes: 5 },
   food: { id: 'plaza-mexicana', minutes: 4 },
   museum: { id: 'museo-mamut', minutes: 5 },
   security: { id: 'filtro-seguridad', minutes: 3 }
@@ -86,12 +86,12 @@ const translations: Record<Language, Translation> = {
     swipe: 'Desliza para ver más →',
     destination: '¿A dónde quieres ir?',
     search: 'Buscar destino (ej. Puerta 105, Baños)...',
-    categories: ['Todas', 'Puertas', 'Baños', 'Salas & Comida', 'Servicios'],
+    categories: ['Todas', 'Puertas', 'Servicios', 'Comida', 'Turismo'],
     museum: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia' },
     discover: 'Descubre',
     searchLabel: 'Buscar destino',
     clearSearch: 'Limpiar búsqueda',
-    locationCategories: { puerta: 'Puerta', bano: 'Baño', restaurante: 'Salas & Comida', servicio: 'Servicio' },
+    locationCategories: { puertas: 'Puerta', servicios: 'Servicio', comida: 'Comida', turismo: 'Turismo' },
     locations: {
       'entrada-principal': { name: 'Entrada Principal - Acceso A', level: 'Nivel 1', zone: 'Zona Principal' },
       'filtro-seguridad': { name: 'Filtro de Seguridad Central', level: 'Nivel 2', zone: 'Zona Centro' },
@@ -151,10 +151,10 @@ const translations: Record<Language, Translation> = {
     swipe: 'Swipe to see more →',
     destination: 'Where do you want to go?',
     search: 'Search destination (e.g. Gate 105, Restrooms)...',
-    categories: ['All', 'Gates', 'Restrooms', 'Lounges & Food', 'Services'],
+    categories: ['All', 'Gates', 'Services', 'Food', 'Tourism'],
     museum: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History' },
     discover: 'Discover', searchLabel: 'Search destination', clearSearch: 'Clear search',
-    locationCategories: { puerta: 'Gate', bano: 'Restroom', restaurante: 'Lounges & Food', servicio: 'Service' },
+    locationCategories: { puertas: 'Gate', servicios: 'Service', comida: 'Food', turismo: 'Tourism' },
     locations: {
       'entrada-principal': { name: 'Main Entrance - Access A', level: 'Level 1', zone: 'Main Zone' },
       'filtro-seguridad': { name: 'Central Security Checkpoint', level: 'Level 2', zone: 'Central Zone' },
@@ -208,10 +208,10 @@ const translations: Record<Language, Translation> = {
     swipe: 'Faites glisser pour voir plus →',
     destination: 'Où souhaitez-vous aller ?',
     search: 'Rechercher une destination (ex. Porte 105, Toilettes)...',
-    categories: ['Toutes', 'Portes', 'Toilettes', 'Salons & Restauration', 'Services'],
+    categories: ['Toutes', 'Portes', 'Services', 'Restauration', 'Tourisme'],
     museum: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire' },
     discover: 'Découvrez', searchLabel: 'Rechercher une destination', clearSearch: 'Effacer la recherche',
-    locationCategories: { puerta: 'Porte', bano: 'Toilettes', restaurante: 'Salons & Restauration', servicio: 'Service' },
+    locationCategories: { puertas: 'Porte', servicios: 'Service', comida: 'Restauration', turismo: 'Tourisme' },
     locations: {
       'entrada-principal': { name: 'Entrée principale - Accès A', level: 'Niveau 1', zone: 'Zone principale' },
       'filtro-seguridad': { name: 'Contrôle de sécurité central', level: 'Niveau 2', zone: 'Zone centrale' },
@@ -265,10 +265,10 @@ const translations: Record<Language, Translation> = {
     swipe: '滑动查看更多 →',
     destination: '您想去哪里？',
     search: '搜索目的地（例如：105号登机口、洗手间）...',
-    categories: ['全部', '登机口', '洗手间', '休息室和餐饮', '服务'],
+    categories: ['全部', '登机口', '服务', '餐饮', '旅游'],
     museum: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史' },
     discover: '探索', searchLabel: '搜索目的地', clearSearch: '清除搜索',
-    locationCategories: { puerta: '登机口', bano: '洗手间', restaurante: '休息室和餐饮', servicio: '服务' },
+    locationCategories: { puertas: '登机口', servicios: '服务', comida: '餐饮', turismo: '旅游' },
     locations: {
       'entrada-principal': { name: '主入口 - A 入口', level: '1层', zone: '主区域' },
       'filtro-seguridad': { name: '中央安检处', level: '2层', zone: '中央区域' },
@@ -377,11 +377,12 @@ function NavigationContent() {
 
   const filteredDestinations = availableDestinations.filter((loc) => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-    const localizedLocation = copy.locations[loc.id];
+    const localizedLocation = loc.translations[currentLang];
     const matchesSearch =
       !normalizedSearchTerm ||
-      localizedLocation.name.toLowerCase().includes(normalizedSearchTerm) ||
-      localizedLocation.zone.toLowerCase().includes(normalizedSearchTerm);
+      localizedLocation.title.toLowerCase().includes(normalizedSearchTerm) ||
+      localizedLocation.description.toLowerCase().includes(normalizedSearchTerm) ||
+      loc.mapZone.toLowerCase().includes(normalizedSearchTerm);
     const matchesCategory = selectedCategory === 'todas' || loc.category === selectedCategory;
 
     return matchesSearch && matchesCategory;
@@ -399,10 +400,10 @@ function NavigationContent() {
 
   const categories = [
     { id: 'todas', label: copy.categories[0] },
-    { id: 'puerta', label: copy.categories[1] },
-    { id: 'bano', label: copy.categories[2] },
-    { id: 'restaurante', label: copy.categories[3] },
-    { id: 'servicio', label: copy.categories[4] }
+    { id: 'puertas', label: copy.categories[1] },
+    { id: 'servicios', label: copy.categories[2] },
+    { id: 'comida', label: copy.categories[3] },
+    { id: 'turismo', label: copy.categories[4] }
   ];
 
   return (
@@ -481,9 +482,9 @@ function NavigationContent() {
         {/* Encabezado: Ubicación actual */}
         <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
           <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{copy.origin}</p>
-          <h1 className="text-xl font-bold mt-1">{copy.locations[currentOrigin.id].name}</h1>
+          <h1 className="text-xl font-bold mt-1">{currentOrigin.translations[currentLang].title}</h1>
           <p className="text-xs opacity-90 mt-1">
-            {copy.locations[currentOrigin.id].level} • {copy.locations[currentOrigin.id].zone}
+            {currentOrigin.mapZone} • {currentOrigin.walkTime}
           </p>
         </header>
 
@@ -505,8 +506,8 @@ function NavigationContent() {
                       key={attraction.key}
                       type="button"
                       onClick={() => {
-                        setSearchTerm(attraction.key === 'banos' ? copy.categories[2] : '');
-                        setSelectedCategory('todas');
+                        setSearchTerm('');
+                        setSelectedCategory(attraction.key === 'banos' ? 'servicios' : 'todas');
                       }}
                       className="group relative min-w-[84%] snap-start overflow-hidden rounded-2xl text-left shadow-lg transition-transform duration-300 hover:-translate-y-1 sm:min-w-[42%] lg:min-w-[32%]"
                     >
@@ -603,7 +604,7 @@ function NavigationContent() {
                     </div>
                     {activeQuickTip === 'bathrooms' && (
                       <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                        {copy.quickTips.notice}
+                        {activeQuickTipDestination.quickTip?.[currentLang] || copy.quickTips.notice}
                       </p>
                     )}
                   </div>
@@ -639,9 +640,10 @@ function NavigationContent() {
                       className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition flex justify-between items-center group"
                     >
                       <div>
-                        <h3 className="font-semibold text-slate-800 group-hover:text-blue-600">{copy.locations[loc.id].name}</h3>
+                        <h3 className="font-semibold text-slate-800 group-hover:text-blue-600">{loc.translations[currentLang].title}</h3>
+                        <p className="mt-0.5 text-xs text-slate-500">{loc.translations[currentLang].description}</p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {copy.locationCategories[loc.category]} • {copy.locations[loc.id].zone}
+                          {copy.locationCategories[loc.category]} • {loc.mapZone} • {loc.walkTime}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -680,7 +682,7 @@ function NavigationContent() {
               </button>
 
               <h2 className="text-lg font-bold text-slate-800">
-                {copy.routeTo} {copy.locations[selectedDestination]?.name}
+                {copy.routeTo} {MOCK_LOCATIONS[selectedDestination]?.translations[currentLang].title}
               </h2>
 
               {currentRoute ? (
@@ -713,7 +715,7 @@ function NavigationContent() {
       <nav className="fixed inset-x-4 bottom-4 z-20 mx-auto flex max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label={copy.quickActions.label}>
         <button
           type="button"
-          onClick={() => { setSelectedDestination(null); setSearchTerm(copy.categories[2]); setSelectedCategory('bano'); }}
+          onClick={() => { setSelectedDestination(null); setSearchTerm(''); setSelectedCategory('servicios'); }}
           className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
           <span className="text-xl transition-transform duration-300 hover:scale-125">🚽</span>
@@ -721,7 +723,7 @@ function NavigationContent() {
         </button>
         <button
           type="button"
-          onClick={() => { setSelectedDestination(null); setSelectedCategory('restaurante'); setSearchTerm(''); }}
+          onClick={() => { setSelectedDestination(null); setSelectedCategory('comida'); setSearchTerm(''); }}
           className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
           <span className="text-xl transition-transform duration-300 hover:scale-125">🍔</span>
