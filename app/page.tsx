@@ -6,6 +6,7 @@ import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
 type Language = 'ES' | 'EN' | 'FR' | 'ZH';
+type QuickTipKey = 'bathrooms' | 'food' | 'museum' | 'security';
 type Attraction = {
   key: 'museo' | 'torre' | 'banos';
   image: string;
@@ -38,27 +39,29 @@ type Translation = {
   routeSteps: Record<string, string[]>;
   attractions: Record<string, { name: string; description: string; badge: string; label?: string; schedule?: string }>;
   quickActions: { bathrooms: string; food: string; search: string; label: string };
+  languageNames: Record<Language, string>;
+  actionDetails: string;
+  quickTips: {
+    title: string;
+    answerLabel: string;
+    walkingLabel: string;
+    notice: string;
+    questions: Record<QuickTipKey, string>;
+    answers: Record<QuickTipKey, string>;
+  };
 };
 
-const HERO_CONFIG: Record<HeroPeriod, { image: string; title: string; subtitle: string; badge: string }> = {
-  manana: {
-    image: '/images/hero-manana.jpg',
-    title: '¡Buenos días! Bienvenido al AIFA',
-    subtitle: 'Explora la terminal bajo la luz de la mañana.',
-    badge: '🌅 Mañana'
-  },
-  tarde: {
-    image: '/images/hero-tarde.jpg',
-    title: '¡Buenas tardes! Explora tu terminal',
-    subtitle: 'Encuentra tus puertas, servicios y amenidades.',
-    badge: '☀️ Tarde'
-  },
-  noche: {
-    image: '/images/hero-noche.jpg',
-    title: '¡Buenas noches! Tu guía nocturna en AIFA',
-    subtitle: 'Navega fácilmente por el aeropuerto a cualquier hora.',
-    badge: '🌙 Noche'
-  }
+const QUICK_TIP_DESTINATIONS: Record<QuickTipKey, { id: string; minutes: number }> = {
+  bathrooms: { id: 'banos-lucha-libre', minutes: 5 },
+  food: { id: 'plaza-mexicana', minutes: 4 },
+  museum: { id: 'museo-mamut', minutes: 5 },
+  security: { id: 'filtro-seguridad', minutes: 3 }
+};
+
+const HERO_CONFIG: Record<HeroPeriod, { image: string }> = {
+  manana: { image: '/images/hero-manana.jpg' },
+  tarde: { image: '/images/hero-tarde.jpg' },
+  noche: { image: '/images/hero-noche.jpg' }
 };
 
 const HERO_SLIDES = Object.values(HERO_CONFIG);
@@ -115,7 +118,27 @@ const translations: Record<Language, Translation> = {
       torre: { name: 'Torre de Control', description: 'Descubre el corazón operativo del aeropuerto.', badge: 'Vistas' },
       banos: { name: 'Baños Temáticos', description: 'Servicios únicos para hacer más cómodo tu viaje.', badge: 'Experiencia' }
     },
-    quickActions: { bathrooms: 'Baños', food: 'Comida', search: 'Buscar', label: 'Acciones rápidas' }
+    quickActions: { bathrooms: 'Baños', food: 'Comida', search: 'Buscar', label: 'Acciones rápidas' },
+    languageNames: { ES: 'Español', EN: 'Inglés', FR: 'Francés', ZH: 'Chino' },
+    actionDetails: 'Ver detalles',
+    quickTips: {
+      title: 'Preguntas rápidas',
+      answerLabel: 'Respuesta',
+      walkingLabel: 'Tiempo estimado',
+      notice: 'Aviso: los baños de mujeres están en el Nivel 1, cerca de la zona comercial.',
+      questions: {
+        bathrooms: '¿Dónde están los baños de mujeres?',
+        food: '¿Dónde comer algo rápido?',
+        museum: '¿Cómo llegar al Museo del Mamut?',
+        security: '¿Dónde están los filtros de seguridad?'
+      },
+      answers: {
+        bathrooms: 'Dirígete a los baños de mujeres de la zona de servicios.',
+        food: 'La Plaza Mexicana concentra opciones rápidas de comida y servicios.',
+        museum: 'El Museo del Mamut está en la zona cultural de la terminal.',
+        security: 'El Filtro de Seguridad Central es el punto de inicio del flujo de pasajeros.'
+      }
+    }
   },
   EN: {
     hero: {
@@ -152,7 +175,27 @@ const translations: Record<Language, Translation> = {
       torre: { name: 'Control Tower', description: 'Discover the operational heart of the airport.', badge: 'Views' },
       banos: { name: 'Themed Restrooms', description: 'Unique services for a more comfortable journey.', badge: 'Experience' }
     },
-    quickActions: { bathrooms: 'Restrooms', food: 'Food', search: 'Search', label: 'Quick actions' }
+    quickActions: { bathrooms: 'Restrooms', food: 'Food', search: 'Search', label: 'Quick actions' },
+    languageNames: { ES: 'Spanish', EN: 'English', FR: 'French', ZH: 'Chinese' },
+    actionDetails: 'View details',
+    quickTips: {
+      title: 'Quick questions',
+      answerLabel: 'Answer',
+      walkingLabel: 'Estimated walking time',
+      notice: 'Notice: the women’s restrooms are on Level 1, near the shopping zone.',
+      questions: {
+        bathrooms: 'Where are the women’s restrooms?',
+        food: 'Where can I grab a quick bite?',
+        museum: 'How do I get to the Mammoth Museum?',
+        security: 'Where are the security checkpoints?'
+      },
+      answers: {
+        bathrooms: 'Head to the women’s restrooms in the services area.',
+        food: 'Mexican Plaza brings together quick food and service options.',
+        museum: 'The Mammoth Museum is in the terminal’s cultural area.',
+        security: 'The Central Security Checkpoint is the starting point for passenger flow.'
+      }
+    }
   },
   FR: {
     hero: {
@@ -189,7 +232,27 @@ const translations: Record<Language, Translation> = {
       torre: { name: 'Tour de contrôle', description: 'Découvrez le cœur opérationnel de l’aéroport.', badge: 'Vues' },
       banos: { name: 'Toilettes thématiques', description: 'Des services uniques pour un voyage plus confortable.', badge: 'Expérience' }
     },
-    quickActions: { bathrooms: 'Toilettes', food: 'Restauration', search: 'Rechercher', label: 'Actions rapides' }
+    quickActions: { bathrooms: 'Toilettes', food: 'Restauration', search: 'Rechercher', label: 'Actions rapides' },
+    languageNames: { ES: 'Espagnol', EN: 'Anglais', FR: 'Français', ZH: 'Chinois' },
+    actionDetails: 'Voir les détails',
+    quickTips: {
+      title: 'Questions rapides',
+      answerLabel: 'Réponse',
+      walkingLabel: 'Temps de marche estimé',
+      notice: 'À noter : les toilettes pour femmes sont au niveau 1, près de la zone commerciale.',
+      questions: {
+        bathrooms: 'Où sont les toilettes pour femmes ?',
+        food: 'Où manger rapidement ?',
+        museum: 'Comment aller au Musée du Mammouth ?',
+        security: 'Où sont les contrôles de sécurité ?'
+      },
+      answers: {
+        bathrooms: 'Dirigez-vous vers les toilettes pour femmes dans la zone des services.',
+        food: 'La Plaza Mexicana regroupe des options de restauration rapide et des services.',
+        museum: 'Le Musée du Mammouth se trouve dans la zone culturelle du terminal.',
+        security: 'Le contrôle de sécurité central est le point de départ du parcours des passagers.'
+      }
+    }
   },
   ZH: {
     hero: {
@@ -226,7 +289,27 @@ const translations: Record<Language, Translation> = {
       torre: { name: '控制塔', description: '探索机场的运营中心。', badge: '景观' },
       banos: { name: '主题洗手间', description: '让旅程更加舒适的独特服务。', badge: '体验' }
     },
-    quickActions: { bathrooms: '洗手间', food: '餐饮', search: '搜索', label: '快捷操作' }
+    quickActions: { bathrooms: '洗手间', food: '餐饮', search: '搜索', label: '快捷操作' },
+    languageNames: { ES: '西班牙语', EN: '英语', FR: '法语', ZH: '中文' },
+    actionDetails: '查看详情',
+    quickTips: {
+      title: '快速问答',
+      answerLabel: '回答',
+      walkingLabel: '预计步行时间',
+      notice: '提示：女洗手间位于1层，靠近商业区。',
+      questions: {
+        bathrooms: '女洗手间在哪里？',
+        food: '在哪里可以快速用餐？',
+        museum: '如何前往猛犸象博物馆？',
+        security: '安检处在哪里？'
+      },
+      answers: {
+        bathrooms: '请前往服务区的女洗手间。',
+        food: '墨西哥广场汇集了快速餐饮和服务选项。',
+        museum: '猛犸象博物馆位于航站楼文化区。',
+        security: '中央安检处是旅客流程的起点。'
+      }
+    }
   }
 } satisfies Record<Language, unknown>;
 
@@ -260,16 +343,16 @@ function NavigationContent() {
 
   const [heroIndex, setHeroIndex] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [language, setLanguage] = useState<Language>('ES');
+  const [currentLang, setCurrentLang] = useState<Language>('ES');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeQuickTip, setActiveQuickTip] = useState<QuickTipKey | null>(null);
 
   useEffect(() => {
     const initialPeriod = getHeroPeriod(new Date().getHours());
-    const initialIndex = HERO_SLIDES.findIndex((slide) => slide.badge === HERO_CONFIG[initialPeriod].badge);
-    setHeroIndex(initialIndex >= 0 ? initialIndex : 0);
+    setHeroIndex(HERO_PERIODS.indexOf(initialPeriod));
 
     const intervalId = window.setInterval(() => {
       setHeroIndex((currentIndex) => (currentIndex === null ? 0 : (currentIndex + 1) % HERO_SLIDES.length));
@@ -287,7 +370,7 @@ function NavigationContent() {
   }, []);
 
   const currentOrigin = MOCK_LOCATIONS[origenParam] || MOCK_LOCATIONS['entrada-principal'];
-  const copy = translations[language];
+  const copy = translations[currentLang];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
     (loc) => loc.id !== currentOrigin.id
   );
@@ -309,7 +392,10 @@ function NavigationContent() {
   const hero = heroIndex === null
     ? null
     : { ...HERO_SLIDES[heroIndex], ...copy.hero[HERO_PERIODS[heroIndex]] };
-  const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === language) || LANGUAGE_OPTIONS[0];
+  const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === currentLang) || LANGUAGE_OPTIONS[0];
+  const activeQuickTipDestination = activeQuickTip
+    ? MOCK_LOCATIONS[QUICK_TIP_DESTINATIONS[activeQuickTip].id]
+    : null;
 
   const categories = [
     { id: 'todas', label: copy.categories[0] },
@@ -341,7 +427,7 @@ function NavigationContent() {
             <div className="absolute right-5 top-5 flex items-start gap-2 sm:right-8 sm:top-8">
               <time className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
                 {currentTime
-                  ? currentTime.toLocaleTimeString(selectedLanguage.locale, { hour: '2-digit', minute: '2-digit', hour12: true })
+                  ? currentTime.toLocaleString(selectedLanguage.locale, { dateStyle: 'short', timeStyle: 'short' })
                   : '--:--'}
               </time>
               <div className="relative">
@@ -350,10 +436,10 @@ function NavigationContent() {
                   onClick={() => setIsLanguageMenuOpen((isOpen) => !isOpen)}
                   aria-expanded={isLanguageMenuOpen}
                   aria-haspopup="listbox"
-                  aria-label={selectedLanguage.label}
+                  aria-label={copy.languageNames[currentLang]}
                   className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65"
                 >
-                  {selectedLanguage.flag} {language}
+                  {selectedLanguage.flag} {currentLang}
                 </button>
                 {isLanguageMenuOpen && (
                   <div className="absolute right-0 top-11 z-30 min-w-36 overflow-hidden rounded-xl border border-white/20 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur-md" role="listbox">
@@ -362,15 +448,15 @@ function NavigationContent() {
                         key={option.code}
                         type="button"
                         role="option"
-                        aria-selected={language === option.code}
+                        aria-selected={currentLang === option.code}
                         onClick={() => {
-                          setLanguage(option.code);
+                          setCurrentLang(option.code);
                           setIsLanguageMenuOpen(false);
                         }}
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-white transition hover:bg-white/15"
                       >
                         <span>{option.flag}</span>
-                        <span>{option.label}</span>
+                        <span>{copy.languageNames[option.code]}</span>
                         <span className="ml-auto text-xs text-slate-400">{option.code}</span>
                       </button>
                     ))}
@@ -449,6 +535,9 @@ function NavigationContent() {
                             {copy.attractions[attraction.key].schedule}
                           </span>
                         )}
+                        <span className="mt-2 block text-xs font-bold text-white underline underline-offset-2">
+                          {copy.actionDetails}
+                        </span>
                       </div>
                     </button>
                   ))}
@@ -475,10 +564,51 @@ function NavigationContent() {
                     aria-label={copy.clearSearch}
                     className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
                   >
-                    X
+                    <span aria-hidden="true">×</span>
                   </button>
                 )}
               </div>
+
+              <section className="mb-6" aria-labelledby="quick-tips-title">
+                <h3 id="quick-tips-title" className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-slate-500">
+                  {copy.quickTips.title}
+                </h3>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {(Object.keys(copy.quickTips.questions) as QuickTipKey[]).map((tipKey) => (
+                    <button
+                      key={tipKey}
+                      type="button"
+                      onClick={() => setActiveQuickTip(tipKey)}
+                      className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                        activeQuickTip === tipKey
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600'
+                      }`}
+                    >
+                      {copy.quickTips.questions[tipKey]}
+                    </button>
+                  ))}
+                </div>
+                {activeQuickTip && activeQuickTipDestination && (
+                  <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950" role="status">
+                    <p className="text-xs font-bold uppercase tracking-wide text-blue-700">{copy.quickTips.answerLabel}</p>
+                    <p className="mt-1 font-semibold">{copy.quickTips.answers[activeQuickTip]}</p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                      <span className="rounded-full bg-white px-2.5 py-1 text-blue-800">
+                        {copy.quickTips.walkingLabel}: {copy.walkingMinutes(QUICK_TIP_DESTINATIONS[activeQuickTip].minutes)}
+                      </span>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-blue-800">
+                        {activeQuickTipDestination.translations[currentLang].title}
+                      </span>
+                    </div>
+                    {activeQuickTip === 'bathrooms' && (
+                      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                        {copy.quickTips.notice}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
 
               {/* Botones de Filtro por Categoría */}
               <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
@@ -504,9 +634,8 @@ function NavigationContent() {
               >
                 {filteredDestinations.length > 0 ? (
                   filteredDestinations.map((loc) => (
-                    <button
+                    <div
                       key={loc.id}
-                      onClick={() => setSelectedDestination(loc.id)}
                       className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition flex justify-between items-center group"
                     >
                       <div>
@@ -515,8 +644,23 @@ function NavigationContent() {
                           {copy.locationCategories[loc.category]} • {copy.locations[loc.id].zone}
                         </p>
                       </div>
-                      <span className="text-blue-600 font-bold text-sm">{copy.actionGo}</span>
-                    </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDestination(loc.id)}
+                          className="text-blue-600 font-bold text-sm"
+                        >
+                          {copy.actionDetails}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDestination(loc.id)}
+                          className="text-blue-600 font-bold text-sm"
+                        >
+                          {copy.actionGo}
+                        </button>
+                      </div>
+                    </div>
                   ))
                 ) : (
                   <p className="text-sm text-slate-500 text-center py-6">
@@ -547,7 +691,7 @@ function NavigationContent() {
                   </div>
 
                   <div className="space-y-4">
-                    {(copy.routeSteps[routeKey] || currentRoute.steps.map((step) => step.instruction)).map((instruction, index) => (
+                    {(copy.routeSteps[routeKey] || []).map((instruction, index) => (
                       <div key={index} className="flex items-start gap-3">
                         <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                           {index + 1}

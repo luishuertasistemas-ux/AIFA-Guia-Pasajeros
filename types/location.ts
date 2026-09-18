@@ -1,11 +1,18 @@
-export type LocationCategory = 'puerta' | 'bano' | 'restaurante' | 'servicio';
+export type LocationCategory = 'puertas' | 'servicios' | 'comida' | 'turismo';
+export type SupportedLanguage = 'ES' | 'EN' | 'FR' | 'ZH';
+
+export interface LocationTranslation {
+  title: string;
+  description: string;
+}
 
 export interface Location {
   id: string;
-  name: string;
-  level: string;
-  zone: string;
   category: LocationCategory;
+  translations: Record<SupportedLanguage, LocationTranslation>;
+  walkTime: string;
+  images: string[];
+  mapZone: string;
 }
 
 export interface RouteStep {
