@@ -97,6 +97,13 @@ const LANGUAGE_OPTIONS: { code: Language; label: string; flag: string; locale: s
   { code: 'ZH', label: '中文', flag: '🇨🇳', locale: 'zh-CN' }
 ];
 
+const SPEECH_SYNTHESIS_LOCALES: Record<Language, string> = {
+  ES: 'es-MX',
+  EN: 'en-US',
+  FR: 'fr-FR',
+  ZH: 'zh-CN'
+};
+
 const translations: Record<Language, Translation> = {
   ES: {
     hero: {
@@ -454,7 +461,7 @@ function NavigationContent() {
     setVoiceMessage(response);
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(response);
-    utterance.lang = selectedLanguage.locale;
+    utterance.lang = SPEECH_SYNTHESIS_LOCALES[currentLang];
     window.speechSynthesis.speak(utterance);
   };
 
