@@ -1,12 +1,27 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
 type Language = 'ES' | 'EN' | 'FR' | 'ZH';
 type QuickTipKey = 'bathrooms' | 'food' | 'museum' | 'security';
+type SpeechRecognitionEventLike = {
+  results: { [index: number]: { [index: number]: { transcript: string } } };
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 type Attraction = {
   key: 'museo' | 'torre' | 'banos';
   image: string;
@@ -48,6 +63,14 @@ type Translation = {
     notice: string;
     questions: Record<QuickTipKey, string>;
     answers: Record<QuickTipKey, string>;
+  };
+  voice: {
+    buttonLabel: string;
+    listening: string;
+    unsupported: string;
+    noMatch: string;
+    responsePrefix: string;
+    quickTipPrefix: string;
   };
 };
 
@@ -121,6 +144,7 @@ const translations: Record<Language, Translation> = {
     quickActions: { bathrooms: 'Baños', food: 'Comida', search: 'Buscar', label: 'Acciones rápidas' },
     languageNames: { ES: 'Español', EN: 'Inglés', FR: 'Francés', ZH: 'Chino' },
     actionDetails: 'Ver detalles',
+    voice: { buttonLabel: 'Asistente de voz', listening: 'Escuchando...', unsupported: 'El reconocimiento de voz no está disponible en este navegador.', noMatch: 'No encontré ese lugar. Prueba con el nombre, la zona o una pregunta rápida.', responsePrefix: 'Te recomiendo', quickTipPrefix: 'Aviso' },
     quickTips: {
       title: 'Preguntas rápidas',
       answerLabel: 'Respuesta',
@@ -178,6 +202,7 @@ const translations: Record<Language, Translation> = {
     quickActions: { bathrooms: 'Restrooms', food: 'Food', search: 'Search', label: 'Quick actions' },
     languageNames: { ES: 'Spanish', EN: 'English', FR: 'French', ZH: 'Chinese' },
     actionDetails: 'View details',
+    voice: { buttonLabel: 'Voice assistant', listening: 'Listening...', unsupported: 'Voice recognition is not available in this browser.', noMatch: 'I could not find that place. Try its name, zone, or a quick question.', responsePrefix: 'I recommend', quickTipPrefix: 'Notice' },
     quickTips: {
       title: 'Quick questions',
       answerLabel: 'Answer',
@@ -235,6 +260,7 @@ const translations: Record<Language, Translation> = {
     quickActions: { bathrooms: 'Toilettes', food: 'Restauration', search: 'Rechercher', label: 'Actions rapides' },
     languageNames: { ES: 'Espagnol', EN: 'Anglais', FR: 'Français', ZH: 'Chinois' },
     actionDetails: 'Voir les détails',
+    voice: { buttonLabel: 'Assistant vocal', listening: 'Écoute...', unsupported: 'La reconnaissance vocale n’est pas disponible dans ce navigateur.', noMatch: 'Je n’ai pas trouvé ce lieu. Essayez son nom, sa zone ou une question rapide.', responsePrefix: 'Je vous recommande', quickTipPrefix: 'À noter' },
     quickTips: {
       title: 'Questions rapides',
       answerLabel: 'Réponse',
@@ -292,6 +318,7 @@ const translations: Record<Language, Translation> = {
     quickActions: { bathrooms: '洗手间', food: '餐饮', search: '搜索', label: '快捷操作' },
     languageNames: { ES: '西班牙语', EN: '英语', FR: '法语', ZH: '中文' },
     actionDetails: '查看详情',
+    voice: { buttonLabel: '语音助手', listening: '正在聆听...', unsupported: '此浏览器不支持语音识别。', noMatch: '没有找到这个地点。请尝试说出名称、区域或快速问题。', responsePrefix: '推荐地点', quickTipPrefix: '提示' },
     quickTips: {
       title: '快速问答',
       answerLabel: '回答',
@@ -337,6 +364,10 @@ function getHeroPeriod(hour: number): HeroPeriod {
   return 'noche';
 }
 
+function normalizeVoiceText(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
 function NavigationContent() {
   const searchParams = useSearchParams();
   const origenParam = searchParams.get('origen') || 'entrada-principal';
@@ -349,6 +380,10 @@ function NavigationContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeQuickTip, setActiveQuickTip] = useState<QuickTipKey | null>(null);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [voiceMessage, setVoiceMessage] = useState('');
+  const [voiceDestinationId, setVoiceDestinationId] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   useEffect(() => {
     const initialPeriod = getHeroPeriod(new Date().getHours());
@@ -397,6 +432,7 @@ function NavigationContent() {
   const activeQuickTipDestination = activeQuickTip
     ? MOCK_LOCATIONS[QUICK_TIP_DESTINATIONS[activeQuickTip].id]
     : null;
+  const voiceDestination = voiceDestinationId ? MOCK_LOCATIONS[voiceDestinationId] : null;
 
   const categories = [
     { id: 'todas', label: copy.categories[0] },
@@ -405,6 +441,101 @@ function NavigationContent() {
     { id: 'comida', label: copy.categories[3] },
     { id: 'turismo', label: copy.categories[4] }
   ];
+
+  const speakDestination = (locationId: string) => {
+    const location = MOCK_LOCATIONS[locationId];
+    if (!location) return;
+
+    const localizedLocation = location.translations[currentLang];
+    const alert = location.quickTip?.[currentLang];
+    const response = `${copy.voice.responsePrefix} ${localizedLocation.title}, ${location.mapZone}, ${location.walkTime}. ${localizedLocation.description}${alert ? ` ${copy.voice.quickTipPrefix}: ${alert}` : ''}`;
+    setVoiceDestinationId(locationId);
+    setSelectedDestination(null);
+    setVoiceMessage(response);
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(response);
+    utterance.lang = selectedLanguage.locale;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const findVoiceDestination = (transcript: string): { id: string; quickTipKey?: QuickTipKey } | null => {
+    const normalizedTranscript = normalizeVoiceText(transcript);
+    const quickTipMatch = (Object.keys(copy.quickTips.questions) as QuickTipKey[]).find((tipKey) => {
+      const questionWords = normalizeVoiceText(copy.quickTips.questions[tipKey])
+        .split(/\s+/)
+        .filter((word) => word.length > 3 && !['donde', 'where', 'sont', 'sind', 'esta', 'estan', 'como', 'comment', 'where', 'están'].includes(word));
+      return questionWords.filter((word) => normalizedTranscript.includes(word)).length >= 2;
+    });
+
+    if (quickTipMatch) return { id: QUICK_TIP_DESTINATIONS[quickTipMatch].id, quickTipKey: quickTipMatch };
+
+    let bestMatch: { id: string; score: number } | null = null;
+    for (const location of Object.values(MOCK_LOCATIONS)) {
+      const localizedLocation = location.translations[currentLang];
+      const searchableText = [
+        localizedLocation.title,
+        localizedLocation.description,
+        location.mapZone,
+        copy.locationCategories[location.category]
+      ];
+      const score = searchableText
+        .flatMap((value) => normalizeVoiceText(value).split(/\s+/))
+        .filter((word) => word.length > 2 && normalizedTranscript.includes(word)).length;
+      if (score > (bestMatch?.score || 0)) bestMatch = { id: location.id, score };
+    }
+
+    const resolvedMatch = bestMatch as { id: string; score: number } | null;
+    return resolvedMatch && resolvedMatch.score > 0 ? { id: resolvedMatch.id } : null;
+  };
+
+  const startVoiceAssistant = () => {
+    const speechWindow = window as typeof window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+
+    if (!Recognition) {
+      setVoiceMessage(copy.voice.unsupported);
+      return;
+    }
+
+    if (isVoiceListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = selectedLanguage.locale;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => {
+      setIsVoiceListening(true);
+      setVoiceMessage(copy.voice.listening);
+    };
+    recognition.onend = () => setIsVoiceListening(false);
+    recognition.onerror = () => {
+      setIsVoiceListening(false);
+      setVoiceMessage(copy.voice.noMatch);
+    };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const match = findVoiceDestination(transcript);
+      if (!match) {
+        setVoiceMessage(copy.voice.noMatch);
+        return;
+      }
+      setActiveQuickTip(match.quickTipKey || null);
+      speakDestination(match.id);
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  useEffect(() => () => {
+    recognitionRef.current?.stop();
+    window.speechSynthesis.cancel();
+  }, []);
 
   return (
     <main className="min-h-screen bg-slate-900 p-0 text-slate-100 sm:p-4">
@@ -464,6 +595,19 @@ function NavigationContent() {
                   </div>
                 )}
               </div>
+              <button
+                type="button"
+                onClick={startVoiceAssistant}
+                aria-label={isVoiceListening ? copy.voice.listening : copy.voice.buttonLabel}
+                aria-pressed={isVoiceListening}
+                className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white backdrop-blur-sm transition ${
+                  isVoiceListening
+                    ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse'
+                    : 'bg-slate-950/45 hover:bg-slate-950/65'
+                }`}
+              >
+                <span aria-hidden="true">{isVoiceListening ? '●' : '🎙'}</span>
+              </button>
             </div>
             {hero ? (
               <>
@@ -608,6 +752,27 @@ function NavigationContent() {
                       </p>
                     )}
                   </div>
+                )}
+                {voiceDestination && (
+                  <article className="mt-3 overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-950 shadow-sm" aria-live="polite">
+                    <div className="flex items-start gap-3 p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg text-white" aria-hidden="true">🎙</div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">{copy.voice.buttonLabel}</p>
+                        <h3 className="mt-1 font-bold">{voiceDestination.translations[currentLang].title}</h3>
+                        <p className="mt-1 text-sm">{voiceDestination.translations[currentLang].description}</p>
+                        <p className="mt-2 text-xs font-semibold">
+                          {voiceDestination.mapZone} • {voiceDestination.walkTime}
+                        </p>
+                        {voiceDestination.quickTip?.[currentLang] && (
+                          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                            {voiceDestination.quickTip[currentLang]}
+                          </p>
+                        )}
+                        {voiceMessage && <p className="mt-2 text-xs italic text-emerald-800">{voiceMessage}</p>}
+                      </div>
+                    </div>
+                  </article>
                 )}
               </section>
 
