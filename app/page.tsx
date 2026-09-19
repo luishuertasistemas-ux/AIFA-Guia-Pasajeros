@@ -102,9 +102,6 @@ const HERO_CONFIG: Record<HeroPeriod, { image: string }> = {
   noche: { image: '/images/hero-noche.jpg' }
 };
 
-const HERO_SLIDES = Object.values(HERO_CONFIG);
-const HERO_PERIODS: HeroPeriod[] = ['manana', 'tarde', 'noche'];
-
 const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'ES', label: 'Español', flag: '🇲🇽', locale: 'es-MX' },
   { code: 'EN', label: 'English', flag: '🇺🇸', locale: 'en-US' },
@@ -394,7 +391,6 @@ function NavigationContent() {
   const searchParams = useSearchParams();
   const origenParam = searchParams.get('origen') || 'entrada-principal';
 
-  const [heroIndex, setHeroIndex] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [currentLang, setCurrentLang] = useState<Language>('ES');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
@@ -406,17 +402,6 @@ function NavigationContent() {
   const [voiceMessage, setVoiceMessage] = useState('');
   const [voiceDestinationId, setVoiceDestinationId] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-
-  useEffect(() => {
-    const initialPeriod = getHeroPeriod(new Date().getHours());
-    setHeroIndex(HERO_PERIODS.indexOf(initialPeriod));
-
-    const intervalId = window.setInterval(() => {
-      setHeroIndex((currentIndex) => (currentIndex === null ? 0 : (currentIndex + 1) % HERO_SLIDES.length));
-    }, 5000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
 
   useEffect(() => {
     const updateClock = () => setCurrentTime(new Date());
@@ -447,9 +432,10 @@ function NavigationContent() {
 
   const routeKey = `${currentOrigin.id}-${selectedDestination}`;
   const currentRoute = selectedDestination ? MOCK_ROUTES[routeKey] : null;
-  const hero = heroIndex === null
+  const heroPeriod = currentTime ? getHeroPeriod(currentTime.getHours()) : null;
+  const hero = heroPeriod === null
     ? null
-    : { ...HERO_SLIDES[heroIndex], ...copy.hero[HERO_PERIODS[heroIndex]] };
+    : { ...HERO_CONFIG[heroPeriod], ...copy.hero[heroPeriod] };
   const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === currentLang) || LANGUAGE_OPTIONS[0];
   const activeQuickTipDestination = activeQuickTip
     ? MOCK_LOCATIONS[QUICK_TIP_DESTINATIONS[activeQuickTip].id]
