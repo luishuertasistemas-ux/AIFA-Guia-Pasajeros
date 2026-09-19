@@ -13,7 +13,7 @@ export interface Location {
   walkTime: string;
   images: string[];
   mapZone: string;
-  quickTip?: Record<string, string>;
+  quickTip?: Partial<Record<SupportedLanguage, string>>;
 }
 
 export interface RouteStep {

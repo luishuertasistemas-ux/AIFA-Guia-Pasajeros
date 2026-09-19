@@ -1,4 +1,4 @@
-import { Location, NavigationRoute } from '../types/location';
+import type { Location, NavigationRoute } from '../types/location';
 
 export const MOCK_LOCATIONS: Record<string, Location> = {
   'entrada-principal': {

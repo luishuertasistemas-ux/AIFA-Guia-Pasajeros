@@ -7,6 +7,7 @@ import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
 type Language = 'ES' | 'EN' | 'FR' | 'ZH';
 type QuickTipKey = 'bathrooms' | 'food' | 'museum' | 'security';
+type SpeechSynthesisLocale = 'es-MX' | 'en-US' | 'fr-FR' | 'zh-CN';
 type SpeechRecognitionEventLike = {
   results: { [index: number]: { [index: number]: { transcript: string } } };
 };
@@ -22,6 +23,20 @@ type SpeechRecognitionLike = {
   stop: () => void;
 };
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+type LanguageOption = {
+  code: Language;
+  label: string;
+  flag: string;
+  locale: SpeechSynthesisLocale;
+};
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 type Attraction = {
   key: 'museo' | 'torre' | 'banos';
   image: string;
@@ -90,14 +105,14 @@ const HERO_CONFIG: Record<HeroPeriod, { image: string }> = {
 const HERO_SLIDES = Object.values(HERO_CONFIG);
 const HERO_PERIODS: HeroPeriod[] = ['manana', 'tarde', 'noche'];
 
-const LANGUAGE_OPTIONS: { code: Language; label: string; flag: string; locale: string }[] = [
+const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'ES', label: 'Español', flag: '🇲🇽', locale: 'es-MX' },
   { code: 'EN', label: 'English', flag: '🇺🇸', locale: 'en-US' },
   { code: 'FR', label: 'Français', flag: '🇫🇷', locale: 'fr-FR' },
   { code: 'ZH', label: '中文', flag: '🇨🇳', locale: 'zh-CN' }
 ];
 
-const SPEECH_SYNTHESIS_LOCALES: Record<Language, string> = {
+const SPEECH_SYNTHESIS_LOCALES: Record<Language, SpeechSynthesisLocale> = {
   ES: 'es-MX',
   EN: 'en-US',
   FR: 'fr-FR',
@@ -496,11 +511,7 @@ function NavigationContent() {
   };
 
   const startVoiceAssistant = () => {
-    const speechWindow = window as typeof window & {
-      SpeechRecognition?: SpeechRecognitionConstructor;
-      webkitSpeechRecognition?: SpeechRecognitionConstructor;
-    };
-    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!Recognition) {
       setVoiceMessage(copy.voice.unsupported);
