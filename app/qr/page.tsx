@@ -3,11 +3,61 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { MOCK_LOCATIONS } from '@/data/locations';
+import type { SupportedLanguage } from '@/types/location';
 
 const APP_URL = 'https://aifa-guia-pasajeros.vercel.app/?origen=';
+const LANGUAGE_OPTIONS: Array<{ code: SupportedLanguage; label: string }> = [
+  { code: 'ES', label: 'Español' },
+  { code: 'EN', label: 'English' },
+  { code: 'FR', label: 'Français' },
+  { code: 'ZH', label: '中文' }
+];
+const QR_TRANSLATIONS: Record<SupportedLanguage, {
+  eyebrow: string;
+  title: string;
+  description: string;
+  origin: string;
+  copy: string;
+  copied: string;
+}> = {
+  ES: {
+    eyebrow: 'AIFA Guía de Pasajeros',
+    title: 'Códigos QR de ubicaciones',
+    description: 'Escanea o copia un enlace para probar la guía desde cada punto de origen.',
+    origin: 'Punto de origen',
+    copy: 'Copiar enlace',
+    copied: 'Enlace copiado'
+  },
+  EN: {
+    eyebrow: 'AIFA Passenger Guide',
+    title: 'Location QR codes',
+    description: 'Scan or copy a link to try the guide from each starting point.',
+    origin: 'Starting point',
+    copy: 'Copy link',
+    copied: 'Link copied'
+  },
+  FR: {
+    eyebrow: 'Guide des passagers AIFA',
+    title: 'Codes QR des emplacements',
+    description: 'Scannez ou copiez un lien pour essayer le guide depuis chaque point de départ.',
+    origin: 'Point de départ',
+    copy: 'Copier le lien',
+    copied: 'Lien copié'
+  },
+  ZH: {
+    eyebrow: 'AIFA 旅客指南',
+    title: '位置二维码',
+    description: '扫描或复制链接，从每个起点试用指南。',
+    origin: '起点',
+    copy: '复制链接',
+    copied: '链接已复制'
+  }
+};
 
 export default function QRPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [currentLang, setCurrentLang] = useState<SupportedLanguage>('ES');
+  const copy = QR_TRANSLATIONS[currentLang];
 
   const copyLink = async (id: string) => {
     const url = `${APP_URL}${id}`;
@@ -21,20 +71,38 @@ export default function QRPage() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 text-center text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
-            AIFA Guía de Pasajeros
+            {copy.eyebrow}
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Códigos QR de ubicaciones
+            {copy.title}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-300">
-            Escanea o copia un enlace para probar la guía desde cada punto de origen.
+            {copy.description}
           </p>
+          <div className="mt-5 flex justify-center gap-2" role="group" aria-label="Language selector">
+            {LANGUAGE_OPTIONS.map((option) => (
+              <button
+                key={option.code}
+                type="button"
+                onClick={() => setCurrentLang(option.code)}
+                aria-pressed={currentLang === option.code}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  currentLang === option.code
+                    ? 'bg-white text-blue-700'
+                    : 'bg-blue-950/50 text-blue-100 hover:bg-blue-900'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Object.values(MOCK_LOCATIONS).map((location) => {
             const url = `${APP_URL}${location.id}`;
             const isCopied = copiedId === location.id;
+            const locationTranslation = location.translations[currentLang];
 
             return (
               <article
@@ -43,13 +111,13 @@ export default function QRPage() {
               >
                 <div className="mb-5">
                   <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-                    Punto de origen
+                    {copy.origin}
                   </p>
                   <h2 className="mt-1 min-h-14 text-lg font-bold leading-tight text-slate-800">
-                    {location.name}
+                    {locationTranslation.title}
                   </h2>
                   <p className="mt-2 text-sm text-slate-500">
-                    {location.zone} <span className="px-1 text-slate-300">•</span> {location.level}
+                    {location.mapZone}
                   </p>
                 </div>
 
@@ -66,7 +134,7 @@ export default function QRPage() {
                   onClick={() => copyLink(location.id)}
                   className="mt-5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  {isCopied ? 'Enlace copiado' : 'Copiar Enlace'}
+                  {isCopied ? copy.copied : copy.copy}
                 </button>
               </article>
             );

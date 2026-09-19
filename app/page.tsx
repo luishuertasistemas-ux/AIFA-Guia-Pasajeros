@@ -536,7 +536,7 @@ function NavigationContent() {
       setIsVoiceListening(false);
       setVoiceMessage(copy.voice.noMatch);
     };
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       const transcript = event.results[0][0].transcript;
       const match = findVoiceDestination(transcript);
       if (!match) {
