@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
+import QrScannerModal from './QrScannerModal';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
 type Language = 'ES' | 'EN' | 'FR' | 'ZH';
@@ -401,6 +402,8 @@ function NavigationContent() {
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [voiceMessage, setVoiceMessage] = useState('');
   const [voiceDestinationId, setVoiceDestinationId] = useState<string | null>(null);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [scannedOriginId, setScannedOriginId] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   useEffect(() => {
@@ -411,7 +414,7 @@ function NavigationContent() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const currentOrigin = MOCK_LOCATIONS[origenParam] || MOCK_LOCATIONS['entrada-principal'];
+  const currentOrigin = MOCK_LOCATIONS[scannedOriginId || origenParam] || MOCK_LOCATIONS['entrada-principal'];
   const copy = translations[currentLang];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
     (loc) => loc.id !== currentOrigin.id
@@ -449,6 +452,25 @@ function NavigationContent() {
     { id: 'comida', label: copy.categories[3] },
     { id: 'turismo', label: copy.categories[4] }
   ];
+
+  const handleQrScan = (value: string) => {
+    let scannedId = value.trim();
+
+    try {
+      scannedId = new URL(scannedId).searchParams.get('origen') || scannedId;
+    } catch {
+      // The QR may contain a plain location ID instead of a URL.
+    }
+
+    if (!MOCK_LOCATIONS[scannedId]) return;
+
+    setScannedOriginId(scannedId);
+    setSelectedDestination(null);
+    setSelectedCategory('todas');
+    setSearchTerm('');
+    setActiveQuickTip(null);
+    setVoiceDestinationId(null);
+  };
 
   const speakDestination = (locationId: string) => {
     const location = MOCK_LOCATIONS[locationId];
@@ -907,6 +929,20 @@ function NavigationContent() {
           {copy.quickActions.search}
         </button>
       </nav>
+      <button
+        type="button"
+        onClick={() => setIsQrScannerOpen(true)}
+        aria-label="Escanear código QR"
+        className="fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-xl shadow-blue-950/30 transition hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+      >
+        <span aria-hidden="true">▣</span>
+      </button>
+      <QrScannerModal
+        isOpen={isQrScannerOpen}
+        language={currentLang}
+        onClose={() => setIsQrScannerOpen(false)}
+        onScan={handleQrScan}
+      />
     </main>
   );
 }
