@@ -105,6 +105,7 @@ export default function QrScannerModal({ isOpen, language, onClose, onScan }: Qr
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id={`${scannerId}-title`} className="text-xl font-bold">{copy.title}</h2>
+            <p className="text-xs text-slate-500 italic mt-1">No controlas los tiempos de un vuelo, pero sí cómo aprovechas tu tiempo aquí. Escanea el código para ubicarte.</p>
             <p className="mt-1 text-sm text-slate-500">{copy.description}</p>
           </div>
           <button

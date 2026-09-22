@@ -67,7 +67,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       EN: { title: 'Boarding Gate 108', description: 'Boarding gate in the south zone.' },
       FR: { title: 'Porte d’embarquement 108', description: 'Porte d’embarquement dans la zone sud.' },
       ZH: { title: '108号登机口', description: '位于南区的登机口。' }
-    },
+   },
     walkTime: '10 min a pie',
     images: ['/images/hero-noche.jpg', '/images/hero-tarde.jpg'],
     mapZone: 'Nivel 2 - Concourse Sur'

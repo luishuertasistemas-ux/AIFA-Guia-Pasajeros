@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
+import RutaMexibusModal from '../components/RutaMexibusModal';
 import QrScannerModal from './QrScannerModal';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
@@ -102,6 +103,13 @@ const HERO_CONFIG: Record<HeroPeriod, { image: string }> = {
   tarde: { image: '/images/hero-tarde.jpg' },
   noche: { image: '/images/hero-noche.jpg' }
 };
+
+const STOIC_PHRASES = [
+  'El destino importa, pero la serenidad en el camino te pertenece.',
+  'No controlas los retrasos, pero sí tu tranquilidad en el presente.',
+  'Camina a tu ritmo; el aeropuerto es un espacio para la calma.',
+  'El viaje exterior empieza con el orden interior.'
+];
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'ES', label: 'Español', flag: '🇲🇽', locale: 'es-MX' },
@@ -378,6 +386,32 @@ const ATTRACTIONS: Attraction[] = [
   }
 ];
 
+const CATEGORY_MODULE_STYLES: Record<string, { card: string; action: string }> = {
+  comida: {
+    card: 'border-orange-200 bg-orange-50 text-orange-600',
+    action: 'bg-orange-500 text-white hover:bg-orange-600'
+  },
+  servicios: {
+    card: 'border-sky-200 bg-sky-50 text-sky-600',
+    action: 'bg-sky-500 text-white hover:bg-sky-600'
+  },
+  puertas: {
+    card: 'border-blue-600 bg-blue-600 text-white',
+    action: 'bg-white text-blue-700 hover:bg-blue-50'
+  },
+  turismo: {
+    card: 'border-purple-600 bg-purple-600 text-white',
+    action: 'bg-white text-purple-700 hover:bg-purple-50'
+  }
+};
+
+function getCategoryModuleStyle(category: string) {
+  return CATEGORY_MODULE_STYLES[category] || {
+    card: 'border-slate-200 bg-slate-50 text-slate-700',
+    action: 'bg-slate-700 text-white hover:bg-slate-800'
+  };
+}
+
 function getHeroPeriod(hour: number): HeroPeriod {
   if (hour >= 6 && hour < 12) return 'manana';
   if (hour >= 12 && hour < 19) return 'tarde';
@@ -386,6 +420,122 @@ function getHeroPeriod(hour: number): HeroPeriod {
 
 function normalizeVoiceText(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+type HeaderProps = {
+  hero: (typeof HERO_CONFIG[HeroPeriod] & Translation['hero'][HeroPeriod]) | null;
+  currentTime: Date | null;
+  selectedLanguage: LanguageOption;
+  currentLang: Language;
+  isLanguageMenuOpen: boolean;
+  isVoiceListening: boolean;
+  copy: Translation;
+  onToggleLanguageMenu: () => void;
+  onSelectLanguage: (language: Language) => void;
+  onStartVoiceAssistant: () => void;
+};
+
+function Header({ hero, currentTime, selectedLanguage, currentLang, isLanguageMenuOpen, isVoiceListening, copy, onToggleLanguageMenu, onSelectLanguage, onStartVoiceAssistant }: HeaderProps) {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setPhraseIndex((index) => (index + 1) % STOIC_PHRASES.length);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  return (
+    <section
+      key={hero?.title}
+      className="relative min-h-72 overflow-hidden bg-slate-700 text-white animate-[fade-in_700ms_ease-out] sm:min-h-80"
+      style={hero ? { backgroundImage: `url("${hero.image}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+      aria-label={hero?.title || copy.hero.noche.title}
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/30 to-slate-950/15" />
+      <div className="relative flex min-h-72 flex-col justify-end p-5 sm:min-h-80 sm:p-8">
+        <div className="absolute right-5 top-5 flex items-start gap-2 sm:right-8 sm:top-8">
+          <time className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
+            {currentTime ? currentTime.toLocaleString(selectedLanguage.locale, { dateStyle: 'short', timeStyle: 'short' }) : '--:--'}
+          </time>
+          <div className="relative">
+            <button type="button" onClick={onToggleLanguageMenu} aria-expanded={isLanguageMenuOpen} aria-haspopup="listbox" aria-label={copy.languageNames[currentLang]} className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65">
+              {selectedLanguage.flag} {currentLang}
+            </button>
+            {isLanguageMenuOpen && (
+              <div className="absolute right-0 top-11 z-30 min-w-36 overflow-hidden rounded-xl border border-white/20 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur-md" role="listbox">
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <button key={option.code} type="button" role="option" aria-selected={currentLang === option.code} onClick={() => onSelectLanguage(option.code)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-white transition hover:bg-white/15">
+                    <span>{option.flag}</span><span>{copy.languageNames[option.code]}</span><span className="ml-auto text-xs text-slate-400">{option.code}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button type="button" onClick={onStartVoiceAssistant} aria-label={isVoiceListening ? copy.voice.listening : copy.voice.buttonLabel} aria-pressed={isVoiceListening} className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white backdrop-blur-sm transition ${isVoiceListening ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse' : 'bg-slate-950/45 hover:bg-slate-950/65'}`}>
+            <span aria-hidden="true">{isVoiceListening ? '●' : '🎙'}</span>
+          </button>
+        </div>
+        {hero ? <>
+          <span className="mb-3 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">{hero.badge}</span>
+          <h1 className="max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-5xl">{hero.title}</h1>
+          <p className="mt-2 max-w-sm text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
+          <div className="mt-5 max-w-xl rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-white shadow-md" aria-live="polite">
+            <p key={phraseIndex} className="animate-[fade-in_700ms_ease-out] font-serif text-base italic leading-relaxed text-white sm:text-lg">
+              &quot;{STOIC_PHRASES[phraseIndex]}&quot;
+            </p>
+            <div className="mt-3 flex gap-1.5" aria-label={`Frase ${phraseIndex + 1} de ${STOIC_PHRASES.length}`}>
+              {STOIC_PHRASES.map((phrase, index) => (
+                <span key={phrase} className={`h-1 rounded-full transition-all duration-500 ${index === phraseIndex ? 'w-6 bg-white' : 'w-2 bg-white/45'}`} aria-hidden="true" />
+              ))}
+            </div>
+          </div>
+        </> : <div className="h-24 animate-pulse rounded-lg bg-white/10" />}
+      </div>
+    </section>
+  );
+}
+
+type ActiveLocationCardProps = {
+  origin: (typeof MOCK_LOCATIONS)[string];
+  language: Language;
+  label: string;
+};
+
+function ActiveLocationCard({ origin, language, label }: ActiveLocationCardProps) {
+  return (
+    <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
+      <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{label}</p>
+      <h1 className="text-xl font-bold mt-1">{origin.translations[language].title}</h1>
+      <p className="text-xs opacity-90 mt-1">{origin.mapZone} • {origin.walkTime}</p>
+    </header>
+  );
+}
+
+type ExploreSectionProps = { children: React.ReactNode };
+
+function ExploreSection({ children }: ExploreSectionProps) {
+  return <div className="flex-1 p-5 pb-24 sm:p-8 sm:pb-8">{children}</div>;
+}
+
+type BottomNavProps = {
+  copy: Translation;
+  onBathrooms: () => void;
+  onFood: () => void;
+  onSearch: () => void;
+  onScanQr: () => void;
+};
+
+function BottomNav({ copy, onBathrooms, onFood, onSearch, onScanQr }: BottomNavProps) {
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto grid max-w-md grid-cols-4 items-end rounded-t-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label={copy.quickActions.label}>
+      <button type="button" onClick={onBathrooms} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🚽</span>{copy.quickActions.bathrooms}</button>
+      <button type="button" onClick={onFood} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🍔</span>{copy.quickActions.food}</button>
+      <button type="button" onClick={onScanQr} className="-mt-8 flex min-w-24 flex-col items-center gap-1 rounded-2xl bg-blue-600 px-3 py-3 text-[11px] font-bold text-white shadow-xl shadow-blue-950/30 transition hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"><span className="text-2xl">▣</span>Escanear QR</button>
+      <button type="button" onClick={onSearch} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🔍</span>{copy.quickActions.search}</button>
+    </nav>
+  );
 }
 
 function NavigationContent() {
@@ -403,6 +553,7 @@ function NavigationContent() {
   const [voiceMessage, setVoiceMessage] = useState('');
   const [voiceDestinationId, setVoiceDestinationId] = useState<string | null>(null);
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [isMexibusModalOpen, setIsMexibusModalOpen] = useState(false);
   const [scannedOriginId, setScannedOriginId] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
@@ -564,102 +715,25 @@ function NavigationContent() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-900 p-0 text-slate-100 sm:p-4">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-hidden bg-white text-slate-900 shadow-xl sm:min-h-[calc(100vh-2rem)] sm:rounded-3xl">
-        <section
-          key={hero?.title}
-          className="relative min-h-72 overflow-hidden bg-slate-700 text-white animate-[fade-in_700ms_ease-out] sm:min-h-80"
-          style={
-            hero
-              ? {
-                  backgroundImage: `url("${hero.image}")`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }
-              : undefined
-          }
-          aria-label={hero?.title || copy.hero.noche.title}
-        >
-          <div className="absolute inset-0 bg-slate-900/60" />
-          <div className="relative flex min-h-72 flex-col justify-end p-5 sm:min-h-80 sm:p-8">
-            <div className="absolute right-5 top-5 flex items-start gap-2 sm:right-8 sm:top-8">
-              <time className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
-                {currentTime
-                  ? currentTime.toLocaleString(selectedLanguage.locale, { dateStyle: 'short', timeStyle: 'short' })
-                  : '--:--'}
-              </time>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsLanguageMenuOpen((isOpen) => !isOpen)}
-                  aria-expanded={isLanguageMenuOpen}
-                  aria-haspopup="listbox"
-                  aria-label={copy.languageNames[currentLang]}
-                  className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65"
-                >
-                  {selectedLanguage.flag} {currentLang}
-                </button>
-                {isLanguageMenuOpen && (
-                  <div className="absolute right-0 top-11 z-30 min-w-36 overflow-hidden rounded-xl border border-white/20 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur-md" role="listbox">
-                    {LANGUAGE_OPTIONS.map((option) => (
-                      <button
-                        key={option.code}
-                        type="button"
-                        role="option"
-                        aria-selected={currentLang === option.code}
-                        onClick={() => {
-                          setCurrentLang(option.code);
-                          setIsLanguageMenuOpen(false);
-                        }}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-white transition hover:bg-white/15"
-                      >
-                        <span>{option.flag}</span>
-                        <span>{copy.languageNames[option.code]}</span>
-                        <span className="ml-auto text-xs text-slate-400">{option.code}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={startVoiceAssistant}
-                aria-label={isVoiceListening ? copy.voice.listening : copy.voice.buttonLabel}
-                aria-pressed={isVoiceListening}
-                className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white backdrop-blur-sm transition ${
-                  isVoiceListening
-                    ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse'
-                    : 'bg-slate-950/45 hover:bg-slate-950/65'
-                }`}
-              >
-                <span aria-hidden="true">{isVoiceListening ? '●' : '🎙'}</span>
-              </button>
-            </div>
-            {hero ? (
-              <>
-                <span className="mb-3 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
-                  {hero.badge}
-                </span>
-                <h1 className="max-w-2xl text-3xl font-bold leading-tight sm:text-5xl">{hero.title}</h1>
-                <p className="mt-2 max-w-sm text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
-              </>
-            ) : (
-              <div className="h-24 animate-pulse rounded-lg bg-white/10" />
-            )}
-          </div>
+    <main className="min-h-screen bg-slate-900 p-0 pb-32 text-slate-100 sm:p-4 sm:pb-4">
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-hidden bg-white pb-32 text-slate-900 shadow-xl sm:min-h-[calc(100vh-2rem)] sm:rounded-3xl">
+        <Header hero={hero} currentTime={currentTime} selectedLanguage={selectedLanguage} currentLang={currentLang} isLanguageMenuOpen={isLanguageMenuOpen} isVoiceListening={isVoiceListening} copy={copy} onToggleLanguageMenu={() => setIsLanguageMenuOpen((isOpen) => !isOpen)} onSelectLanguage={(language) => { setCurrentLang(language); setIsLanguageMenuOpen(false); }} onStartVoiceAssistant={startVoiceAssistant} />
+        <ActiveLocationCard origin={currentOrigin} language={currentLang} label={copy.origin} />
+        <section className="mx-5 mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900 p-5 text-white shadow-md sm:mx-8">
+          <button
+            type="button"
+            onClick={() => setIsMexibusModalOpen(true)}
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-indigo-700"
+          >
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">Modo Serenidad</span>
+            <h2 className="mt-2 text-lg font-bold sm:text-xl">Ruta Asistida: Mexibús ➔ Documentación</h2>
+            <p className="mt-1 text-sm text-blue-100">Guía paso a paso con fotos y referencias visuales (5-7 min)</p>
+            <span className="mt-4 inline-flex rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300">
+              Iniciar recorrido
+            </span>
+          </button>
         </section>
-
-        {/* Encabezado: Ubicación actual */}
-        <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
-          <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{copy.origin}</p>
-          <h1 className="text-xl font-bold mt-1">{currentOrigin.translations[currentLang].title}</h1>
-          <p className="text-xs opacity-90 mt-1">
-            {currentOrigin.mapZone} • {currentOrigin.walkTime}
-          </p>
-        </header>
-
-        {/* Contenido principal */}
-        <div className="flex-1 p-5 pb-24 sm:p-8 sm:pb-8">
+        <ExploreSection>
           {!selectedDestination ? (
             <>
               <section className="mb-8">
@@ -761,19 +835,19 @@ function NavigationContent() {
                   ))}
                 </div>
                 {activeQuickTip && activeQuickTipDestination && (
-                  <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950" role="status">
-                    <p className="text-xs font-bold uppercase tracking-wide text-blue-700">{copy.quickTips.answerLabel}</p>
-                    <p className="mt-1 font-semibold">{copy.quickTips.answers[activeQuickTip]}</p>
+                  <div className="mt-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-sm text-white shadow-md" role="status">
+                    <p className="text-xs font-bold uppercase tracking-wide text-amber-100">{copy.quickTips.answerLabel}</p>
+                    <p className="mt-1 font-semibold text-white">{copy.quickTips.answers[activeQuickTip]}</p>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className="rounded-full bg-white px-2.5 py-1 text-blue-800">
+                      <span className="rounded-full bg-white/90 px-2.5 py-1 text-orange-700">
                         {copy.quickTips.walkingLabel}: {copy.walkingMinutes(QUICK_TIP_DESTINATIONS[activeQuickTip].minutes)}
                       </span>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-blue-800">
+                      <span className="rounded-full bg-white/90 px-2.5 py-1 text-orange-700">
                         {activeQuickTipDestination.translations[currentLang].title}
                       </span>
                     </div>
                     {activeQuickTip === 'bathrooms' && (
-                      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                      <p className="mt-3 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-medium text-white">
                         {activeQuickTipDestination.quickTip?.[currentLang] || copy.quickTips.notice}
                       </p>
                     )}
@@ -808,10 +882,10 @@ function NavigationContent() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                    className={`rounded-2xl border px-3 py-2 text-xs font-semibold whitespace-nowrap shadow-md transition-colors ${
                       selectedCategory === cat.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? getCategoryModuleStyle(cat.id).action
+                        : getCategoryModuleStyle(cat.id).card
                     }`}
                   >
                     {cat.label}
@@ -828,12 +902,12 @@ function NavigationContent() {
                   filteredDestinations.map((loc) => (
                     <div
                       key={loc.id}
-                      className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition flex justify-between items-center group"
+                      className={`w-full text-left p-4 rounded-2xl border shadow-md transition flex justify-between items-center group ${getCategoryModuleStyle(loc.category).card}`}
                     >
                       <div>
-                        <h3 className="font-semibold text-slate-800 group-hover:text-blue-600">{loc.translations[currentLang].title}</h3>
-                        <p className="mt-0.5 text-xs text-slate-500">{loc.translations[currentLang].description}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                          <h3 className="font-semibold">{loc.translations[currentLang].title}</h3>
+                          <p className="mt-0.5 text-xs opacity-80">{loc.translations[currentLang].description}</p>
+                          <p className="mt-0.5 text-xs opacity-80">
                           {copy.locationCategories[loc.category]} • {loc.mapZone} • {loc.walkTime}
                         </p>
                       </div>
@@ -841,14 +915,14 @@ function NavigationContent() {
                         <button
                           type="button"
                           onClick={() => setSelectedDestination(loc.id)}
-                          className="text-blue-600 font-bold text-sm"
+                            className={`rounded-xl px-3 py-2 text-xs font-bold transition ${getCategoryModuleStyle(loc.category).action}`}
                         >
                           {copy.actionDetails}
                         </button>
                         <button
                           type="button"
                           onClick={() => setSelectedDestination(loc.id)}
-                          className="text-blue-600 font-bold text-sm"
+                          className={`rounded-xl px-3 py-2 text-xs font-bold transition ${getCategoryModuleStyle(loc.category).action}`}
                         >
                           {copy.actionGo}
                         </button>
@@ -901,47 +975,78 @@ function NavigationContent() {
               )}
             </div>
           )}
-        </div>
+        </ExploreSection>
+        <footer className="w-full bg-slate-900 text-white pt-12 pb-28 px-6 mt-16 border-t-2 border-amber-400/30 text-center relative overflow-hidden -mb-10">
+          {/* Resplandor sutil de fondo */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-blue-500/10 blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center gap-3">
+            <span className="text-xs font-bold tracking-[0.3em] text-amber-400 uppercase">
+              AIFA • Faro Digital
+            </span>
+
+            <h3 className="text-base font-semibold text-slate-100">
+              Aeropuerto Internacional Felipe Ángeles
+            </h3>
+
+            <p className="text-xs text-slate-300 italic font-serif max-w-md">
+              "Tu tranquilidad en cada etapa del viaje."
+            </p>
+
+            <div className="w-16 h-[1px] bg-slate-700 my-2" />
+
+            <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
+              Guía Pasajeros • Modo Serenidad
+            </p>
+          </div>
+        </footer>
       </div>
-      <nav className="fixed inset-x-4 bottom-4 z-20 mx-auto flex max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label={copy.quickActions.label}>
-        <button
-          type="button"
-          onClick={() => { setSelectedDestination(null); setSearchTerm(''); setSelectedCategory('servicios'); }}
-          className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+      {/* Barra de navegación inferior (BottomNav) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex justify-around items-center z-50">
+        <button 
+          onClick={() => {
+            setSelectedCategory("todas");
+            setSelectedDestination(null);
+            setSearchTerm("");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition"
         >
-          <span className="text-xl transition-transform duration-300 hover:scale-125">🚽</span>
-          {copy.quickActions.bathrooms}
+          <span className="text-xs font-semibold">Inicio</span>
         </button>
-        <button
-          type="button"
-          onClick={() => { setSelectedDestination(null); setSelectedCategory('comida'); setSearchTerm(''); }}
-          className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+        
+        <button 
+          onClick={() => setIsQrScannerOpen(true)}
+          className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition flex items-center gap-2"
         >
-          <span className="text-xl transition-transform duration-300 hover:scale-125">🍔</span>
-          {copy.quickActions.food}
+          <span>📷</span>
+          <span>Escanear QR</span>
         </button>
-        <button
-          type="button"
-          onClick={() => { setSelectedDestination(null); setSelectedCategory('todas'); document.getElementById('destination-search')?.focus(); }}
-          className="flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+
+        <button 
+          onClick={() => {
+            const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+            if (searchInput) {
+              searchInput.focus();
+              searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
+          className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition"
         >
-          <span className="text-xl transition-transform duration-300 hover:scale-125">🔍</span>
-          {copy.quickActions.search}
+          <span className="text-xs font-semibold">Buscar</span>
         </button>
-      </nav>
-      <button
-        type="button"
-        onClick={() => setIsQrScannerOpen(true)}
-        aria-label="Escanear código QR"
-        className="fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-xl shadow-blue-950/30 transition hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
-      >
-        <span aria-hidden="true">▣</span>
-      </button>
+      </div>
       <QrScannerModal
+      
         isOpen={isQrScannerOpen}
         language={currentLang}
         onClose={() => setIsQrScannerOpen(false)}
         onScan={handleQrScan}
+        
+      />
+      <RutaMexibusModal
+        isOpen={isMexibusModalOpen}
+        onClose={() => setIsMexibusModalOpen(false)}
       />
     </main>
   );
