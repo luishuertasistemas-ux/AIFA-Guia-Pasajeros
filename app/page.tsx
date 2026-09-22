@@ -995,6 +995,15 @@ function NavigationContent() {
 
             <div className="w-16 h-[1px] bg-slate-700 my-2" />
 
+            <a
+              href="https://aifa.aero"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-slate-400 transition-colors hover:text-white"
+            >
+              Sitio Oficial AIFA ↗
+            </a>
+
             <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
               Guía Pasajeros • Modo Serenidad
             </p>
