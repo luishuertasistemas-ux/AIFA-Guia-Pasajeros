@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 import RutaMexibusModal from '../components/RutaMexibusModal';
+import { FlightTimeModule } from '../components/flight-time/FlightTimeModule';
 import QrScannerModal from './QrScannerModal';
 
 type HeroPeriod = 'manana' | 'tarde' | 'noche';
@@ -733,6 +734,7 @@ function NavigationContent() {
             </span>
           </button>
         </section>
+        <FlightTimeModule currentTime={currentTime} origin={currentOrigin} />
         <ExploreSection>
           {!selectedDestination ? (
             <>

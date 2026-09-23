@@ -175,3 +175,46 @@ export const MOCK_ROUTES: Record<string, NavigationRoute> = {
     ]
   }
 };
+
+export const BOARDING_GATES = Array.from({ length: 12 }, (_, index) => `puerta-${101 + index}`);
+
+const BOARDING_GATE_WALK_MINUTES: Record<string, Record<string, number>> = {
+  'entrada-principal': {
+    'puerta-101': 7,
+    'puerta-102': 7,
+    'puerta-103': 8,
+    'puerta-104': 8,
+    'puerta-105': 8,
+    'puerta-106': 9,
+    'puerta-107': 9,
+    'puerta-108': 10,
+    'puerta-109': 10,
+    'puerta-110': 11,
+    'puerta-111': 11,
+    'puerta-112': 12
+  },
+  'filtro-seguridad': {
+    'puerta-101': 4,
+    'puerta-102': 4,
+    'puerta-103': 5,
+    'puerta-104': 5,
+    'puerta-105': 6,
+    'puerta-106': 6,
+    'puerta-107': 7,
+    'puerta-108': 7,
+    'puerta-109': 8,
+    'puerta-110': 8,
+    'puerta-111': 9,
+    'puerta-112': 9
+  }
+};
+
+export function getEstimatedWalkingMinutes(originId: string, gateId: string): number {
+  const route = MOCK_ROUTES[`${originId}-${gateId}`];
+  if (route) return route.estimatedMinutes;
+
+  const matrixValue = BOARDING_GATE_WALK_MINUTES[originId]?.[gateId];
+  if (matrixValue) return matrixValue;
+
+  return BOARDING_GATE_WALK_MINUTES['entrada-principal'][gateId] || 10;
+}
