@@ -1,6 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
 import RutaMexibusModal from '../components/RutaMexibusModal';
@@ -438,11 +439,25 @@ type HeaderProps = {
 
 function Header({ hero, currentTime, selectedLanguage, currentLang, isLanguageMenuOpen, isVoiceListening, copy, onToggleLanguageMenu, onSelectLanguage, onStartVoiceAssistant }: HeaderProps) {
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [visiblePhrase, setVisiblePhrase] = useState('');
+
+  const phrase = STOIC_PHRASES[phraseIndex];
+
+  useEffect(() => {
+    let characterIndex = 0;
+    const typewriterId = window.setInterval(() => {
+      characterIndex += 1;
+      setVisiblePhrase(phrase.slice(0, characterIndex));
+      if (characterIndex >= phrase.length) window.clearInterval(typewriterId);
+    }, 120);
+
+    return () => window.clearInterval(typewriterId);
+  }, [phrase]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setPhraseIndex((index) => (index + 1) % STOIC_PHRASES.length);
-    }, 5000);
+    }, 12000);
 
     return () => window.clearInterval(intervalId);
   }, []);
@@ -450,14 +465,16 @@ function Header({ hero, currentTime, selectedLanguage, currentLang, isLanguageMe
   return (
     <section
       key={hero?.title}
-      className="relative min-h-72 overflow-hidden bg-slate-700 text-white animate-[fade-in_700ms_ease-out] sm:min-h-80"
+      className="relative min-h-72 w-full overflow-hidden bg-slate-700 text-white animate-[fade-in_1400ms_ease-out] sm:min-h-80"
       style={hero ? { backgroundImage: `url("${hero.image}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
       aria-label={hero?.title || copy.hero.noche.title}
     >
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/30 to-slate-950/15" />
-      <div className="relative flex min-h-72 flex-col justify-end p-5 sm:min-h-80 sm:p-8">
-        <div className="absolute right-5 top-5 flex items-start gap-2 sm:right-8 sm:top-8">
-          <time className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
+      <div className="relative flex min-h-72 w-full flex-col justify-end p-0 sm:min-h-80">
+        <div className="absolute inset-x-5 top-5 flex flex-wrap items-center justify-between gap-3 sm:inset-x-8 sm:top-8">
+          {hero && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">{hero.badge}</span>}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <time className="whitespace-nowrap rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
             {currentTime ? currentTime.toLocaleString(selectedLanguage.locale, { dateStyle: 'short', timeStyle: 'short' }) : '--:--'}
           </time>
           <div className="relative">
@@ -477,21 +494,14 @@ function Header({ hero, currentTime, selectedLanguage, currentLang, isLanguageMe
           <button type="button" onClick={onStartVoiceAssistant} aria-label={isVoiceListening ? copy.voice.listening : copy.voice.buttonLabel} aria-pressed={isVoiceListening} className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white backdrop-blur-sm transition ${isVoiceListening ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse' : 'bg-slate-950/45 hover:bg-slate-950/65'}`}>
             <span aria-hidden="true">{isVoiceListening ? '●' : '🎙'}</span>
           </button>
+          </div>
         </div>
         {hero ? <>
-          <span className="mb-3 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">{hero.badge}</span>
-          <h1 className="max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-5xl">{hero.title}</h1>
-          <p className="mt-2 max-w-sm text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
-          <div className="mt-5 max-w-xl rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-white shadow-md" aria-live="polite">
-            <p key={phraseIndex} className="animate-[fade-in_700ms_ease-out] font-serif text-base italic leading-relaxed text-white sm:text-lg">
-              &quot;{STOIC_PHRASES[phraseIndex]}&quot;
-            </p>
-            <div className="mt-3 flex gap-1.5" aria-label={`Frase ${phraseIndex + 1} de ${STOIC_PHRASES.length}`}>
-              {STOIC_PHRASES.map((phrase, index) => (
-                <span key={phrase} className={`h-1 rounded-full transition-all duration-500 ${index === phraseIndex ? 'w-6 bg-white' : 'w-2 bg-white/45'}`} aria-hidden="true" />
-              ))}
-            </div>
-          </div>
+          <h1 className="w-full text-3xl font-bold leading-tight tracking-tight sm:text-5xl">{hero.title}</h1>
+          <p className="mt-2 w-full text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
+          <p className="mt-5 w-full font-serif text-base font-medium italic leading-relaxed text-white/95 drop-shadow-lg md:text-lg" aria-live="polite">
+            &quot;{visiblePhrase}&quot;
+          </p>
         </> : <div className="h-24 animate-pulse rounded-lg bg-white/10" />}
       </div>
     </section>
@@ -506,7 +516,7 @@ type ActiveLocationCardProps = {
 
 function ActiveLocationCard({ origin, language, label }: ActiveLocationCardProps) {
   return (
-    <header className="bg-blue-600 p-5 text-white shadow-md sm:px-8">
+    <header className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 text-white shadow-2xl backdrop-blur-xl sm:px-8">
       <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{label}</p>
       <h1 className="text-xl font-bold mt-1">{origin.translations[language].title}</h1>
       <p className="text-xs opacity-90 mt-1">{origin.mapZone} • {origin.walkTime}</p>
@@ -517,7 +527,7 @@ function ActiveLocationCard({ origin, language, label }: ActiveLocationCardProps
 type ExploreSectionProps = { children: React.ReactNode };
 
 function ExploreSection({ children }: ExploreSectionProps) {
-  return <div className="flex-1 p-5 pb-24 sm:p-8 sm:pb-8">{children}</div>;
+  return <div className="flex-1 rounded-3xl border border-white/10 bg-slate-900/60 p-5 pb-24 shadow-2xl backdrop-blur-xl sm:p-8 sm:pb-8">{children}</div>;
 }
 
 type BottomNavProps = {
@@ -716,15 +726,19 @@ function NavigationContent() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-900 p-0 pb-32 text-slate-100 sm:p-4 sm:pb-4">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-hidden bg-white pb-32 text-slate-900 shadow-xl sm:min-h-[calc(100vh-2rem)] sm:rounded-3xl">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-[#070a14] p-0 pb-32 text-slate-100">
+      <div className="pointer-events-none absolute -left-24 top-24 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-amber-400/5 blur-3xl" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-none flex-col px-0 pb-32">
         <Header hero={hero} currentTime={currentTime} selectedLanguage={selectedLanguage} currentLang={currentLang} isLanguageMenuOpen={isLanguageMenuOpen} isVoiceListening={isVoiceListening} copy={copy} onToggleLanguageMenu={() => setIsLanguageMenuOpen((isOpen) => !isOpen)} onSelectLanguage={(language) => { setCurrentLang(language); setIsLanguageMenuOpen(false); }} onStartVoiceAssistant={startVoiceAssistant} />
-        <ActiveLocationCard origin={currentOrigin} language={currentLang} label={copy.origin} />
-        <section className="mx-5 mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900 p-5 text-white shadow-md sm:mx-8">
+        <div className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-4">
+            <ActiveLocationCard origin={currentOrigin} language={currentLang} label={copy.origin} />
+            <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-5 text-white shadow-2xl backdrop-blur-xl">
           <button
             type="button"
             onClick={() => setIsMexibusModalOpen(true)}
-            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-indigo-700"
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">Modo Serenidad</span>
             <h2 className="mt-2 text-lg font-bold sm:text-xl">Ruta Asistida: Mexibús ➔ Documentación</h2>
@@ -733,16 +747,37 @@ function NavigationContent() {
               Iniciar recorrido
             </span>
           </button>
-        </section>
-        <FlightTimeModule currentTime={currentTime} origin={currentOrigin} />
-        <ExploreSection>
+            </section>
+          </div>
+          <div className="lg:col-span-8">
+            <FlightTimeModule currentTime={currentTime} origin={currentOrigin} />
+          </div>
+          <div className="lg:col-span-12">
+            <ExploreSection>
           {!selectedDestination ? (
             <>
+              <div className="my-4 h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" aria-hidden="true" />
+              <div className="relative my-6 h-64 w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl md:h-80">
+                <Image
+                  alt="Bienvenidos AIFA"
+                  className="object-cover brightness-50 blur-[2px] scale-105 transition-all duration-700"
+                  fill
+                  src="/images/marco-bienvenidos-aifa-premium.jpg"
+                  sizes="100vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" aria-hidden="true" />
+                <div className="relative z-10 flex h-full flex-col justify-end p-6 md:p-8">
+                  <span className="mb-2 text-xs font-semibold uppercase tracking-widest text-cyan-400">Bienvenido al AIFA</span>
+                  <h1 className="text-2xl font-bold text-white drop-shadow-md md:text-4xl">Tu Guía Digital en el Aeropuerto</h1>
+                  <p className="mt-1 max-w-xl text-sm text-slate-300 md:text-base">Encuentra salas de abordaje, restaurantes, servicios y atracciones en tiempo real.</p>
+                </div>
+              </div>
+              <div className="my-4 h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" aria-hidden="true" />
               <section className="mb-8">
                 <div className="mb-3 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">{copy.discover}</p>
-                    <h2 className="mt-1 text-2xl font-bold text-slate-800">{copy.explore}</h2>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">{copy.discover}</p>
+                    <h2 className="mt-1 text-2xl font-bold text-white">{copy.explore}</h2>
                   </div>
                   <span className="text-xs font-semibold text-slate-400">{copy.swipe}</span>
                 </div>
@@ -791,7 +826,7 @@ function NavigationContent() {
                 </div>
               </section>
 
-              <h2 className="mb-3 text-lg font-bold text-slate-800">{copy.destination}</h2>
+              <h2 className="mb-3 text-lg font-bold text-white">{copy.destination}</h2>
 
               {/* Búsqueda de destinos */}
               <div className="relative mb-4">
@@ -802,7 +837,7 @@ function NavigationContent() {
                   placeholder={copy.search}
                   id="destination-search"
                   aria-label={copy.searchLabel}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-11 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-slate-700/60 bg-slate-900/80 py-3 pl-4 pr-11 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-slate-900 focus:ring-2 focus:ring-blue-100"
                 />
                 {searchTerm && (
                   <button
@@ -817,7 +852,7 @@ function NavigationContent() {
               </div>
 
               <section className="mb-6" aria-labelledby="quick-tips-title">
-                <h3 id="quick-tips-title" className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-slate-500">
+                <h3 id="quick-tips-title" className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-white">
                   {copy.quickTips.title}
                 </h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -977,8 +1012,10 @@ function NavigationContent() {
               )}
             </div>
           )}
-        </ExploreSection>
-        <footer className="w-full bg-slate-900 text-white pt-12 pb-28 px-6 mt-16 border-t-2 border-amber-400/30 text-center relative overflow-hidden -mb-10">
+            </ExploreSection>
+          </div>
+        </div>
+        <footer className="w-full rounded-3xl border border-white/10 bg-slate-900/60 px-6 pb-28 pt-12 text-center text-white shadow-2xl backdrop-blur-xl">
           {/* Resplandor sutil de fondo */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-blue-500/10 blur-3xl pointer-events-none" />
 

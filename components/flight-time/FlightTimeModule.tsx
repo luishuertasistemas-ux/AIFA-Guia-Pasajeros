@@ -7,7 +7,7 @@ import { getEstimatedWalkingMinutes, MOCK_LOCATIONS, MOCK_ROUTES } from '../../d
 import { FlightTimeForm } from './FlightTimeForm';
 import { FlightTimeResult } from './FlightTimeResult';
 import { FlightTimeTrafficLight } from './FlightTimeTrafficLight';
-import { calculateFlightTime, type FlightTimeFields, type FlightTimeValidation, validateFlightTimeFields } from './flightTimeUtils';
+import { calculateFlightTime, getDefaultFlightTimeFields, type FlightTimeFields, type FlightTimeValidation, validateFlightTimeFields } from './flightTimeUtils';
 
 type FlightTimeModuleProps = {
   currentTime: Date | null;
@@ -16,7 +16,7 @@ type FlightTimeModuleProps = {
 
 export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [fields, setFields] = useState<FlightTimeFields>({ flightDate: '', boardingTime: '' });
+  const [fields, setFields] = useState<FlightTimeFields>(() => getDefaultFlightTimeFields());
   const [selectedGateId, setSelectedGateId] = useState('');
   const [errors, setErrors] = useState<FlightTimeValidation>({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -31,7 +31,7 @@ export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors = validateFlightTimeFields(fields);
+    const nextErrors = validateFlightTimeFields(fields, currentTime || new Date());
     if (!selectedGateId) nextErrors.gate = 'Selecciona una puerta de abordaje.';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || !currentTime || !selectedGateId) {
@@ -44,7 +44,8 @@ export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps)
   const handleFieldsChange = (nextFields: FlightTimeFields) => {
     setFields(nextFields);
     setHasSubmitted(false);
-    setErrors({});
+    const hasBothDateFields = Boolean(nextFields.flightDate && nextFields.boardingTime);
+    setErrors(hasBothDateFields ? validateFlightTimeFields(nextFields, currentTime || new Date()) : {});
   };
 
   return (

@@ -14,7 +14,6 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
   const currentStep = mexibusToDocRoute[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === mexibusToDocRoute.length - 1;
-  const progress = ((currentStepIndex + 1) / mexibusToDocRoute.length) * 100;
 
   useEffect(() => {
     setImageError(false);
@@ -49,45 +48,53 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
       aria-modal="true"
       aria-labelledby="ruta-mexibus-modal-title"
     >
-      <div className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-white text-slate-900 shadow-2xl">
-        <div className="h-1.5 w-full bg-slate-200" aria-hidden="true">
-          <div
-            className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-500"
-            style={{ width: `${progress}%` }}
-          />
+      <div className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-900/95 text-white shadow-2xl backdrop-blur-2xl">
+        <div
+          className="flex w-full gap-1.5 bg-slate-950/80 px-5 py-3 sm:px-7"
+          aria-label={`Progreso: paso ${currentStep.stepNumber} de ${mexibusToDocRoute.length}`}
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={mexibusToDocRoute.length}
+          aria-valuenow={currentStep.stepNumber}
+        >
+          {mexibusToDocRoute.map((step) => (
+            <span
+              key={step.stepNumber}
+              className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${step.stepNumber <= currentStep.stepNumber ? 'bg-amber-400' : 'bg-white/15'}`}
+              aria-hidden="true"
+            />
+          ))}
         </div>
 
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar guía de ruta"
-          className="absolute right-4 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-xl text-slate-500 shadow-md transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="absolute right-4 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xl text-slate-200 shadow-md transition hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
         >
           <span aria-hidden="true">×</span>
         </button>
 
-        <div className="overflow-y-auto p-5 sm:p-7">
+        <div className="scrollbar-none overflow-y-auto p-5 sm:p-7">
           <div className="pr-12">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="ruta-mexibus-modal-title" className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              <h2 id="ruta-mexibus-modal-title" className="text-xl font-bold tracking-tight text-white sm:text-2xl">
                 Ruta: Mexibús ➔ Documentación
               </h2>
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+              <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-200">
                 5 a 7 min a pie
               </span>
             </div>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Paso {currentStep.stepNumber} de {mexibusToDocRoute.length}
-            </p>
+            <p className="sr-only">Paso {currentStep.stepNumber} de {mexibusToDocRoute.length}</p>
           </div>
 
           <div className="mt-5" aria-live="polite">
             {imageError ? (
-              <div className="flex aspect-[16/9] items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 p-6 text-center shadow-md">
+                <div className="flex h-52 w-full items-center justify-center rounded-2xl bg-slate-800 p-6 text-center shadow-md">
                 <div>
                   <span className="text-3xl" aria-hidden="true">◫</span>
-                  <p className="mt-2 text-sm font-semibold text-slate-600">Imagen no disponible</p>
-                  <p className="mt-1 text-xs text-slate-500">Sigue las indicaciones y los puntos de referencia.</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-200">Imagen no disponible</p>
+                  <p className="mt-1 text-xs text-slate-400">Sigue las indicaciones y los puntos de referencia.</p>
                 </div>
               </div>
             ) : (
@@ -95,47 +102,51 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
                 src={currentStep.image}
                 alt={`${currentStep.title}: ${currentStep.stage}`}
                 onError={() => setImageError(true)}
-                className="aspect-[16/9] w-full rounded-2xl object-cover shadow-md"
+                className="h-52 w-full rounded-2xl object-cover shadow-md"
               />
             )}
           </div>
 
           <div className="mt-5">
-            <span className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">
+            <span className="inline-flex rounded-full bg-sky-400/15 px-3 py-1 text-xs font-bold text-sky-200">
               {currentStep.stage}
             </span>
-            <h3 className="mt-3 text-xl font-bold text-slate-900">{currentStep.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{currentStep.description}</p>
+            <h3 className="mt-3 text-2xl font-bold leading-tight text-white">{currentStep.title}</h3>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-200">{currentStep.description}</p>
           </div>
 
           {currentStep.referencePoint && (
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-              <p className="text-xs font-bold uppercase tracking-wide text-amber-700">Punto de referencia</p>
-              <p className="mt-1 font-medium">{currentStep.referencePoint}</p>
+            <div className="mt-4 flex gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 shadow-sm">
+              <span className="text-xl" aria-hidden="true">📍</span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-amber-300">Punto de referencia</p>
+                <p className="mt-1 font-medium">{currentStep.referencePoint}</p>
+              </div>
             </div>
           )}
 
           {currentStep.accessibilityNote && (
-            <p className="mt-3 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-xs font-medium text-sky-800">
-              Accesibilidad: {currentStep.accessibilityNote}
-            </p>
+            <div className="mt-3 flex gap-3 rounded-2xl border border-sky-400/25 bg-sky-400/10 p-4 text-xs font-medium text-sky-100 shadow-sm">
+              <span className="text-xl" aria-hidden="true">♿</span>
+              <p><span className="font-bold text-sky-300">Accesibilidad:</span> {currentStep.accessibilityNote}</p>
+            </div>
           )}
 
-          <div className="mt-6 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
+          <div className="sticky bottom-0 mt-6 flex items-center gap-3 border-t border-white/10 bg-slate-900/95 pt-5 backdrop-blur-sm">
             <button
               type="button"
               onClick={() => setCurrentStepIndex((stepIndex) => Math.max(0, stepIndex - 1))}
               disabled={isFirstStep}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-12 rounded-xl border border-white/15 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Anterior
+              ◀ Anterior
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="min-h-12 flex-1 rounded-xl bg-amber-400 px-5 py-2.5 text-sm font-bold text-slate-950 shadow-md transition hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
             >
-              {isLastStep ? 'Finalizar / Entendido' : 'Siguiente'}
+              {isLastStep ? 'Finalizar / Entendido' : 'Siguiente Paso ➔'}
             </button>
           </div>
         </div>
