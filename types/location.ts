@@ -8,12 +8,14 @@ export interface LocationTranslation {
 
 export interface Location {
   id: string;
+  isPassengerAccessible: boolean;
   category: LocationCategory;
   translations: Record<SupportedLanguage, LocationTranslation>;
   walkTime: string;
   images: string[];
   mapZone: string;
   quickTip?: Partial<Record<SupportedLanguage, string>>;
+  curiosity?: Partial<Record<SupportedLanguage, string>>;
 }
 
 export interface RouteStep {

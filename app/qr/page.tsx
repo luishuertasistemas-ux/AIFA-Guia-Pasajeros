@@ -99,7 +99,7 @@ export default function QRPage() {
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Object.values(MOCK_LOCATIONS).map((location) => {
+          {Object.values(MOCK_LOCATIONS).filter((location) => location.isPassengerAccessible).map((location) => {
             const url = `${APP_URL}${location.id}`;
             const isCopied = copiedId === location.id;
             const locationTranslation = location.translations[currentLang];

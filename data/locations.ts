@@ -3,6 +3,7 @@ import type { Location, NavigationRoute } from '../types/location';
 export const MOCK_LOCATIONS: Record<string, Location> = {
   'entrada-principal': {
     id: 'entrada-principal',
+    isPassengerAccessible: true,
     category: 'servicios',
     translations: {
       ES: { title: 'Entrada Principal - Acceso A', description: 'Punto de acceso principal al aeropuerto.' },
@@ -16,6 +17,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'filtro-seguridad': {
     id: 'filtro-seguridad',
+    isPassengerAccessible: true,
     category: 'servicios',
     translations: {
       ES: { title: 'Filtro de Seguridad Central', description: 'Punto de inicio del flujo de pasajeros.' },
@@ -29,6 +31,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'banos-mujeres-nivel-1': {
     id: 'banos-mujeres-nivel-1',
+    isPassengerAccessible: true,
     category: 'servicios',
     translations: {
       ES: { title: 'Sanitarios de Mujeres - Nivel 1', description: 'Baños de mujeres cerca de la zona comercial.' },
@@ -44,10 +47,17 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       EN: 'The women’s restrooms are on Level 1, near the shopping zone.',
       FR: 'Les toilettes pour femmes sont au niveau 1, près de la zone commerciale.',
       ZH: '女洗手间位于1层，靠近商业区。'
+    },
+    curiosity: {
+      ES: 'Cerca de esta zona encontrarás sanitarios temáticos inspirados en la Lucha Libre y el Mariachi.',
+      EN: 'Nearby, you can find themed restrooms inspired by Lucha Libre and Mariachi.',
+      FR: 'À proximité, découvrez des toilettes thématiques inspirées de la Lucha Libre et du Mariachi.',
+      ZH: '附近有以墨西哥摔跤和墨西哥流浪乐队为主题的洗手间。'
     }
   },
   'puerta-105': {
     id: 'puerta-105',
+    isPassengerAccessible: true,
     category: 'puertas',
     translations: {
       ES: { title: 'Puerta de Abordaje 105', description: 'Puerta de embarque en la zona norte.' },
@@ -61,6 +71,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'puerta-108': {
     id: 'puerta-108',
+    isPassengerAccessible: true,
     category: 'puertas',
     translations: {
       ES: { title: 'Puerta de Abordaje 108', description: 'Puerta de embarque en la zona sur.' },
@@ -74,6 +85,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'banos-lucha-libre': {
     id: 'banos-lucha-libre',
+    isPassengerAccessible: true,
     category: 'servicios',
     translations: {
       ES: { title: 'Sanitarios Temáticos (Lucha Libre)', description: 'Baños únicos inspirados en la lucha libre.' },
@@ -83,10 +95,23 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     },
     walkTime: '3 min a pie',
     images: ['/images/hero-noche.jpg', '/images/hero-manana.jpg'],
-    mapZone: 'Nivel 2 - Concourse Norte'
+    mapZone: 'Nivel 2 - Concourse Norte',
+    quickTip: {
+      ES: 'Los sanitarios temáticos del aeropuerto rinden homenaje a la Lucha Libre y al Mariachi.',
+      EN: 'The airport’s themed restrooms pay tribute to lucha libre and mariachi.',
+      FR: 'Les toilettes thématiques de l’aéroport rendent hommage à la lucha libre et au mariachi.',
+      ZH: '机场主题洗手间向墨西哥摔跤和流浪乐队文化致敬。'
+    },
+    curiosity: {
+      ES: '¿Sabías que los sanitarios temáticos cercanos están dedicados a la Lucha Libre y al Mariachi?',
+      EN: 'Did you know nearby themed restrooms celebrate Lucha Libre and Mariachi?',
+      FR: 'Saviez-vous que les toilettes thématiques voisines célèbrent la Lucha Libre et le Mariachi ?',
+      ZH: '您知道附近的主题洗手间以墨西哥摔跤和墨西哥流浪乐队为主题吗？'
+    }
   },
   'sala-vip': {
     id: 'sala-vip',
+    isPassengerAccessible: true,
     category: 'comida',
     translations: {
       ES: { title: 'Sala VIP Centurion', description: 'Sala exclusiva con comida y servicios para viajeros.' },
@@ -100,6 +125,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'museo-mamut': {
     id: 'museo-mamut',
+    isPassengerAccessible: true,
     category: 'turismo',
     translations: {
       ES: { title: 'Museo del Mamut (Tierra de Gigantes)', description: 'Zona cultural y paleontológica con fósiles monumentales.' },
@@ -109,10 +135,23 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     },
     walkTime: '5 min a pie',
     images: ['/images/museo-mamut.jpg', '/images/hero-manana.jpg'],
-    mapZone: 'Nivel 1 - Zona Cultural'
+    mapZone: 'Nivel 1 - Zona Cultural',
+    quickTip: {
+      ES: 'En esta zona cultural puedes visitar el Museo del Mamut, con fósiles monumentales.',
+      EN: 'Visit the Mammoth Museum in this cultural area to see monumental fossils.',
+      FR: 'Dans cette zone culturelle, visitez le Musée du Mammouth et ses fossiles monumentaux.',
+      ZH: '在这个文化区域可以参观猛犸象博物馆，欣赏巨型化石。'
+    },
+    curiosity: {
+      ES: 'En la zona cultural puedes visitar el Museo del Mamut y conocer fósiles monumentales hallados en la región.',
+      EN: 'In the cultural area, visit the Mammoth Museum and discover monumental fossils found in the region.',
+      FR: 'Dans la zone culturelle, visitez le Musée du Mammouth et découvrez des fossiles monumentaux trouvés dans la région.',
+      ZH: '您可以在文化区参观猛犸象博物馆，了解在该地区发现的巨型化石。'
+    }
   },
   'museo-aviacion-militar': {
     id: 'museo-aviacion-militar',
+    isPassengerAccessible: false,
     category: 'turismo',
     translations: {
       ES: { title: 'Museo de la Aviación Militar (MAM)', description: 'Hangares interactivos y aeronaves históricas.' },
@@ -126,6 +165,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'tren-presidencial-olmecas': {
     id: 'tren-presidencial-olmecas',
+    isPassengerAccessible: true,
     category: 'turismo',
     translations: {
       ES: { title: 'Tren Presidencial Olmecas', description: 'Vagón histórico y área temática para descubrir.' },
@@ -139,6 +179,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
   },
   'plaza-mexicana': {
     id: 'plaza-mexicana',
+    isPassengerAccessible: true,
     category: 'comida',
     translations: {
       ES: { title: 'Plaza Mexicana / Zona Comercial', description: 'Punto central de distribución a salas, tiendas y restaurantes.' },

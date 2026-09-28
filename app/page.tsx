@@ -576,10 +576,13 @@ function NavigationContent() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const currentOrigin = MOCK_LOCATIONS[scannedOriginId || origenParam] || MOCK_LOCATIONS['entrada-principal'];
+  const requestedOriginId = scannedOriginId || origenParam;
+  const currentOrigin = requestedOriginId && MOCK_LOCATIONS[requestedOriginId]?.isPassengerAccessible
+    ? MOCK_LOCATIONS[requestedOriginId]
+    : MOCK_LOCATIONS['entrada-principal'];
   const copy = translations[currentLang];
   const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
-    (loc) => loc.id !== currentOrigin.id
+    (loc) => loc.id !== currentOrigin.id && loc.isPassengerAccessible
   );
 
   const filteredDestinations = availableDestinations.filter((loc) => {
@@ -624,7 +627,7 @@ function NavigationContent() {
       // The QR may contain a plain location ID instead of a URL.
     }
 
-    if (!MOCK_LOCATIONS[scannedId]) return;
+    if (!MOCK_LOCATIONS[scannedId]?.isPassengerAccessible) return;
 
     setScannedOriginId(scannedId);
     setSelectedDestination(null);
@@ -636,7 +639,7 @@ function NavigationContent() {
 
   const speakDestination = (locationId: string) => {
     const location = MOCK_LOCATIONS[locationId];
-    if (!location) return;
+    if (!location?.isPassengerAccessible) return;
 
     const localizedLocation = location.translations[currentLang];
     const alert = location.quickTip?.[currentLang];
@@ -663,6 +666,7 @@ function NavigationContent() {
 
     let bestMatch: { id: string; score: number } | null = null;
     for (const location of Object.values(MOCK_LOCATIONS)) {
+      if (!location.isPassengerAccessible) continue;
       const localizedLocation = location.translations[currentLang];
       const searchableText = [
         localizedLocation.title,
@@ -947,6 +951,11 @@ function NavigationContent() {
                           <p className="mt-0.5 text-xs opacity-80">
                           {copy.locationCategories[loc.category]} • {loc.mapZone} • {loc.walkTime}
                         </p>
+                        {(loc.curiosity?.[currentLang] || loc.quickTip?.[currentLang]) && (
+                          <p className="mt-2 text-xs font-medium text-amber-800">
+                            {loc.curiosity?.[currentLang] || loc.quickTip?.[currentLang]}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <button
