@@ -155,6 +155,10 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const beginExperience = () => {
+    if (!isWelcomeFading) setIsWelcomeFading(true);
+  };
+
   const activeRole = selectedRole ? ROLE_INFO[selectedRole] : null;
   const ActiveRoleIcon = activeRole?.icon;
   const timeTheme = getTimeTheme(currentTime);
@@ -176,7 +180,11 @@ export default function Home() {
               type="button"
               autoFocus
               disabled={isWelcomeFading}
-              onClick={() => setIsWelcomeFading(true)}
+              onClick={beginExperience}
+              onTouchEnd={(event) => {
+                event.preventDefault();
+                beginExperience();
+              }}
               className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70 disabled:cursor-default"
             >
               Iniciar Experiencia <ArrowRight aria-hidden="true" size={20} />
