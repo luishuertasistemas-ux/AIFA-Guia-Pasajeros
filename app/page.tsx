@@ -1,1118 +1,314 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { useEffect, useRef, useState, Suspense } from 'react';
-import { MOCK_LOCATIONS, MOCK_ROUTES } from '../data/locations';
-import RutaMexibusModal from '../components/RutaMexibusModal';
-import { FlightTimeModule } from '../components/flight-time/FlightTimeModule';
-import QrScannerModal from './QrScannerModal';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Backpack,
+  Clock3,
+  ExternalLink,
+  Landmark,
+  Luggage,
+  PawPrint,
+  Plane,
+  TrainFront,
+  UsersRound,
+  type LucideIcon
+} from 'lucide-react';
 
-type HeroPeriod = 'manana' | 'tarde' | 'noche';
-type Language = 'ES' | 'EN' | 'FR' | 'ZH';
-type QuickTipKey = 'bathrooms' | 'food' | 'museum' | 'security';
-type SpeechSynthesisLocale = 'es-MX' | 'en-US' | 'fr-FR' | 'zh-CN';
-type SpeechRecognitionEventLike = {
-  results: { [index: number]: { [index: number]: { transcript: string } } };
+type Screen = 'welcome' | 'hub' | 'role';
+type RoleId = 'arrival' | 'departure' | 'pickup' | 'tourism' | 'transport' | 'lost-items' | 'pets';
+type RoleInfo = {
+  id: RoleId;
+  title: string;
+  subtitle: string;
+  description: string;
+  steps: string[];
+  icon: LucideIcon;
 };
-type SpeechRecognitionLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onstart: (() => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-type LanguageOption = {
-  code: Language;
-  label: string;
-  flag: string;
-  locale: SpeechSynthesisLocale;
-};
+type TimeTheme = { label: string; image: string };
 
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
-type Attraction = {
-  key: 'museo' | 'torre' | 'banos';
-  image: string;
-  searchTerm: string;
-};
-
-type Translation = {
-  hero: Record<HeroPeriod, { title: string; subtitle: string; badge: string }>;
-  origin: string;
-  explore: string;
-  discover: string;
-  swipe: string;
-  destination: string;
-  search: string;
-  searchLabel: string;
-  clearSearch: string;
-  categories: string[];
-  museum: { name: string; description: string; badge: string };
-  locationCategories: Record<string, string>;
-  locations: Record<string, { name: string; level: string; zone: string }>;
-  actionGo: string;
-  noCategoryResults: string;
-  noSearchResults: (term: string) => string;
-  changeDestination: string;
-  routeTo: string;
-  estimatedTime: string;
-  walkingMinutes: (minutes: number) => string;
-  routeBuilding: string;
-  routeSuggestions: string;
-  routeSteps: Record<string, string[]>;
-  attractions: Record<string, { name: string; description: string; badge: string; label?: string; schedule?: string }>;
-  quickActions: { bathrooms: string; food: string; search: string; label: string };
-  languageNames: Record<Language, string>;
-  actionDetails: string;
-  quickTips: {
-    title: string;
-    answerLabel: string;
-    walkingLabel: string;
-    notice: string;
-    questions: Record<QuickTipKey, string>;
-    answers: Record<QuickTipKey, string>;
-  };
-  voice: {
-    buttonLabel: string;
-    listening: string;
-    unsupported: string;
-    noMatch: string;
-    responsePrefix: string;
-    quickTipPrefix: string;
-  };
-};
-
-const QUICK_TIP_DESTINATIONS: Record<QuickTipKey, { id: string; minutes: number }> = {
-  bathrooms: { id: 'banos-mujeres-nivel-1', minutes: 5 },
-  food: { id: 'plaza-mexicana', minutes: 4 },
-  museum: { id: 'museo-mamut', minutes: 5 },
-  security: { id: 'filtro-seguridad', minutes: 3 }
-};
-
-const HERO_CONFIG: Record<HeroPeriod, { image: string }> = {
-  manana: { image: '/images/hero-manana.jpg' },
-  tarde: { image: '/images/hero-tarde.jpg' },
-  noche: { image: '/images/hero-noche.jpg' }
-};
-
-const STOIC_PHRASES = [
-  'El destino importa, pero la serenidad en el camino te pertenece.',
-  'No controlas los retrasos, pero sí tu tranquilidad en el presente.',
-  'Camina a tu ritmo; el aeropuerto es un espacio para la calma.',
-  'El viaje exterior empieza con el orden interior.'
-];
-
-const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { code: 'ES', label: 'Español', flag: '🇲🇽', locale: 'es-MX' },
-  { code: 'EN', label: 'English', flag: '🇺🇸', locale: 'en-US' },
-  { code: 'FR', label: 'Français', flag: '🇫🇷', locale: 'fr-FR' },
-  { code: 'ZH', label: '中文', flag: '🇨🇳', locale: 'zh-CN' }
-];
-
-const SPEECH_SYNTHESIS_LOCALES: Record<Language, SpeechSynthesisLocale> = {
-  ES: 'es-MX',
-  EN: 'en-US',
-  FR: 'fr-FR',
-  ZH: 'zh-CN'
-};
-
-const translations: Record<Language, Translation> = {
-  ES: {
-    hero: {
-      manana: { title: '¡Buenos días! Bienvenido al AIFA', subtitle: 'Explora la terminal bajo la luz de la mañana.', badge: '🌅 Mañana' },
-      tarde: { title: '¡Buenas tardes! Explora tu terminal', subtitle: 'Encuentra tus puertas, servicios y amenidades.', badge: '☀️ Tarde' },
-      noche: { title: '¡Buenas noches! Tu guía nocturna en AIFA', subtitle: 'Navega fácilmente por el aeropuerto a cualquier hora.', badge: '🌙 Noche' }
-    },
-    origin: 'Punto de inicio (QR Escaneado)',
-    explore: 'Explora AIFA',
-    swipe: 'Desliza para ver más →',
-    destination: '¿A dónde quieres ir?',
-    search: 'Buscar destino (ej. Puerta 105, Baños)...',
-    categories: ['Todas', 'Puertas', 'Servicios', 'Comida', 'Turismo'],
-    museum: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia' },
-    discover: 'Descubre',
-    searchLabel: 'Buscar destino',
-    clearSearch: 'Limpiar búsqueda',
-    locationCategories: { puertas: 'Puerta', servicios: 'Servicio', comida: 'Comida', turismo: 'Turismo' },
-    locations: {
-      'entrada-principal': { name: 'Entrada Principal - Acceso A', level: 'Nivel 1', zone: 'Zona Principal' },
-      'filtro-seguridad': { name: 'Filtro de Seguridad Central', level: 'Nivel 2', zone: 'Zona Centro' },
-      'puerta-105': { name: 'Puerta de Abordaje 105', level: 'Nivel 2', zone: 'Zona Norte' },
-      'puerta-108': { name: 'Puerta de Abordaje 108', level: 'Nivel 2', zone: 'Zona Sur' },
-      'banos-lucha-libre': { name: 'Sanitarios Temáticos (Lucha Libre)', level: 'Nivel 2', zone: 'Zona Norte' },
-      'sala-vip': { name: 'Sala VIP Centurion', level: 'Nivel 2', zone: 'Zona Centro' }
-    },
-    actionGo: 'Ir →',
-    noCategoryResults: 'No hay destinos en esta categoría.',
-    noSearchResults: (term: string) => `No se encontraron destinos que coincidan con '${term}'.`,
-    changeDestination: '← Cambiar destino',
-    routeTo: 'Ruta a:',
-    estimatedTime: 'Tiempo estimado:',
-    walkingMinutes: (minutes: number) => `${minutes} min a pie`,
-    routeBuilding: 'Ruta en construcción para este destino.',
-    routeSuggestions: 'Selecciona Puerta 105 (desde Entrada Principal) o Baños Lucha Libre (desde Filtro de Seguridad) para probar la guía.',
-    routeSteps: {
-      'entrada-principal-puerta-105': ['Ingresa por los detectores del Acceso A.', 'Toma las escaleras eléctricas hacia el Nivel 2.', 'Pasa por el Filtro de Seguridad Central.', 'Gira a la izquierda en el pasillo principal hacia la Zona Norte.', 'Camina 150 metros. La Puerta 105 estará a tu derecha.'],
-      'filtro-seguridad-banos-lucha-libre': ['Camina hacia el pasillo de la Zona Norte.', 'Los sanitarios temáticos están a 50 metros a la izquierda.']
-    },
-    attractions: {
-      museo: { name: 'Museo del Mamut', description: 'Una parada inolvidable antes de tu vuelo.', badge: 'Historia', label: 'Atracción Cultural · Photo Spot Imperdible', schedule: 'Abierto todos los días · 09:00 - 17:00' },
-      torre: { name: 'Torre de Control', description: 'Descubre el corazón operativo del aeropuerto.', badge: 'Vistas' },
-      banos: { name: 'Baños Temáticos', description: 'Servicios únicos para hacer más cómodo tu viaje.', badge: 'Experiencia' }
-    },
-    quickActions: { bathrooms: 'Baños', food: 'Comida', search: 'Buscar', label: 'Acciones rápidas' },
-    languageNames: { ES: 'Español', EN: 'Inglés', FR: 'Francés', ZH: 'Chino' },
-    actionDetails: 'Ver detalles',
-    voice: { buttonLabel: 'Asistente de voz', listening: 'Escuchando...', unsupported: 'El reconocimiento de voz no está disponible en este navegador.', noMatch: 'No encontré ese lugar. Prueba con el nombre, la zona o una pregunta rápida.', responsePrefix: 'Te recomiendo', quickTipPrefix: 'Aviso' },
-    quickTips: {
-      title: 'Preguntas rápidas',
-      answerLabel: 'Respuesta',
-      walkingLabel: 'Tiempo estimado',
-      notice: 'Aviso: los baños de mujeres están en el Nivel 1, cerca de la zona comercial.',
-      questions: {
-        bathrooms: '¿Dónde están los baños de mujeres?',
-        food: '¿Dónde comer algo rápido?',
-        museum: '¿Cómo llegar al Museo del Mamut?',
-        security: '¿Dónde están los filtros de seguridad?'
-      },
-      answers: {
-        bathrooms: 'Dirígete a los baños de mujeres de la zona de servicios.',
-        food: 'La Plaza Mexicana concentra opciones rápidas de comida y servicios.',
-        museum: 'El Museo del Mamut está en la zona cultural de la terminal.',
-        security: 'El Filtro de Seguridad Central es el punto de inicio del flujo de pasajeros.'
-      }
-    }
+const ROLE_INFO: Record<RoleId, RoleInfo> = {
+  arrival: {
+    id: 'arrival',
+    title: 'Llegué en un vuelo',
+    subtitle: 'Equipaje, migración y salida',
+    description: 'Te ayudamos a orientarte al llegar y a encontrar el siguiente paso de tu recorrido.',
+    steps: ['Sigue la señalización hacia equipaje y llegadas.', 'Localiza servicios y transporte en la terminal.', 'Confirma tu punto de salida antes de continuar.'],
+    icon: Plane
   },
-  EN: {
-    hero: {
-      manana: { title: 'Good morning! Welcome to AIFA', subtitle: 'Explore the terminal in the morning light.', badge: '🌅 Morning' },
-      tarde: { title: 'Good afternoon! Explore your terminal', subtitle: 'Find your gates, services, and amenities.', badge: '☀️ Afternoon' },
-      noche: { title: 'Good evening! Your night guide to AIFA', subtitle: 'Navigate the airport easily at any hour.', badge: '🌙 Night' }
-    },
-    origin: 'Starting point (QR Scanned)',
-    explore: 'Explore AIFA',
-    swipe: 'Swipe to see more →',
-    destination: 'Where do you want to go?',
-    search: 'Search destination (e.g. Gate 105, Restrooms)...',
-    categories: ['All', 'Gates', 'Services', 'Food', 'Tourism'],
-    museum: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History' },
-    discover: 'Discover', searchLabel: 'Search destination', clearSearch: 'Clear search',
-    locationCategories: { puertas: 'Gate', servicios: 'Service', comida: 'Food', turismo: 'Tourism' },
-    locations: {
-      'entrada-principal': { name: 'Main Entrance - Access A', level: 'Level 1', zone: 'Main Zone' },
-      'filtro-seguridad': { name: 'Central Security Checkpoint', level: 'Level 2', zone: 'Central Zone' },
-      'puerta-105': { name: 'Boarding Gate 105', level: 'Level 2', zone: 'North Zone' },
-      'puerta-108': { name: 'Boarding Gate 108', level: 'Level 2', zone: 'South Zone' },
-      'banos-lucha-libre': { name: 'Themed Restrooms (Lucha Libre)', level: 'Level 2', zone: 'North Zone' },
-      'sala-vip': { name: 'Centurion VIP Lounge', level: 'Level 2', zone: 'Central Zone' }
-    },
-    actionGo: 'Go →', noCategoryResults: 'No destinations in this category.', noSearchResults: (term: string) => `No destinations match '${term}'.`,
-    changeDestination: '← Change destination', routeTo: 'Route to:', estimatedTime: 'Estimated time:', walkingMinutes: (minutes: number) => `${minutes} min walk`,
-    routeBuilding: 'Route under construction for this destination.', routeSuggestions: 'Select Gate 105 (from Main Entrance) or Lucha Libre Restrooms (from Security Checkpoint) to try the guide.',
-    routeSteps: {
-      'entrada-principal-puerta-105': ['Enter through the Access A detectors.', 'Take the escalators to Level 2.', 'Go through the Central Security Checkpoint.', 'Turn left in the main hallway toward the North Zone.', 'Walk 150 meters. Gate 105 will be on your right.'],
-      'filtro-seguridad-banos-lucha-libre': ['Walk toward the North Zone hallway.', 'The themed restrooms are 50 meters to the left.']
-    },
-    attractions: {
-      museo: { name: 'Mammoth Museum', description: 'An unforgettable stop before your flight.', badge: 'History', label: 'Cultural Attraction · Must-See Photo Spot', schedule: 'Open daily · 09:00 - 17:00' },
-      torre: { name: 'Control Tower', description: 'Discover the operational heart of the airport.', badge: 'Views' },
-      banos: { name: 'Themed Restrooms', description: 'Unique services for a more comfortable journey.', badge: 'Experience' }
-    },
-    quickActions: { bathrooms: 'Restrooms', food: 'Food', search: 'Search', label: 'Quick actions' },
-    languageNames: { ES: 'Spanish', EN: 'English', FR: 'French', ZH: 'Chinese' },
-    actionDetails: 'View details',
-    voice: { buttonLabel: 'Voice assistant', listening: 'Listening...', unsupported: 'Voice recognition is not available in this browser.', noMatch: 'I could not find that place. Try its name, zone, or a quick question.', responsePrefix: 'I recommend', quickTipPrefix: 'Notice' },
-    quickTips: {
-      title: 'Quick questions',
-      answerLabel: 'Answer',
-      walkingLabel: 'Estimated walking time',
-      notice: 'Notice: the women’s restrooms are on Level 1, near the shopping zone.',
-      questions: {
-        bathrooms: 'Where are the women’s restrooms?',
-        food: 'Where can I grab a quick bite?',
-        museum: 'How do I get to the Mammoth Museum?',
-        security: 'Where are the security checkpoints?'
-      },
-      answers: {
-        bathrooms: 'Head to the women’s restrooms in the services area.',
-        food: 'Mexican Plaza brings together quick food and service options.',
-        museum: 'The Mammoth Museum is in the terminal’s cultural area.',
-        security: 'The Central Security Checkpoint is the starting point for passenger flow.'
-      }
-    }
+  departure: {
+    id: 'departure',
+    title: 'Voy a viajar',
+    subtitle: 'Check-in, filtros y salas',
+    description: 'Organiza tu salida con tiempo y ubica los puntos principales antes de abordar.',
+    steps: ['Consulta con tu aerolínea el mostrador de documentación.', 'Ten a la mano tus documentos para pasar los filtros.', 'Revisa las pantallas para confirmar tu sala y puerta.'],
+    icon: Plane
   },
-  FR: {
-    hero: {
-      manana: { title: 'Bonjour ! Bienvenue à l’AIFA', subtitle: 'Explorez le terminal dans la lumière du matin.', badge: '🌅 Matin' },
-      tarde: { title: 'Bon après-midi ! Explorez votre terminal', subtitle: 'Trouvez vos portes, services et commodités.', badge: '☀️ Après-midi' },
-      noche: { title: 'Bonsoir ! Votre guide nocturne à l’AIFA', subtitle: 'Naviguez facilement dans l’aéroport à toute heure.', badge: '🌙 Nuit' }
-    },
-    origin: 'Point de départ (QR scanné)',
-    explore: 'Explorez l’AIFA',
-    swipe: 'Faites glisser pour voir plus →',
-    destination: 'Où souhaitez-vous aller ?',
-    search: 'Rechercher une destination (ex. Porte 105, Toilettes)...',
-    categories: ['Toutes', 'Portes', 'Services', 'Restauration', 'Tourisme'],
-    museum: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire' },
-    discover: 'Découvrez', searchLabel: 'Rechercher une destination', clearSearch: 'Effacer la recherche',
-    locationCategories: { puertas: 'Porte', servicios: 'Service', comida: 'Restauration', turismo: 'Tourisme' },
-    locations: {
-      'entrada-principal': { name: 'Entrée principale - Accès A', level: 'Niveau 1', zone: 'Zone principale' },
-      'filtro-seguridad': { name: 'Contrôle de sécurité central', level: 'Niveau 2', zone: 'Zone centrale' },
-      'puerta-105': { name: 'Porte d’embarquement 105', level: 'Niveau 2', zone: 'Zone nord' },
-      'puerta-108': { name: 'Porte d’embarquement 108', level: 'Niveau 2', zone: 'Zone sud' },
-      'banos-lucha-libre': { name: 'Toilettes thématiques (Lucha Libre)', level: 'Niveau 2', zone: 'Zone nord' },
-      'sala-vip': { name: 'Salon VIP Centurion', level: 'Niveau 2', zone: 'Zone centrale' }
-    },
-    actionGo: 'Aller →', noCategoryResults: 'Aucune destination dans cette catégorie.', noSearchResults: (term: string) => `Aucune destination ne correspond à « ${term} » .`,
-    changeDestination: '← Changer de destination', routeTo: 'Itinéraire vers :', estimatedTime: 'Temps estimé :', walkingMinutes: (minutes: number) => `${minutes} min à pied`,
-    routeBuilding: 'Itinéraire en cours de construction pour cette destination.', routeSuggestions: 'Sélectionnez la porte 105 (depuis l’entrée principale) ou les toilettes Lucha Libre (depuis le contrôle de sécurité) pour tester le guide.',
-    routeSteps: {
-      'entrada-principal-puerta-105': ['Entrez par les détecteurs de l’accès A.', 'Prenez les escalators vers le niveau 2.', 'Passez le contrôle de sécurité central.', 'Tournez à gauche dans le couloir principal vers la zone nord.', 'Marchez 150 mètres. La porte 105 sera sur votre droite.'],
-      'filtro-seguridad-banos-lucha-libre': ['Marchez vers le couloir de la zone nord.', 'Les toilettes thématiques sont à 50 mètres sur la gauche.']
-    },
-    attractions: {
-      museo: { name: 'Musée du Mammouth', description: 'Une halte inoubliable avant votre vol.', badge: 'Histoire', label: 'Attraction culturelle · Photo incontournable', schedule: 'Ouvert tous les jours · 09:00 - 17:00' },
-      torre: { name: 'Tour de contrôle', description: 'Découvrez le cœur opérationnel de l’aéroport.', badge: 'Vues' },
-      banos: { name: 'Toilettes thématiques', description: 'Des services uniques pour un voyage plus confortable.', badge: 'Expérience' }
-    },
-    quickActions: { bathrooms: 'Toilettes', food: 'Restauration', search: 'Rechercher', label: 'Actions rapides' },
-    languageNames: { ES: 'Espagnol', EN: 'Anglais', FR: 'Français', ZH: 'Chinois' },
-    actionDetails: 'Voir les détails',
-    voice: { buttonLabel: 'Assistant vocal', listening: 'Écoute...', unsupported: 'La reconnaissance vocale n’est pas disponible dans ce navigateur.', noMatch: 'Je n’ai pas trouvé ce lieu. Essayez son nom, sa zone ou une question rapide.', responsePrefix: 'Je vous recommande', quickTipPrefix: 'À noter' },
-    quickTips: {
-      title: 'Questions rapides',
-      answerLabel: 'Réponse',
-      walkingLabel: 'Temps de marche estimé',
-      notice: 'À noter : les toilettes pour femmes sont au niveau 1, près de la zone commerciale.',
-      questions: {
-        bathrooms: 'Où sont les toilettes pour femmes ?',
-        food: 'Où manger rapidement ?',
-        museum: 'Comment aller au Musée du Mammouth ?',
-        security: 'Où sont les contrôles de sécurité ?'
-      },
-      answers: {
-        bathrooms: 'Dirigez-vous vers les toilettes pour femmes dans la zone des services.',
-        food: 'La Plaza Mexicana regroupe des options de restauration rapide et des services.',
-        museum: 'Le Musée du Mammouth se trouve dans la zone culturelle du terminal.',
-        security: 'Le contrôle de sécurité central est le point de départ du parcours des passagers.'
-      }
-    }
+  pickup: {
+    id: 'pickup',
+    title: 'Vengo por alguien',
+    subtitle: 'Punto de encuentro y llegadas',
+    description: 'Coordina un encuentro sencillo en la zona de llegadas y mantente atento a los avisos de vuelo.',
+    steps: ['Confirma la terminal y el horario de llegada.', 'Acuerda un punto de encuentro fácil de reconocer.', 'Sigue la señalización hacia el área pública de llegadas.'],
+    icon: UsersRound
   },
-  ZH: {
-    hero: {
-      manana: { title: '早上好！欢迎来到 AIFA', subtitle: '在晨光中探索航站楼。', badge: '🌅 早晨' },
-      tarde: { title: '下午好！探索您的航站楼', subtitle: '查找登机口、服务和设施。', badge: '☀️ 下午' },
-      noche: { title: '晚上好！您的 AIFA 夜间指南', subtitle: '随时轻松探索机场。', badge: '🌙 夜晚' }
-    },
-    origin: '起点（已扫描二维码）',
-    explore: '探索 AIFA',
-    swipe: '滑动查看更多 →',
-    destination: '您想去哪里？',
-    search: '搜索目的地（例如：105号登机口、洗手间）...',
-    categories: ['全部', '登机口', '服务', '餐饮', '旅游'],
-    museum: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史' },
-    discover: '探索', searchLabel: '搜索目的地', clearSearch: '清除搜索',
-    locationCategories: { puertas: '登机口', servicios: '服务', comida: '餐饮', turismo: '旅游' },
-    locations: {
-      'entrada-principal': { name: '主入口 - A 入口', level: '1层', zone: '主区域' },
-      'filtro-seguridad': { name: '中央安检处', level: '2层', zone: '中央区域' },
-      'puerta-105': { name: '105号登机口', level: '2层', zone: '北区' },
-      'puerta-108': { name: '108号登机口', level: '2层', zone: '南区' },
-      'banos-lucha-libre': { name: '主题洗手间（自由摔跤）', level: '2层', zone: '北区' },
-      'sala-vip': { name: 'Centurion 贵宾休息室', level: '2层', zone: '中央区域' }
-    },
-    actionGo: '前往 →', noCategoryResults: '此类别中没有目的地。', noSearchResults: (term: string) => `没有找到与“${term}”匹配的目的地。`,
-    changeDestination: '← 更换目的地', routeTo: '前往：', estimatedTime: '预计时间：', walkingMinutes: (minutes: number) => `步行 ${minutes} 分钟`,
-    routeBuilding: '该目的地的路线正在建设中。', routeSuggestions: '请选择105号登机口（从主入口出发）或自由摔跤洗手间（从中央安检处出发）来试用指南。',
-    routeSteps: {
-      'entrada-principal-puerta-105': ['从 A 入口通过安检门。', '乘自动扶梯前往2层。', '通过中央安检处。', '在主走廊向左转，前往北区。', '步行150米，105号登机口就在右侧。'],
-      'filtro-seguridad-banos-lucha-libre': ['沿北区走廊前行。', '主题洗手间在左侧50米处。']
-    },
-    attractions: {
-      museo: { name: '猛犸象博物馆', description: '飞行前不可错过的精彩一站。', badge: '历史', label: '文化景点 · 必拍照片打卡地', schedule: '每日开放 · 09:00 - 17:00' },
-      torre: { name: '控制塔', description: '探索机场的运营中心。', badge: '景观' },
-      banos: { name: '主题洗手间', description: '让旅程更加舒适的独特服务。', badge: '体验' }
-    },
-    quickActions: { bathrooms: '洗手间', food: '餐饮', search: '搜索', label: '快捷操作' },
-    languageNames: { ES: '西班牙语', EN: '英语', FR: '法语', ZH: '中文' },
-    actionDetails: '查看详情',
-    voice: { buttonLabel: '语音助手', listening: '正在聆听...', unsupported: '此浏览器不支持语音识别。', noMatch: '没有找到这个地点。请尝试说出名称、区域或快速问题。', responsePrefix: '推荐地点', quickTipPrefix: '提示' },
-    quickTips: {
-      title: '快速问答',
-      answerLabel: '回答',
-      walkingLabel: '预计步行时间',
-      notice: '提示：女洗手间位于1层，靠近商业区。',
-      questions: {
-        bathrooms: '女洗手间在哪里？',
-        food: '在哪里可以快速用餐？',
-        museum: '如何前往猛犸象博物馆？',
-        security: '安检处在哪里？'
-      },
-      answers: {
-        bathrooms: '请前往服务区的女洗手间。',
-        food: '墨西哥广场汇集了快速餐饮和服务选项。',
-        museum: '猛犸象博物馆位于航站楼文化区。',
-        security: '中央安检处是旅客流程的起点。'
-      }
-    }
-  }
-} satisfies Record<Language, unknown>;
-
-const ATTRACTIONS: Attraction[] = [
-  {
-    key: 'museo',
-    image: '/images/museo-mamut.jpg',
-    searchTerm: 'mamut'
+  tourism: {
+    id: 'tourism',
+    title: 'Paseo y Turismo',
+    subtitle: 'Museos, plaza y baños temáticos',
+    description: 'Explora los espacios culturales y comerciales del aeropuerto durante tu visita.',
+    steps: ['Visita el Museo del Mamut y sus espacios culturales.', 'Recorre la Plaza Mexicana y consulta sus servicios.', 'Sigue los señalamientos para ubicar los baños temáticos.'],
+    icon: Landmark
   },
-  {
-    key: 'torre',
-    image: '/images/hero-tarde.jpg',
-    searchTerm: 'torre'
+  transport: {
+    id: 'transport',
+    title: 'Transporte',
+    subtitle: 'Opciones para continuar tu trayecto',
+    description: 'Ubica las conexiones terrestres disponibles y confirma horarios y puntos de abordaje.',
+    steps: ['Sigue la señalización oficial hacia transporte.', 'Confirma horarios, tarifas y disponibilidad con el operador.', 'Conserva tus pertenencias durante el traslado.'],
+    icon: TrainFront
   },
-  {
-    key: 'banos',
-    image: '/images/hero-noche.jpg',
-    searchTerm: 'baños'
-  }
-];
-
-const CATEGORY_MODULE_STYLES: Record<string, { card: string; action: string }> = {
-  comida: {
-    card: 'border-orange-200 bg-orange-50 text-orange-600',
-    action: 'bg-orange-500 text-white hover:bg-orange-600'
+  'lost-items': {
+    id: 'lost-items',
+    title: 'Objetos olvidados',
+    subtitle: 'Orientación para recuperar tus pertenencias',
+    description: 'Si olvidaste algo, reporta el objeto con la mayor cantidad de detalles posible.',
+    steps: ['Anota dónde y cuándo viste el objeto por última vez.', 'Describe el objeto y cualquier dato que permita identificarlo.', 'Solicita orientación al personal del aeropuerto o de tu aerolínea.'],
+    icon: Backpack
   },
-  servicios: {
-    card: 'border-sky-200 bg-sky-50 text-sky-600',
-    action: 'bg-sky-500 text-white hover:bg-sky-600'
-  },
-  puertas: {
-    card: 'border-blue-600 bg-blue-600 text-white',
-    action: 'bg-white text-blue-700 hover:bg-blue-50'
-  },
-  turismo: {
-    card: 'border-purple-600 bg-purple-600 text-white',
-    action: 'bg-white text-purple-700 hover:bg-purple-50'
+  pets: {
+    id: 'pets',
+    title: 'Mascotas',
+    subtitle: 'Viaja preparado con tu animal de compañía',
+    description: 'Consulta con anticipación las reglas de tu aerolínea y los servicios disponibles en terminal.',
+    steps: ['Confirma requisitos y transportadora directamente con tu aerolínea.', 'Lleva contigo la documentación veterinaria requerida.', 'Mantén a tu mascota bajo supervisión en las áreas permitidas.'],
+    icon: PawPrint
   }
 };
 
-function getCategoryModuleStyle(category: string) {
-  return CATEGORY_MODULE_STYLES[category] || {
-    card: 'border-slate-200 bg-slate-50 text-slate-700',
-    action: 'bg-slate-700 text-white hover:bg-slate-800'
-  };
-}
+type MainRoleId = 'arrival' | 'departure' | 'pickup' | 'tourism';
 
-function getHeroPeriod(hour: number): HeroPeriod {
-  if (hour >= 6 && hour < 12) return 'manana';
-  if (hour >= 12 && hour < 19) return 'tarde';
-  return 'noche';
-}
-
-function normalizeVoiceText(value: string): string {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-}
-
-type HeaderProps = {
-  hero: (typeof HERO_CONFIG[HeroPeriod] & Translation['hero'][HeroPeriod]) | null;
-  currentTime: Date | null;
-  selectedLanguage: LanguageOption;
-  currentLang: Language;
-  isLanguageMenuOpen: boolean;
-  isVoiceListening: boolean;
-  copy: Translation;
-  onToggleLanguageMenu: () => void;
-  onSelectLanguage: (language: Language) => void;
-  onStartVoiceAssistant: () => void;
+const MAIN_ROLE_IDS: MainRoleId[] = ['arrival', 'departure', 'pickup', 'tourism'];
+const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
+const MAIN_ROLE_CARD_STYLES: Record<MainRoleId, string> = {
+  arrival: 'from-emerald-600 to-teal-700 hover:from-emerald-500 shadow-emerald-500/20',
+  departure: 'from-blue-600 to-indigo-700 hover:from-blue-500 shadow-blue-500/20',
+  pickup: 'from-amber-500 to-orange-600 hover:from-amber-400 shadow-amber-500/20',
+  tourism: 'from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 shadow-fuchsia-500/20'
+};
+const TIME_THEMES: Record<'morning' | 'afternoon' | 'night', TimeTheme> = {
+  morning: { label: 'Buenos días', image: '/images/hero-manana.jpg' },
+  afternoon: { label: 'Buenas tardes', image: '/images/hero-tarde.jpg' },
+  night: { label: 'Buenas noches', image: '/images/hero-noche.jpg' }
 };
 
-function Header({ hero, currentTime, selectedLanguage, currentLang, isLanguageMenuOpen, isVoiceListening, copy, onToggleLanguageMenu, onSelectLanguage, onStartVoiceAssistant }: HeaderProps) {
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const [visiblePhrase, setVisiblePhrase] = useState('');
-
-  const phrase = STOIC_PHRASES[phraseIndex];
-
-  useEffect(() => {
-    let characterIndex = 0;
-    const typewriterId = window.setInterval(() => {
-      characterIndex += 1;
-      setVisiblePhrase(phrase.slice(0, characterIndex));
-      if (characterIndex >= phrase.length) window.clearInterval(typewriterId);
-    }, 120);
-
-    return () => window.clearInterval(typewriterId);
-  }, [phrase]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setPhraseIndex((index) => (index + 1) % STOIC_PHRASES.length);
-    }, 12000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  return (
-    <section
-      key={hero?.title}
-      className="relative min-h-72 w-full overflow-hidden bg-slate-700 text-white animate-[fade-in_1400ms_ease-out] sm:min-h-80"
-      style={hero ? { backgroundImage: `url("${hero.image}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-      aria-label={hero?.title || copy.hero.noche.title}
-    >
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/30 to-slate-950/15" />
-      <div className="relative flex min-h-72 w-full flex-col justify-end p-0 sm:min-h-80">
-        <div className="absolute inset-x-5 top-5 flex flex-wrap items-center justify-between gap-3 sm:inset-x-8 sm:top-8">
-          {hero && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">{hero.badge}</span>}
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <time className="whitespace-nowrap rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold tabular-nums text-white backdrop-blur-sm">
-            {currentTime ? currentTime.toLocaleString(selectedLanguage.locale, { dateStyle: 'short', timeStyle: 'short' }) : '--:--'}
-          </time>
-          <div className="relative">
-            <button type="button" onClick={onToggleLanguageMenu} aria-expanded={isLanguageMenuOpen} aria-haspopup="listbox" aria-label={copy.languageNames[currentLang]} className="rounded-lg bg-slate-950/45 px-3 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-slate-950/65">
-              {selectedLanguage.flag} {currentLang}
-            </button>
-            {isLanguageMenuOpen && (
-              <div className="absolute right-0 top-11 z-30 min-w-36 overflow-hidden rounded-xl border border-white/20 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur-md" role="listbox">
-                {LANGUAGE_OPTIONS.map((option) => (
-                  <button key={option.code} type="button" role="option" aria-selected={currentLang === option.code} onClick={() => onSelectLanguage(option.code)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-white transition hover:bg-white/15">
-                    <span>{option.flag}</span><span>{copy.languageNames[option.code]}</span><span className="ml-auto text-xs text-slate-400">{option.code}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button type="button" onClick={onStartVoiceAssistant} aria-label={isVoiceListening ? copy.voice.listening : copy.voice.buttonLabel} aria-pressed={isVoiceListening} className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg text-white backdrop-blur-sm transition ${isVoiceListening ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse' : 'bg-slate-950/45 hover:bg-slate-950/65'}`}>
-            <span aria-hidden="true">{isVoiceListening ? '●' : '🎙'}</span>
-          </button>
-          </div>
-        </div>
-        {hero ? <>
-          <h1 className="w-full text-3xl font-bold leading-tight tracking-tight sm:text-5xl">{hero.title}</h1>
-          <p className="mt-2 w-full text-sm text-slate-200 sm:text-base">{hero.subtitle}</p>
-          <p className="mt-5 w-full font-serif text-base font-medium italic leading-relaxed text-white/95 drop-shadow-lg md:text-lg" aria-live="polite">
-            &quot;{visiblePhrase}&quot;
-          </p>
-        </> : <div className="h-24 animate-pulse rounded-lg bg-white/10" />}
-      </div>
-    </section>
-  );
+function getTimeTheme(date: Date | null): TimeTheme {
+  if (!date) return TIME_THEMES.morning;
+  const hour = date.getHours();
+  if (hour >= 6 && hour < 12) return TIME_THEMES.morning;
+  if (hour >= 12 && hour < 19) return TIME_THEMES.afternoon;
+  return TIME_THEMES.night;
 }
 
-type ActiveLocationCardProps = {
-  origin: (typeof MOCK_LOCATIONS)[string];
-  language: Language;
-  label: string;
-};
-
-function ActiveLocationCard({ origin, language, label }: ActiveLocationCardProps) {
-  return (
-    <header className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 text-white shadow-2xl backdrop-blur-xl sm:px-8">
-      <p className="text-xs uppercase tracking-wider font-semibold opacity-80">{label}</p>
-      <h1 className="text-xl font-bold mt-1">{origin.translations[language].title}</h1>
-      <p className="text-xs opacity-90 mt-1">{origin.mapZone} • {origin.walkTime}</p>
-    </header>
-  );
+function formatDigitalClock(date: Date | null): string {
+  if (!date) return '--/--  --:--';
+  const dateLabel = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit' }).format(date);
+  const timeLabel = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+  return `${dateLabel}  ${timeLabel}`;
 }
 
-type ExploreSectionProps = { children: React.ReactNode };
-
-function ExploreSection({ children }: ExploreSectionProps) {
-  return <div className="flex-1 rounded-3xl border border-white/10 bg-slate-900/60 p-5 pb-24 shadow-2xl backdrop-blur-xl sm:p-8 sm:pb-8">{children}</div>;
-}
-
-type BottomNavProps = {
-  copy: Translation;
-  onBathrooms: () => void;
-  onFood: () => void;
-  onSearch: () => void;
-  onScanQr: () => void;
-};
-
-function BottomNav({ copy, onBathrooms, onFood, onSearch, onScanQr }: BottomNavProps) {
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto grid max-w-md grid-cols-4 items-end rounded-t-2xl border border-white/10 bg-slate-950/90 p-2 shadow-2xl backdrop-blur-lg sm:hidden" aria-label={copy.quickActions.label}>
-      <button type="button" onClick={onBathrooms} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🚽</span>{copy.quickActions.bathrooms}</button>
-      <button type="button" onClick={onFood} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🍔</span>{copy.quickActions.food}</button>
-      <button type="button" onClick={onScanQr} className="-mt-8 flex min-w-24 flex-col items-center gap-1 rounded-2xl bg-blue-600 px-3 py-3 text-[11px] font-bold text-white shadow-xl shadow-blue-950/30 transition hover:scale-105 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"><span className="text-2xl">▣</span>Escanear QR</button>
-      <button type="button" onClick={onSearch} className="flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"><span className="text-xl">🔍</span>{copy.quickActions.search}</button>
-    </nav>
-  );
-}
-
-function NavigationContent() {
-  const searchParams = useSearchParams();
-  const origenParam = searchParams.get('origen') || 'entrada-principal';
-
+export default function Home() {
+  const [screen, setScreen] = useState<Screen>('welcome');
+  const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
+  const [isWelcomeFading, setIsWelcomeFading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [currentLang, setCurrentLang] = useState<Language>('ES');
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
-  const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('todas');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeQuickTip, setActiveQuickTip] = useState<QuickTipKey | null>(null);
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
-  const [voiceMessage, setVoiceMessage] = useState('');
-  const [voiceDestinationId, setVoiceDestinationId] = useState<string | null>(null);
-  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
-  const [isMexibusModalOpen, setIsMexibusModalOpen] = useState(false);
-  const [scannedOriginId, setScannedOriginId] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   useEffect(() => {
     const updateClock = () => setCurrentTime(new Date());
     updateClock();
     const intervalId = window.setInterval(updateClock, 1000);
-
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const requestedOriginId = scannedOriginId || origenParam;
-  const currentOrigin = requestedOriginId && MOCK_LOCATIONS[requestedOriginId]?.isPassengerAccessible
-    ? MOCK_LOCATIONS[requestedOriginId]
-    : MOCK_LOCATIONS['entrada-principal'];
-  const copy = translations[currentLang];
-  const availableDestinations = Object.values(MOCK_LOCATIONS).filter(
-    (loc) => loc.id !== currentOrigin.id && loc.isPassengerAccessible
-  );
+  useEffect(() => {
+    if (!isWelcomeFading) return;
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700;
+    const timeoutId = window.setTimeout(() => {
+      setScreen('hub');
+      setIsWelcomeFading(false);
+    }, duration);
+    return () => window.clearTimeout(timeoutId);
+  }, [isWelcomeFading]);
 
-  const filteredDestinations = availableDestinations.filter((loc) => {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-    const localizedLocation = loc.translations[currentLang];
-    const matchesSearch =
-      !normalizedSearchTerm ||
-      localizedLocation.title.toLowerCase().includes(normalizedSearchTerm) ||
-      localizedLocation.description.toLowerCase().includes(normalizedSearchTerm) ||
-      loc.mapZone.toLowerCase().includes(normalizedSearchTerm);
-    const matchesCategory = selectedCategory === 'todas' || loc.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  const routeKey = `${currentOrigin.id}-${selectedDestination}`;
-  const currentRoute = selectedDestination ? MOCK_ROUTES[routeKey] : null;
-  const heroPeriod = currentTime ? getHeroPeriod(currentTime.getHours()) : null;
-  const hero = heroPeriod === null
-    ? null
-    : { ...HERO_CONFIG[heroPeriod], ...copy.hero[heroPeriod] };
-  const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === currentLang) || LANGUAGE_OPTIONS[0];
-  const activeQuickTipDestination = activeQuickTip
-    ? MOCK_LOCATIONS[QUICK_TIP_DESTINATIONS[activeQuickTip].id]
-    : null;
-  const voiceDestination = voiceDestinationId ? MOCK_LOCATIONS[voiceDestinationId] : null;
-
-  const categories = [
-    { id: 'todas', label: copy.categories[0] },
-    { id: 'puertas', label: copy.categories[1] },
-    { id: 'servicios', label: copy.categories[2] },
-    { id: 'comida', label: copy.categories[3] },
-    { id: 'turismo', label: copy.categories[4] }
-  ];
-
-  const handleQrScan = (value: string) => {
-    let scannedId = value.trim();
-
-    try {
-      scannedId = new URL(scannedId).searchParams.get('origen') || scannedId;
-    } catch {
-      // The QR may contain a plain location ID instead of a URL.
-    }
-
-    if (!MOCK_LOCATIONS[scannedId]?.isPassengerAccessible) return;
-
-    setScannedOriginId(scannedId);
-    setSelectedDestination(null);
-    setSelectedCategory('todas');
-    setSearchTerm('');
-    setActiveQuickTip(null);
-    setVoiceDestinationId(null);
+  const openRole = (roleId: RoleId) => {
+    setSelectedRole(roleId);
+    setScreen('role');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const speakDestination = (locationId: string) => {
-    const location = MOCK_LOCATIONS[locationId];
-    if (!location?.isPassengerAccessible) return;
-
-    const localizedLocation = location.translations[currentLang];
-    const alert = location.quickTip?.[currentLang];
-    const response = `${copy.voice.responsePrefix} ${localizedLocation.title}, ${location.mapZone}, ${location.walkTime}. ${localizedLocation.description}${alert ? ` ${copy.voice.quickTipPrefix}: ${alert}` : ''}`;
-    setVoiceDestinationId(locationId);
-    setSelectedDestination(null);
-    setVoiceMessage(response);
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(response);
-    utterance.lang = SPEECH_SYNTHESIS_LOCALES[currentLang];
-    window.speechSynthesis.speak(utterance);
+  const returnToMenu = () => {
+    setSelectedRole(null);
+    setScreen('hub');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const findVoiceDestination = (transcript: string): { id: string; quickTipKey?: QuickTipKey } | null => {
-    const normalizedTranscript = normalizeVoiceText(transcript);
-    const quickTipMatch = (Object.keys(copy.quickTips.questions) as QuickTipKey[]).find((tipKey) => {
-      const questionWords = normalizeVoiceText(copy.quickTips.questions[tipKey])
-        .split(/\s+/)
-        .filter((word) => word.length > 3 && !['donde', 'where', 'sont', 'sind', 'esta', 'estan', 'como', 'comment', 'where', 'están'].includes(word));
-      return questionWords.filter((word) => normalizedTranscript.includes(word)).length >= 2;
-    });
-
-    if (quickTipMatch) return { id: QUICK_TIP_DESTINATIONS[quickTipMatch].id, quickTipKey: quickTipMatch };
-
-    let bestMatch: { id: string; score: number } | null = null;
-    for (const location of Object.values(MOCK_LOCATIONS)) {
-      if (!location.isPassengerAccessible) continue;
-      const localizedLocation = location.translations[currentLang];
-      const searchableText = [
-        localizedLocation.title,
-        localizedLocation.description,
-        location.mapZone,
-        copy.locationCategories[location.category]
-      ];
-      const score = searchableText
-        .flatMap((value) => normalizeVoiceText(value).split(/\s+/))
-        .filter((word) => word.length > 2 && normalizedTranscript.includes(word)).length;
-      if (score > (bestMatch?.score || 0)) bestMatch = { id: location.id, score };
-    }
-
-    const resolvedMatch = bestMatch as { id: string; score: number } | null;
-    return resolvedMatch && resolvedMatch.score > 0 ? { id: resolvedMatch.id } : null;
-  };
-
-  const startVoiceAssistant = () => {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!Recognition) {
-      setVoiceMessage(copy.voice.unsupported);
-      return;
-    }
-
-    if (isVoiceListening) {
-      recognitionRef.current?.stop();
-      return;
-    }
-
-    const recognition = new Recognition();
-    recognition.lang = selectedLanguage.locale;
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onstart = () => {
-      setIsVoiceListening(true);
-      setVoiceMessage(copy.voice.listening);
-    };
-    recognition.onend = () => setIsVoiceListening(false);
-    recognition.onerror = () => {
-      setIsVoiceListening(false);
-      setVoiceMessage(copy.voice.noMatch);
-    };
-    recognition.onresult = (event: SpeechRecognitionEventLike) => {
-      const transcript = event.results[0][0].transcript;
-      const match = findVoiceDestination(transcript);
-      if (!match) {
-        setVoiceMessage(copy.voice.noMatch);
-        return;
-      }
-      setActiveQuickTip(match.quickTipKey || null);
-      speakDestination(match.id);
-    };
-    recognitionRef.current = recognition;
-    recognition.start();
-  };
-
-  useEffect(() => () => {
-    recognitionRef.current?.stop();
-    window.speechSynthesis.cancel();
-  }, []);
+  const activeRole = selectedRole ? ROLE_INFO[selectedRole] : null;
+  const ActiveRoleIcon = activeRole?.icon;
+  const timeTheme = getTimeTheme(currentTime);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0a0f1d] via-[#0a0f1d] to-[#070a14] p-0 pb-32 text-slate-100">
-      <div className="pointer-events-none absolute -left-24 top-24 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-amber-400/5 blur-3xl" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-none flex-col px-0 pb-32">
-        <Header hero={hero} currentTime={currentTime} selectedLanguage={selectedLanguage} currentLang={currentLang} isLanguageMenuOpen={isLanguageMenuOpen} isVoiceListening={isVoiceListening} copy={copy} onToggleLanguageMenu={() => setIsLanguageMenuOpen((isOpen) => !isOpen)} onSelectLanguage={(language) => { setCurrentLang(language); setIsLanguageMenuOpen(false); }} onStartVoiceAssistant={startVoiceAssistant} />
-        <div className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-4">
-            <ActiveLocationCard origin={currentOrigin} language={currentLang} label={copy.origin} />
-            <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-5 text-white shadow-2xl backdrop-blur-xl">
+    <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
+      {screen === 'welcome' && (
+        <section
+          aria-labelledby="welcome-title"
+          className={`fixed inset-0 z-50 flex min-h-[100svh] items-center justify-center overflow-hidden bg-slate-950 transition-opacity duration-700 ease-out motion-reduce:duration-0 ${isWelcomeFading ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+        >
+          <Image src="/images/aifa-bienvenida.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/45 to-slate-950/75" aria-hidden="true" />
+          <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-5 text-center sm:px-8">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-200 sm:text-sm">AIFA · Guía de pasajeros</p>
+            <h1 id="welcome-title" className="text-3xl font-bold leading-tight drop-shadow-lg sm:text-5xl">¡Te damos la bienvenida al AIFA!</h1>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-100 drop-shadow sm:text-xl">Tu experiencia en el aeropuerto, guiada paso a paso con la tranquilidad y claridad que mereces.</p>
+            <button
+              type="button"
+              autoFocus
+              disabled={isWelcomeFading}
+              onClick={() => setIsWelcomeFading(true)}
+              className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70 disabled:cursor-default"
+            >
+              Iniciar Experiencia <ArrowRight aria-hidden="true" size={20} />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {screen === 'hub' && (
+        <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+          <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
+          <div className="absolute inset-0 -z-10 bg-slate-950/75 backdrop-blur-sm" aria-hidden="true" />
+          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
+            <header className="mb-7 sm:mb-9">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">AIFA · Guía de pasajeros</p>
+              <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">¿Cómo podemos ayudarte hoy?</h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">Elige lo que necesitas y te orientamos en tu visita.</p>
+            </header>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              {MAIN_ROLE_IDS.map((roleId) => {
+                const role = ROLE_INFO[roleId];
+                const Icon = role.icon;
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => openRole(role.id)}
+                    className={`group flex min-h-32 items-center gap-4 rounded-2xl border border-white/20 bg-gradient-to-br ${MAIN_ROLE_CARD_STYLES[role.id]} p-4 text-left text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-36 sm:p-5`}
+                  >
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition-colors group-hover:bg-white/30">
+                      <Icon aria-hidden="true" size={28} strokeWidth={1.8} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xl font-bold leading-snug text-white md:text-2xl">{role.title}</span>
+                      <span className="mt-1 block text-sm font-medium leading-relaxed text-white/90 md:text-base">{role.subtitle}</span>
+                    </span>
+                    <ArrowRight aria-hidden="true" className="shrink-0 text-white/75 transition group-hover:translate-x-1 group-hover:text-white" size={20} />
+                  </button>
+                );
+              })}
+            </div>
+
+            <nav aria-label="Ayuda rápida" className="mt-auto pt-8">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Ayuda rápida</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {SUPPORT_ROLE_IDS.map((roleId) => {
+                  const role = ROLE_INFO[roleId];
+                  const Icon = role.icon;
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => openRole(role.id)}
+                      className="flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-900/75 px-2 py-3 text-center text-xs font-semibold text-white transition hover:border-emerald-300/70 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:min-h-20 sm:flex-row sm:text-sm"
+                    >
+                      <Icon aria-hidden="true" size={20} className="shrink-0 text-emerald-200" />
+                      <span>{role.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
+        </section>
+      )}
+
+      {screen === 'role' && activeRole && (
+        <section className="mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
           <button
             type="button"
-            onClick={() => setIsMexibusModalOpen(true)}
-            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-slate-900"
+            onClick={returnToMenu}
+            className="mb-5 inline-flex min-h-[48px] w-fit items-center gap-2 rounded-lg px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
           >
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">Modo Serenidad</span>
-            <h2 className="mt-2 text-lg font-bold sm:text-xl">Ruta Asistida: Mexibús ➔ Documentación</h2>
-            <p className="mt-1 text-sm text-blue-100">Guía paso a paso con fotos y referencias visuales (5-7 min)</p>
-            <span className="mt-4 inline-flex rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300">
-              Iniciar recorrido
-            </span>
+            <ArrowLeft aria-hidden="true" size={19} /> Volver al Menú Principal
           </button>
-            </section>
-          </div>
-          <div className="lg:col-span-8">
-            <FlightTimeModule currentTime={currentTime} origin={currentOrigin} />
-          </div>
-          <div className="lg:col-span-12">
-            <ExploreSection>
-          {!selectedDestination ? (
-            <>
-              <div className="my-4 h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" aria-hidden="true" />
-              <div className="relative my-6 h-64 w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl md:h-80">
-                <Image
-                  alt="Bienvenidos AIFA"
-                  className="object-cover brightness-50 blur-[2px] scale-105 transition-all duration-700"
-                  fill
-                  src="/images/marco-bienvenidos-aifa-premium.jpg"
-                  sizes="100vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" aria-hidden="true" />
-                <div className="relative z-10 flex h-full flex-col justify-end p-6 md:p-8">
-                  <span className="mb-2 text-xs font-semibold uppercase tracking-widest text-cyan-400">Bienvenido al AIFA</span>
-                  <h1 className="text-2xl font-bold text-white drop-shadow-md md:text-4xl">Tu Guía Digital en el Aeropuerto</h1>
-                  <p className="mt-1 max-w-xl text-sm text-slate-300 md:text-base">Encuentra salas de abordaje, restaurantes, servicios y atracciones en tiempo real.</p>
-                </div>
-              </div>
-              <div className="my-4 h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" aria-hidden="true" />
-              <section className="mb-8">
-                <div className="mb-3 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">{copy.discover}</p>
-                    <h2 className="mt-1 text-2xl font-bold text-white">{copy.explore}</h2>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-400">{copy.swipe}</span>
-                </div>
-                <div className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 scrollbar-none sm:-mx-8 sm:px-8">
-                  {ATTRACTIONS.map((attraction) => (
-                    <button
-                      key={attraction.key}
-                      type="button"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedCategory(attraction.key === 'banos' ? 'servicios' : 'todas');
-                      }}
-                      className="group relative min-w-[84%] snap-start overflow-hidden rounded-2xl text-left shadow-lg transition-transform duration-300 hover:-translate-y-1 sm:min-w-[42%] lg:min-w-[32%]"
-                    >
-                      <div
-                        className="h-48 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                        style={{ backgroundImage: `url("${attraction.image}")` }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent" />
-                      <span className="absolute left-3 top-3 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md animate-[float_4s_ease-in-out_infinite] transition-transform duration-300 group-hover:scale-105">
-                        {copy.attractions[attraction.key].badge}
-                      </span>
-                      <div className="absolute inset-x-4 bottom-4 text-white">
-                        <h3 className="text-lg font-bold">
-                          {copy.attractions[attraction.key].name}
-                        </h3>
-                        <p className="mt-1 text-xs text-slate-200">
-                          {copy.attractions[attraction.key].description}
-                        </p>
-                        {copy.attractions[attraction.key].label && (
-                          <span className="mt-2 inline-block text-[10px] font-semibold uppercase tracking-wide text-blue-200">
-                            {copy.attractions[attraction.key].label}
-                          </span>
-                        )}
-                        {copy.attractions[attraction.key].schedule && (
-                          <span className="mt-1 block text-[10px] text-slate-300">
-                            {copy.attractions[attraction.key].schedule}
-                          </span>
-                        )}
-                        <span className="mt-2 block text-xs font-bold text-white underline underline-offset-2">
-                          {copy.actionDetails}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </section>
 
-              <h2 className="mb-3 text-lg font-bold text-white">{copy.destination}</h2>
-
-              {/* Búsqueda de destinos */}
-              <div className="relative mb-4">
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder={copy.search}
-                  id="destination-search"
-                  aria-label={copy.searchLabel}
-                  className="w-full rounded-xl border border-slate-700/60 bg-slate-900/80 py-3 pl-4 pr-11 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-slate-900 focus:ring-2 focus:ring-blue-100"
-                />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchTerm('')}
-                    aria-label={copy.clearSearch}
-                    className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
-                )}
-              </div>
-
-              <section className="mb-6" aria-labelledby="quick-tips-title">
-                <h3 id="quick-tips-title" className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-white">
-                  {copy.quickTips.title}
-                </h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                  {(Object.keys(copy.quickTips.questions) as QuickTipKey[]).map((tipKey) => (
-                    <button
-                      key={tipKey}
-                      type="button"
-                      onClick={() => setActiveQuickTip(tipKey)}
-                      className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
-                        activeQuickTip === tipKey
-                          ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600'
-                      }`}
-                    >
-                      {copy.quickTips.questions[tipKey]}
-                    </button>
-                  ))}
-                </div>
-                {activeQuickTip && activeQuickTipDestination && (
-                  <div className="mt-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-sm text-white shadow-md" role="status">
-                    <p className="text-xs font-bold uppercase tracking-wide text-amber-100">{copy.quickTips.answerLabel}</p>
-                    <p className="mt-1 font-semibold text-white">{copy.quickTips.answers[activeQuickTip]}</p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className="rounded-full bg-white/90 px-2.5 py-1 text-orange-700">
-                        {copy.quickTips.walkingLabel}: {copy.walkingMinutes(QUICK_TIP_DESTINATIONS[activeQuickTip].minutes)}
-                      </span>
-                      <span className="rounded-full bg-white/90 px-2.5 py-1 text-orange-700">
-                        {activeQuickTipDestination.translations[currentLang].title}
-                      </span>
-                    </div>
-                    {activeQuickTip === 'bathrooms' && (
-                      <p className="mt-3 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-medium text-white">
-                        {activeQuickTipDestination.quickTip?.[currentLang] || copy.quickTips.notice}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {voiceDestination && (
-                  <article className="mt-3 overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-950 shadow-sm" aria-live="polite">
-                    <div className="flex items-start gap-3 p-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg text-white" aria-hidden="true">🎙</div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">{copy.voice.buttonLabel}</p>
-                        <h3 className="mt-1 font-bold">{voiceDestination.translations[currentLang].title}</h3>
-                        <p className="mt-1 text-sm">{voiceDestination.translations[currentLang].description}</p>
-                        <p className="mt-2 text-xs font-semibold">
-                          {voiceDestination.mapZone} • {voiceDestination.walkTime}
-                        </p>
-                        {voiceDestination.quickTip?.[currentLang] && (
-                          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
-                            {voiceDestination.quickTip[currentLang]}
-                          </p>
-                        )}
-                        {voiceMessage && <p className="mt-2 text-xs italic text-emerald-800">{voiceMessage}</p>}
-                      </div>
-                    </div>
-                  </article>
-                )}
-              </section>
-
-              {/* Botones de Filtro por Categoría */}
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`rounded-2xl border px-3 py-2 text-xs font-semibold whitespace-nowrap shadow-md transition-colors ${
-                      selectedCategory === cat.id
-                        ? getCategoryModuleStyle(cat.id).action
-                        : getCategoryModuleStyle(cat.id).card
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Lista filtrada de destinos */}
-              <div
-                key={`${selectedCategory}-${searchTerm}`}
-                className="space-y-3 animate-[fade-in_350ms_ease-out]"
-              >
-                {filteredDestinations.length > 0 ? (
-                  filteredDestinations.map((loc) => (
-                    <div
-                      key={loc.id}
-                      className={`w-full text-left p-4 rounded-2xl border shadow-md transition flex justify-between items-center group ${getCategoryModuleStyle(loc.category).card}`}
-                    >
-                      <div>
-                          <h3 className="font-semibold">{loc.translations[currentLang].title}</h3>
-                          <p className="mt-0.5 text-xs opacity-80">{loc.translations[currentLang].description}</p>
-                          <p className="mt-0.5 text-xs opacity-80">
-                          {copy.locationCategories[loc.category]} • {loc.mapZone} • {loc.walkTime}
-                        </p>
-                        {(loc.curiosity?.[currentLang] || loc.quickTip?.[currentLang]) && (
-                          <p className="mt-2 text-xs font-medium text-amber-800">
-                            {loc.curiosity?.[currentLang] || loc.quickTip?.[currentLang]}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedDestination(loc.id)}
-                            className={`rounded-xl px-3 py-2 text-xs font-bold transition ${getCategoryModuleStyle(loc.category).action}`}
-                        >
-                          {copy.actionDetails}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedDestination(loc.id)}
-                          className={`rounded-xl px-3 py-2 text-xs font-bold transition ${getCategoryModuleStyle(loc.category).action}`}
-                        >
-                          {copy.actionGo}
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-slate-500 text-center py-6">
-                    {searchTerm.trim() ? copy.noSearchResults(searchTerm) : copy.noCategoryResults}
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
-            /* Vista de Guía de Navegación Paso a Paso */
-            <div className="flex-1 flex flex-col">
-              <button
-                onClick={() => setSelectedDestination(null)}
-                className="text-xs text-blue-600 font-semibold mb-4 hover:underline self-start flex items-center gap-1"
-              >
-                {copy.changeDestination}
-              </button>
-
-              <h2 className="text-lg font-bold text-slate-800">
-                {copy.routeTo} {MOCK_LOCATIONS[selectedDestination]?.translations[currentLang].title}
-              </h2>
-
-              {currentRoute ? (
-                <div className="mt-4 flex-1">
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-800 flex justify-between items-center font-medium">
-                    <span>{copy.estimatedTime}</span>
-                    <span className="font-bold">{copy.walkingMinutes(currentRoute.estimatedMinutes)}</span>
-                  </div>
-
-                  <div className="space-y-4">
-                    {(copy.routeSteps[routeKey] || []).map((instruction, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                          {index + 1}
-                        </span>
-                        <p className="text-sm text-slate-700">{instruction}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                  {copy.routeBuilding} {copy.routeSuggestions}
-                </div>
-              )}
+          <article className="relative isolate flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
+            <div className="absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
+              <Image src={timeTheme.image} alt="" fill sizes="(max-width: 640px) 100vw, 960px" className="object-cover object-center" />
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 to-slate-900" aria-hidden="true" />
             </div>
-          )}
-            </ExploreSection>
-          </div>
-        </div>
-        <footer className="w-full rounded-3xl border border-white/10 bg-slate-900/60 px-6 pb-28 pt-12 text-center text-white shadow-2xl backdrop-blur-xl">
-          {/* Resplandor sutil de fondo */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-blue-500/10 blur-3xl pointer-events-none" />
+            <div className="relative z-10 flex flex-1 flex-col p-5 pt-28 sm:p-8 sm:pt-36">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{timeTheme.label} en el AIFA</p>
+              <div className="mt-3 flex items-center gap-3">
+                {ActiveRoleIcon && <ActiveRoleIcon aria-hidden="true" className="shrink-0 text-emerald-200" size={32} strokeWidth={1.8} />}
+                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{activeRole.title}</h1>
+              </div>
+              <p className="mt-2 text-sm font-semibold text-slate-300 sm:text-base">{activeRole.subtitle}</p>
+              <p className="mt-5 max-w-3xl text-base leading-relaxed text-slate-100">{activeRole.description}</p>
+              <ol className="mt-7 space-y-3">
+                {activeRole.steps.map((step, index) => (
+                  <li key={step} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
+                    <span className="pt-0.5 text-sm leading-relaxed text-slate-100">{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <button
+                type="button"
+                onClick={returnToMenu}
+                className="mt-7 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:w-fit"
+              >
+                <ArrowLeft aria-hidden="true" size={18} /> Volver al Menú Principal
+              </button>
+            </div>
+          </article>
+        </section>
+      )}
 
-          <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center gap-3">
-            <span className="text-xs font-bold tracking-[0.3em] text-amber-400 uppercase">
-              AIFA • Faro Digital
-            </span>
-
-            <h3 className="text-base font-semibold text-slate-100">
-              Aeropuerto Internacional Felipe Ángeles
-            </h3>
-
-            <p className="text-xs text-slate-300 italic font-serif max-w-md">
-              "Tu tranquilidad en cada etapa del viaje."
-            </p>
-
-            <div className="w-16 h-[1px] bg-slate-700 my-2" />
-
-            <a
+      {screen !== 'welcome' && (
+        <footer className="border-t border-slate-800 bg-slate-900 px-4 py-6 text-center sm:px-8 sm:py-7">
+          <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 px-4 py-3 text-left text-slate-950 shadow-lg shadow-teal-950/30" aria-live="polite">
+              <Clock3 aria-hidden="true" size={22} />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em]">Hora local</p>
+                <p className="font-mono text-lg font-bold tabular-nums">{formatDigitalClock(currentTime)}</p>
+              </div>
+            </div>
+            <Link
               href="https://aifa.aero"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-slate-400 transition-colors hover:text-white"
+              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-white animate-pulse"
             >
-              Sitio Oficial AIFA ↗
-            </a>
-
-            <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-              Guía Pasajeros • Modo Serenidad
-            </p>
+              <ExternalLink aria-hidden="true" size={18} /> Sitio Oficial AIFA
+            </Link>
+            <p className="max-w-sm text-xs leading-relaxed text-slate-300 sm:text-right">Aeropuerto Internacional Felipe Ángeles — Guiando tu camino paso a paso.</p>
           </div>
         </footer>
-      </div>
-      {/* Barra de navegación inferior (BottomNav) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex justify-around items-center z-50">
-        <button 
-          onClick={() => {
-            setSelectedCategory("todas");
-            setSelectedDestination(null);
-            setSearchTerm("");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition"
-        >
-          <span className="text-xs font-semibold">Inicio</span>
-        </button>
-        
-        <button 
-          onClick={() => setIsQrScannerOpen(true)}
-          className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition flex items-center gap-2"
-        >
-          <span>📷</span>
-          <span>Escanear QR</span>
-        </button>
-
-        <button 
-          onClick={() => {
-            const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-              searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }}
-          className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition"
-        >
-          <span className="text-xs font-semibold">Buscar</span>
-        </button>
-      </div>
-      <QrScannerModal
-      
-        isOpen={isQrScannerOpen}
-        language={currentLang}
-        onClose={() => setIsQrScannerOpen(false)}
-        onScan={handleQrScan}
-        
-      />
-      <RutaMexibusModal
-        isOpen={isMexibusModalOpen}
-        onClose={() => setIsMexibusModalOpen(false)}
-      />
+      )}
     </main>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense fallback={<div className="p-4 text-center" aria-busy="true" />}>
-      <NavigationContent />
-    </Suspense>
   );
 }
