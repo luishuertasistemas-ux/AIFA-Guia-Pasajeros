@@ -213,7 +213,7 @@ export default function Home() {
                     key={role.id}
                     type="button"
                     onClick={() => openRole(role.id)}
-                    className={`group flex min-h-32 items-center gap-4 rounded-2xl border border-white/20 bg-gradient-to-br ${MAIN_ROLE_CARD_STYLES[role.id]} p-4 text-left text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-36 sm:p-5`}
+                    className={`group flex min-h-32 items-center gap-4 rounded-2xl border border-white/20 bg-gradient-to-br ${MAIN_ROLE_CARD_STYLES[roleId]} p-4 text-left text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-36 sm:p-5`}
                   >
                     <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition-colors group-hover:bg-white/30">
                       <Icon aria-hidden="true" size={28} strokeWidth={1.8} />
