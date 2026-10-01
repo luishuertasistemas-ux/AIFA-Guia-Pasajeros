@@ -7,19 +7,36 @@ import {
   ArrowLeft,
   ArrowRight,
   Backpack,
+  Check,
   Clock3,
   ExternalLink,
   Landmark,
-  Luggage,
+  MapPin,
+  MessageCircle,
   PawPrint,
   Plane,
+  QrCode,
   TrainFront,
+  TriangleAlert,
   UsersRound,
   type LucideIcon
 } from 'lucide-react';
+import QrScannerModal from './QrScannerModal';
+import { MOCK_LOCATIONS } from '@/data/locations';
+import type { Location } from '@/types/location';
+import {
+  OPCIONES_ENCUESTA,
+  RESPUESTAS_PANTALLA,
+  TIA_INFO_BANNER,
+  TRANSPORTE_DATA,
+  TURISMO_DATA,
+  type OpcionEncuesta,
+  type SubModulo
+} from '@/data/pasajeros';
 
-type Screen = 'welcome' | 'hub' | 'role';
+type Screen = 'welcome' | 'hub' | 'role' | 'survey';
 type RoleId = 'arrival' | 'departure' | 'pickup' | 'tourism' | 'transport' | 'lost-items' | 'pets';
+type QrRoute = { role?: RoleId; locationId?: string; activateTia?: boolean };
 type RoleInfo = {
   id: RoleId;
   title: string;
@@ -29,6 +46,31 @@ type RoleInfo = {
   icon: LucideIcon;
 };
 type TimeTheme = { label: string; image: string };
+type FallbackImageProps = {
+  src: string;
+  fallback: string;
+  alt: string;
+  sizes: string;
+  className: string;
+  fill?: boolean;
+};
+
+function FallbackImage({ src, fallback, alt, sizes, className, fill }: FallbackImageProps) {
+  const [imageSrc, setImageSrc] = useState(src);
+
+  return (
+    <Image
+      src={imageSrc}
+      alt={alt}
+      fill={fill}
+      sizes={sizes}
+      className={className}
+      onError={() => {
+        if (imageSrc !== fallback) setImageSrc(fallback);
+      }}
+    />
+  );
+}
 
 const ROLE_INFO: Record<RoleId, RoleInfo> = {
   arrival: {
@@ -93,11 +135,37 @@ type MainRoleId = 'arrival' | 'departure' | 'pickup' | 'tourism';
 
 const MAIN_ROLE_IDS: MainRoleId[] = ['arrival', 'departure', 'pickup', 'tourism'];
 const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
-const MAIN_ROLE_CARD_STYLES: Record<MainRoleId, string> = {
-  arrival: 'from-emerald-600 to-teal-700 hover:from-emerald-500 shadow-emerald-500/20',
-  departure: 'from-blue-600 to-indigo-700 hover:from-blue-500 shadow-blue-500/20',
-  pickup: 'from-amber-500 to-orange-600 hover:from-amber-400 shadow-amber-500/20',
-  tourism: 'from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 shadow-fuchsia-500/20'
+const QR_CODE_ROUTES: Record<string, QrRoute> = {
+  'QR-MEXIBUS-01': { role: 'transport' },
+  'QR-LLEGADAS-01': { role: 'arrival' },
+  'QR-SALIDAS-01': { role: 'departure' },
+  'PUERTA-108': { role: 'departure', locationId: 'puerta-108' },
+  'QR-BANOS-TEMATICOS': { role: 'tourism', locationId: 'banos-lucha-libre' },
+  'BANOS-LUCHA-LIBRE': { role: 'tourism', locationId: 'banos-lucha-libre' },
+  'QR-PUNTO-REUNION': { role: 'pickup' },
+  'QR-MODULO-TIA': { activateTia: true }
+};
+const MAIN_ROLE_CARD_STYLES: Record<MainRoleId, { image?: string; base: string; overlay: string }> = {
+  arrival: {
+    image: '/images/llegadas-bg.jpg',
+    base: 'bg-[#008767]',
+    overlay: 'bg-gradient-to-t from-[#00382b]/90 via-[#008767]/60 to-transparent'
+  },
+  departure: {
+    image: '/images/salidas-bg.jpg',
+    base: 'bg-[#2563eb]',
+    overlay: 'bg-gradient-to-t from-[#0f172a]/90 via-[#2563eb]/60 to-transparent'
+  },
+  pickup: {
+    image: '/images/encuentro-bg.jpg',
+    base: 'bg-[#f97316]',
+    overlay: 'bg-gradient-to-t from-[#7c2d12]/90 via-[#ea580c]/60 to-transparent'
+  },
+  tourism: {
+    image: '/images/turismo-bg.jpg',
+    base: 'bg-[#a855f7]',
+    overlay: 'bg-gradient-to-t from-[#581c87]/90 via-[#8b5cf6]/60 to-transparent'
+  }
 };
 const TIME_THEMES: Record<'morning' | 'afternoon' | 'night', TimeTheme> = {
   morning: { label: 'Buenos días', image: '/images/hero-manana.jpg' },
@@ -120,9 +188,26 @@ function formatDigitalClock(date: Date | null): string {
   return `${dateLabel}  ${timeLabel}`;
 }
 
+function normalizeQrToken(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+}
+
+function getLocationRole(location: Location): RoleId {
+  if (location.category === 'puertas') return 'departure';
+  if (location.category === 'turismo' || location.category === 'comida') return 'tourism';
+  return 'arrival';
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
+  const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
+  const [surveyDetails, setSurveyDetails] = useState('');
+  const [surveyFinished, setSurveyFinished] = useState(false);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [qrScanMessage, setQrScanMessage] = useState('');
+  const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
+  const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
   const [isWelcomeFading, setIsWelcomeFading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
@@ -143,25 +228,104 @@ export default function Home() {
     return () => window.clearTimeout(timeoutId);
   }, [isWelcomeFading]);
 
+  useEffect(() => {
+    if (screen !== 'hub' || !isTiaBannerActive) return;
+    const frameId = window.requestAnimationFrame(() => {
+      document.getElementById('tia-help')?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'center'
+      });
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isTiaBannerActive, screen]);
+
   const openRole = (roleId: RoleId) => {
+    setQrTargetLocation(null);
+    setIsTiaBannerActive(false);
     setSelectedRole(roleId);
     setScreen('role');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const returnToMenu = () => {
+    setQrTargetLocation(null);
+    setIsTiaBannerActive(false);
     setSelectedRole(null);
     setScreen('hub');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openSurvey = () => {
+    setSelectedSurveyOption(null);
+    setSurveyDetails('');
+    setSurveyFinished(false);
+    setScreen('survey');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const selectSurveyOption = (option: OpcionEncuesta) => {
+    setSelectedSurveyOption(option);
+    setSurveyDetails('');
+    setSurveyFinished(false);
   };
 
   const beginExperience = () => {
     if (!isWelcomeFading) setIsWelcomeFading(true);
   };
 
+  const handleQrScan = (value: string) => {
+    let qrToken = value.trim();
+    try {
+      const scannedUrl = new URL(value, window.location.origin);
+      const pathToken = scannedUrl.pathname.split('/').filter(Boolean).pop();
+      qrToken = decodeURIComponent(scannedUrl.searchParams.get('origen') ?? pathToken ?? value).trim();
+    } catch {
+      qrToken = value.trim();
+    }
+    const normalizedToken = normalizeQrToken(qrToken);
+    const route = QR_CODE_ROUTES[normalizedToken];
+    const location = route?.locationId
+      ? MOCK_LOCATIONS[route.locationId]
+      : Object.values(MOCK_LOCATIONS).find((candidate) => {
+        const normalizedId = normalizeQrToken(candidate.id);
+        return normalizedToken === normalizedId || normalizedToken.includes(normalizedId);
+      });
+
+    if (route?.activateTia) {
+      setQrTargetLocation(null);
+      setIsTiaBannerActive(true);
+      setQrScanMessage('');
+      setSelectedRole(null);
+      setScreen('hub');
+      return;
+    }
+
+    const roleId = route?.role ?? (location ? getLocationRole(location) : null);
+    if (roleId) {
+      setQrTargetLocation(location ?? null);
+      setIsTiaBannerActive(false);
+      setQrScanMessage('');
+      setSelectedRole(roleId);
+      setScreen('role');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setQrTargetLocation(null);
+    setQrScanMessage('Código QR leído, pero la ubicación no está registrada en la guía.');
+  };
+
   const activeRole = selectedRole ? ROLE_INFO[selectedRole] : null;
   const ActiveRoleIcon = activeRole?.icon;
   const timeTheme = getTimeTheme(currentTime);
+  const roleModules: SubModulo[] | null = selectedRole === 'tourism'
+    ? TURISMO_DATA
+    : selectedRole === 'transport'
+      ? TRANSPORTE_DATA
+      : null;
+  const surveyResponse = selectedSurveyOption
+    ? RESPUESTAS_PANTALLA[selectedSurveyOption.categoria]
+    : null;
 
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
@@ -179,13 +343,8 @@ export default function Home() {
             <button
               type="button"
               autoFocus
-              disabled={isWelcomeFading}
               onClick={beginExperience}
-              onTouchEnd={(event) => {
-                event.preventDefault();
-                beginExperience();
-              }}
-              className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70 disabled:cursor-default"
+              className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70"
             >
               Iniciar Experiencia <ArrowRight aria-hidden="true" size={20} />
             </button>
@@ -197,40 +356,75 @@ export default function Home() {
         <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
           <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
           <div className="absolute inset-0 -z-10 bg-slate-950/75 backdrop-blur-sm" aria-hidden="true" />
-          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
-            <header className="mb-7 sm:mb-9">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">AIFA · Guía de pasajeros</p>
-              <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">¿Cómo podemos ayudarte hoy?</h1>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">Elige lo que necesitas y te orientamos en tu visita.</p>
+          <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
+            <header className="mb-7 flex flex-col gap-4 sm:mb-9 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">AIFA · Guía de pasajeros</p>
+                <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">¿Cómo podemos ayudarte hoy?</h1>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">Elige lo que necesitas y te orientamos en tu visita.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setQrScanMessage('');
+                  setIsQrScannerOpen(true);
+                }}
+                className="inline-flex min-h-12 shrink-0 cursor-pointer items-center justify-center gap-2 self-start rounded-2xl border border-cyan-100/70 bg-gradient-to-r from-cyan-300 to-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-950/40 transition-all duration-300 hover:scale-105 hover:brightness-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white sm:self-auto"
+              >
+                <QrCode aria-hidden="true" size={21} />
+                Escanear QR
+              </button>
             </header>
+
+            {qrScanMessage && (
+              <p className="mb-4 rounded-xl border border-emerald-200/40 bg-emerald-900/80 px-4 py-3 text-sm font-semibold text-white" role="status" aria-live="polite">
+                {qrScanMessage}
+              </p>
+            )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               {MAIN_ROLE_IDS.map((roleId) => {
                 const role = ROLE_INFO[roleId];
                 const Icon = role.icon;
+                const cardStyle = MAIN_ROLE_CARD_STYLES[roleId];
                 return (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => openRole(role.id)}
-                    className={`group flex min-h-32 items-center gap-4 rounded-2xl border border-white/20 bg-gradient-to-br ${MAIN_ROLE_CARD_STYLES[roleId]} p-4 text-left text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-36 sm:p-5`}
+                    className={`group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-white/20 ${cardStyle.base} px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-52 sm:p-8`}
                   >
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white transition-colors group-hover:bg-white/30">
-                      <Icon aria-hidden="true" size={28} strokeWidth={1.8} />
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                      style={cardStyle.image ? { backgroundImage: `url("${cardStyle.image}")` } : undefined}
+                    />
+                    <span aria-hidden="true" className={`absolute inset-0 ${cardStyle.overlay}`} />
+                    <span className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white drop-shadow-md transition-colors group-hover:bg-white/30">
+                      <Icon aria-hidden="true" size={32} strokeWidth={1.8} />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-xl font-bold leading-snug text-white md:text-2xl">{role.title}</span>
-                      <span className="mt-1 block text-sm font-medium leading-relaxed text-white/90 md:text-base">{role.subtitle}</span>
+                    <span className="relative z-10 min-w-0 flex-1 drop-shadow-md">
+                      <span className="block text-2xl font-bold leading-snug text-white md:text-3xl">{role.title}</span>
+                      <span className="mt-2 block text-base font-semibold leading-relaxed text-white md:text-lg">{role.subtitle}</span>
                     </span>
-                    <ArrowRight aria-hidden="true" className="shrink-0 text-white/75 transition group-hover:translate-x-1 group-hover:text-white" size={20} />
+                    <ArrowRight aria-hidden="true" className="relative z-10 shrink-0 text-white/75 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
                   </button>
                 );
               })}
             </div>
 
-            <nav aria-label="Ayuda rápida" className="mt-auto pt-8">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-300">Ayuda rápida</p>
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          </div>
+
+          <div className="mx-auto w-full max-w-6xl px-4 pb-8 sm:px-8">
+            <div className="mx-auto w-full max-w-5xl space-y-6">
+              <aside id="tia-help" className={`flex flex-col items-start gap-y-1 rounded-2xl border border-red-200/70 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 px-5 py-4 text-white shadow-xl shadow-red-950/40 transition-all duration-500 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:px-6 ${isTiaBannerActive ? 'ring-4 ring-white ring-offset-4 ring-offset-red-800' : ''}`}>
+                <h2 className="text-base font-bold leading-tight sm:shrink-0 sm:text-lg">{TIA_INFO_BANNER.titulo}</h2>
+                <p className="w-full min-w-0 text-sm leading-relaxed text-white sm:w-auto sm:flex-1 sm:text-base">{TIA_INFO_BANNER.mensaje}</p>
+              </aside>
+
+              <nav aria-label="Ayuda rápida">
+                <p className="mb-3 text-base font-bold uppercase tracking-[0.14em] text-white">Ayuda rápida</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 {SUPPORT_ROLE_IDS.map((roleId) => {
                   const role = ROLE_INFO[roleId];
                   const Icon = role.icon;
@@ -239,17 +433,36 @@ export default function Home() {
                       key={role.id}
                       type="button"
                       onClick={() => openRole(role.id)}
-                      className="flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-900/75 px-2 py-3 text-center text-xs font-semibold text-white transition hover:border-emerald-300/70 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:min-h-20 sm:flex-row sm:text-sm"
+                      className="flex min-h-24 items-center justify-center gap-3 rounded-2xl border border-red-200/70 bg-gradient-to-br from-red-700 via-rose-700 to-red-800 px-4 py-5 text-center text-base font-bold text-white shadow-lg transition hover:border-white hover:from-red-600 hover:via-rose-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 sm:text-lg"
                     >
-                      <Icon aria-hidden="true" size={20} className="shrink-0 text-emerald-200" />
+                      <Icon aria-hidden="true" size={26} className="shrink-0 text-white" />
                       <span>{role.title}</span>
                     </button>
                   );
                 })}
-              </div>
-            </nav>
+                </div>
+              </nav>
+              <button
+                type="button"
+                onClick={openSurvey}
+                className="inline-flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border border-red-100 bg-gradient-to-r from-red-500 via-rose-600 to-red-700 px-6 py-4 text-lg font-bold text-white shadow-xl shadow-red-950/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-red-200"
+              >
+                <MessageCircle aria-hidden="true" size={22} className="text-white" />
+                Cuéntanos tu experiencia
+                <ArrowRight aria-hidden="true" size={20} className="text-white" />
+              </button>
+            </div>
           </div>
         </section>
+      )}
+
+      {screen === 'hub' && (
+        <QrScannerModal
+          isOpen={isQrScannerOpen}
+          language="ES"
+          onClose={() => setIsQrScannerOpen(false)}
+          onScan={handleQrScan}
+        />
       )}
 
       {screen === 'role' && activeRole && (
@@ -275,14 +488,74 @@ export default function Home() {
               </div>
               <p className="mt-2 text-sm font-semibold text-slate-300 sm:text-base">{activeRole.subtitle}</p>
               <p className="mt-5 max-w-3xl text-base leading-relaxed text-slate-100">{activeRole.description}</p>
-              <ol className="mt-7 space-y-3">
-                {activeRole.steps.map((step, index) => (
-                  <li key={step} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
-                    <span className="pt-0.5 text-sm leading-relaxed text-slate-100">{step}</span>
-                  </li>
-                ))}
-              </ol>
+              {qrTargetLocation && (
+                <section className="mt-6 rounded-xl border border-emerald-200/40 bg-emerald-950/70 p-4 text-white" aria-labelledby="qr-location-title">
+                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Ubicación detectada</p>
+                  <h2 id="qr-location-title" className="mt-1 text-lg font-bold">{qrTargetLocation.translations.ES.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-100">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-emerald-100">
+                    <MapPin aria-hidden="true" size={17} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                  </p>
+                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-sm leading-relaxed text-emerald-50">{qrTargetLocation.quickTip.ES}</p>}
+                </section>
+              )}
+              {roleModules ? (
+                <div className="mt-7 space-y-8">
+                  {roleModules.map((module) => (
+                    <section key={module.id} aria-labelledby={`${module.id}-title`}>
+                      <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{module.titulo}</h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">{module.descripcion}</p>
+                      <ol className="mt-4 grid gap-4 lg:grid-cols-2">
+                        {module.pasos.map((step, index) => {
+                          const fallbackImage = selectedRole === 'tourism'
+                            ? module.id === 'museos' ? '/images/museo-mamut.jpg' : '/images/aifa-terminal.jpg'
+                            : module.id === 'mexibus' ? '/images/rutas/mexibus-doc/paso-01.jpg' : '/images/aifa-mapa.png';
+                          return (
+                            <li key={step.id} className="overflow-hidden border border-white/10 bg-slate-950/55">
+                              {step.imagenUrl && (
+                                <div className="relative aspect-[16/9] overflow-hidden bg-slate-800">
+                                  <FallbackImage
+                                    key={step.id}
+                                    src={step.imagenUrl}
+                                    fallback={fallbackImage}
+                                    alt={step.titulo}
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
+                                    className="object-cover"
+                                    fill
+                                  />
+                                </div>
+                              )}
+                              <div className="p-4 sm:p-5">
+                                <div className="flex items-start gap-3">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
+                                  <div>
+                                    <h3 className="font-bold leading-snug text-white">{step.titulo}</h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{step.descripcion}</p>
+                                  </div>
+                                </div>
+                                {step.sabiasQue && (
+                                  <p className="mt-4 border-l-2 border-amber-300 bg-amber-300/10 px-3 py-2 text-sm leading-relaxed text-amber-100">
+                                    <strong>Recomendación:</strong> {step.sabiasQue}
+                                  </p>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <ol className="mt-7 space-y-3">
+                  {activeRole.steps.map((step, index) => (
+                    <li key={step} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
+                      <span className="pt-0.5 text-sm leading-relaxed text-slate-100">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
               <button
                 type="button"
                 onClick={returnToMenu}
@@ -292,6 +565,130 @@ export default function Home() {
               </button>
             </div>
           </article>
+        </section>
+      )}
+
+      {screen === 'survey' && (
+        <section className="mx-auto min-h-[calc(100svh-15rem)] w-full max-w-5xl px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
+          <button
+            type="button"
+            onClick={selectedSurveyOption ? () => setSelectedSurveyOption(null) : returnToMenu}
+            className="mb-5 inline-flex min-h-[48px] items-center gap-2 px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          >
+            <ArrowLeft aria-hidden="true" size={19} /> {selectedSurveyOption ? 'Volver a las opciones' : 'Volver al Menú Principal'}
+          </button>
+
+          {!selectedSurveyOption ? (
+            <div>
+              <header className="mb-7">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Tu experiencia importa</p>
+                <h1 className="mt-2 text-2xl font-bold sm:text-3xl">¿Cómo estuvo tu visita?</h1>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">Elige la opción que mejor describe lo que viviste.</p>
+              </header>
+              {(['halago', 'queja'] as const).map((category) => (
+                <section key={category} className="mb-8" aria-labelledby={`survey-${category}`}>
+                  <h2 id={`survey-${category}`} className="mb-3 flex items-center gap-2 text-lg font-bold">
+                    {category === 'halago'
+                      ? <Check aria-hidden="true" size={20} className="text-emerald-300" />
+                      : <TriangleAlert aria-hidden="true" size={20} className="text-amber-300" />}
+                    {category === 'halago' ? 'Quiero reconocer algo' : 'Quiero compartir algo por mejorar'}
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {OPCIONES_ENCUESTA.filter((option) => option.categoria === category).map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => selectSurveyOption(option)}
+                        className={`group relative isolate flex min-h-32 items-center gap-4 overflow-hidden rounded-lg border border-white/20 ${option.colorBg} px-5 py-7 text-left text-white shadow-md transition hover:border-white/70 hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-white`}
+                      >
+                        <span className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+                          {option.imagenFondo && (
+                            <Image
+                              src={option.imagenFondo}
+                              alt=""
+                              fill
+                              sizes="(max-width: 640px) 100vw, 50vw"
+                              className="object-cover opacity-30"
+                            />
+                          )}
+                          <span className="absolute inset-0 bg-slate-950/35" />
+                        </span>
+                        <span className="relative z-10 flex w-full items-center gap-4">
+                          <span className="shrink-0 text-3xl" aria-hidden="true">{option.icono}</span>
+                          <span className="flex-1 text-lg font-bold leading-snug text-white sm:text-xl">{option.texto}</span>
+                          <ArrowRight aria-hidden="true" size={22} className="shrink-0 text-white" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <article className="relative isolate overflow-hidden border border-white/10 bg-slate-900 shadow-2xl">
+              <div className="absolute inset-0 -z-10">
+                <FallbackImage
+                  key={selectedSurveyOption.id}
+                  src={surveyResponse?.imagenFondo ?? '/images/aifa-terminal.jpg'}
+                  fallback="/images/aifa-terminal.jpg"
+                  alt=""
+                  sizes="(max-width: 1024px) 100vw, 960px"
+                  className="object-cover opacity-20"
+                  fill
+                />
+              </div>
+              <div className="relative p-5 sm:p-8">
+                <p className="text-3xl" aria-hidden="true">{selectedSurveyOption.icono}</p>
+                <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
+                  {surveyFinished ? 'Gracias por compartir tu experiencia' : surveyResponse?.titulo}
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-100 sm:text-base">
+                  {surveyFinished
+                    ? 'Tu comentario se mantiene en esta pantalla y no se envía al aeropuerto. Para recibir ayuda inmediata, acércate con confianza al personal TIA.'
+                    : surveyResponse?.mensaje}
+                </p>
+                {surveyFinished && surveyDetails.trim() && (
+                  <p className="mt-5 whitespace-pre-wrap border-l-2 border-emerald-300 bg-slate-950/60 px-4 py-3 text-sm leading-relaxed text-slate-100">
+                    {surveyDetails}
+                  </p>
+                )}
+                {!surveyFinished && (
+                  <>
+                    <p className="mt-6 border-l-2 border-emerald-300 pl-3 text-sm font-semibold text-emerald-100">{selectedSurveyOption.texto}</p>
+                    <label htmlFor="survey-details" className="mt-6 block text-sm font-semibold text-white">{surveyResponse?.placeholderTexto}</label>
+                    <textarea
+                      id="survey-details"
+                      value={surveyDetails}
+                      onChange={(event) => setSurveyDetails(event.target.value)}
+                      rows={4}
+                      maxLength={500}
+                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950/80 p-3 text-sm leading-relaxed text-white placeholder:text-slate-400 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                    />
+                    <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                      <MessageCircle aria-hidden="true" size={14} className="mr-1 inline" />
+                      Este directorio no envía reportes; para atención inmediata, acércate al personal TIA.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSurveyFinished(true)}
+                      className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-white"
+                    >
+                      Finalizar <ArrowRight aria-hidden="true" size={18} />
+                    </button>
+                  </>
+                )}
+                {surveyFinished && (
+                  <button
+                    type="button"
+                    onClick={returnToMenu}
+                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 border border-white/30 bg-slate-950/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  >
+                    Volver al Menú Principal <ArrowRight aria-hidden="true" size={18} />
+                  </button>
+                )}
+              </div>
+            </article>
+          )}
         </section>
       )}
 
