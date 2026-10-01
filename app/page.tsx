@@ -3,14 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
   Backpack,
+  Building2,
+  Bus,
   Check,
   Clock3,
   ExternalLink,
   Landmark,
+  Luggage,
   MapPin,
   MessageCircle,
   PawPrint,
@@ -135,6 +139,26 @@ type MainRoleId = 'arrival' | 'departure' | 'pickup' | 'tourism';
 
 const MAIN_ROLE_IDS: MainRoleId[] = ['arrival', 'departure', 'pickup', 'tourism'];
 const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
+const ARRIVAL_GUIDE_STEPS = [
+  {
+    title: '1. Reclamo de Equipaje y Control',
+    description: 'Dirígete a las bandas de reclamo de equipaje. Si llegas en un vuelo internacional, pasa por el filtro de Migración e INM.',
+    badges: ['Bandas 1-6', 'Migración INM', 'Aduana'],
+    icon: Luggage
+  },
+  {
+    title: '2. Servicios Esenciales en la Terminal',
+    description: 'Encuentra cajeros automáticos, casas de cambio, sanitarios temáticos, atención médica y módulos de información a la salida.',
+    badges: ['Cajeros ATM', 'Sanitarios', 'Info Turística'],
+    icon: Building2
+  },
+  {
+    title: '3. Transporte y Salida del AIFA',
+    description: 'Conecta directamente con la estación del Mexibús (Línea 1), taxis autorizados, autobuses foráneos o el área de estacionamiento.',
+    badges: ['Mexibús Línea 1', 'Taxis Autorizados', 'Autobuses Foráneos', 'Estacionamiento'],
+    icon: Bus
+  }
+];
 const QR_CODE_ROUTES: Record<string, QrRoute> = {
   'QR-MEXIBUS-01': { role: 'transport' },
   'QR-LLEGADAS-01': { role: 'arrival' },
@@ -199,6 +223,7 @@ function getLocationRole(location: Location): RoleId {
 }
 
 export default function Home() {
+  const shouldReduceMotion = useReducedMotion();
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
   const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
@@ -466,6 +491,123 @@ export default function Home() {
       )}
 
       {screen === 'role' && activeRole && (
+        selectedRole === 'arrival' ? (
+          <section aria-labelledby="arrival-guide-title" className="relative min-h-screen overflow-x-hidden bg-black">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-cover bg-center bg-fixed"
+              style={{ backgroundImage: "url('/images/llegadas-bg.jpg')" }}
+            />
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#001f18]/90 via-[#0a0a0a]/95 to-[#000000]/95" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 18% 38%, rgba(110, 231, 183, 0.15), transparent 30%), radial-gradient(circle at 82% 62%, rgba(167, 243, 208, 0.1), transparent 34%)'
+              }}
+            />
+
+            <motion.div
+              className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-8 sm:py-10"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.16 } }
+              }}
+            >
+              <motion.header
+                className="mb-8 sm:mb-10"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20, staggerChildren: 0.12 } }
+                }}
+              >
+                <motion.button
+                  type="button"
+                  onClick={returnToMenu}
+                  whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-emerald-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-emerald-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300"
+                >
+                  <ArrowLeft aria-hidden="true" size={28} />
+                  Volver al Menú Principal
+                </motion.button>
+                <motion.h1
+                  id="arrival-guide-title"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
+                >
+                  Llegué en un vuelo
+                </motion.h1>
+                <motion.p
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="mt-3 max-w-3xl text-lg leading-relaxed text-emerald-100 drop-shadow-md md:text-xl"
+                >
+                  Equipaje, migración y salida: encuentra lo que necesitas para continuar tu recorrido por el AIFA.
+                </motion.p>
+              </motion.header>
+
+              <motion.div
+                className="grid flex-1 content-start gap-5 lg:grid-cols-2 xl:grid-cols-3"
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
+                }}
+              >
+                {ARRIVAL_GUIDE_STEPS.map(({ title, description, badges, icon: StepIcon }) => (
+                  <motion.article
+                    key={title}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                    }}
+                    whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                    className="rounded-2xl border border-[#6ee7b7]/30 bg-black/60 p-6 shadow-xl shadow-black/30 backdrop-blur-md transition-all duration-300 hover:border-[#6ee7b7] hover:shadow-[0_0_30px_rgba(110,231,183,0.25)] md:p-8"
+                  >
+                    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200/30 bg-emerald-950/80 text-emerald-200 shadow-lg drop-shadow-md">
+                      <StepIcon aria-hidden="true" size={38} strokeWidth={1.8} />
+                    </div>
+                    <h2 className="text-xl font-extrabold leading-snug text-white drop-shadow-md md:text-2xl">{title}</h2>
+                    <p className="mt-4 text-lg leading-relaxed text-slate-100 drop-shadow-md">{description}</p>
+                    <ul aria-label={`Servicios: ${title}`} className="mt-6 flex flex-wrap gap-3">
+                      {badges.map((badge) => (
+                        <li key={badge} className="inline-flex min-h-11 items-center rounded-full border border-[#6ee7b7]/30 bg-[#6ee7b7]/15 px-4 py-2 text-base font-bold text-[#a7f3d0] shadow-md drop-shadow-md">
+                          {badge}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.article>
+                ))}
+              </motion.div>
+
+              {qrTargetLocation && (
+                <section className="mt-7 rounded-2xl border-2 border-emerald-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
+                  <p className="text-sm font-bold uppercase tracking-wider text-emerald-200 drop-shadow-md">Ubicación detectada</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="mt-3 flex items-center gap-2 text-base font-bold text-emerald-100 drop-shadow-md">
+                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                  </p>
+                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-emerald-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                </section>
+              )}
+            </motion.div>
+          </section>
+        ) : (
         <section className="mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
           <button
             type="button"
@@ -566,6 +708,7 @@ export default function Home() {
             </div>
           </article>
         </section>
+        )
       )}
 
       {screen === 'survey' && (
