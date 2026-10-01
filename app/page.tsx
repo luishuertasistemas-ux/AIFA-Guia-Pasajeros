@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,7 +19,10 @@ import {
   MessageCircle,
   PawPrint,
   Plane,
+  PlaneTakeoff,
   QrCode,
+  ShieldCheck,
+  Ticket,
   TrainFront,
   TriangleAlert,
   UsersRound,
@@ -159,6 +162,32 @@ const ARRIVAL_GUIDE_STEPS = [
     icon: Bus
   }
 ];
+const DEPARTURE_GUIDE_STEPS = [
+  {
+    title: '1. Check-in y Documentación',
+    description: 'Ubica los mostradores de tu aerolínea o usa los kioscos digitales para imprimir tu pase de abordar y documentar equipaje de bodega.',
+    badges: ['Mostradores A-F', 'Kioscos Digitales', 'Equipaje'],
+    linkLabel: 'Ver mapa de mostradores →',
+    href: '/images/aifa-mapa.png',
+    icon: Ticket
+  },
+  {
+    title: '2. Filtros de Seguridad e Inspección',
+    description: 'Ten a la mano tu pase de abordar e identificación oficial para ingresar a la zona de salas de última espera.',
+    badges: ['Pase de Abordar', 'Identificación Oficial', 'Filtro Central'],
+    linkLabel: 'Ver requisitos de acceso →',
+    href: 'https://aifa.aero',
+    icon: ShieldCheck
+  },
+  {
+    title: '3. Salas de Ultramar y Abordaje',
+    description: 'Revisa las pantallas de vuelos para confirmar tu sala y puerta de abordaje. Disfruta de tiendas, servicios y áreas de descanso.',
+    badges: ['Puertas A1-A12', 'Pantallas de Vuelos', 'Área Comercial'],
+    linkLabel: 'Ubicar mi puerta →',
+    href: '/images/aifa-mapa.png',
+    icon: PlaneTakeoff
+  }
+];
 const QR_CODE_ROUTES: Record<string, QrRoute> = {
   'QR-MEXIBUS-01': { role: 'transport' },
   'QR-LLEGADAS-01': { role: 'arrival' },
@@ -272,13 +301,27 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const returnToMenu = () => {
+  const returnToMenu = useCallback(() => {
     setQrTargetLocation(null);
     setIsTiaBannerActive(false);
     setSelectedRole(null);
     setScreen('hub');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (screen !== 'role' || (selectedRole !== 'arrival' && selectedRole !== 'departure')) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        returnToMenu();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [returnToMenu, screen, selectedRole]);
 
   const openSurvey = () => {
     setSelectedSurveyOption(null);
@@ -377,8 +420,9 @@ export default function Home() {
         </section>
       )}
 
+      <AnimatePresence initial={false}>
       {screen === 'hub' && (
-        <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+        <motion.section key="hub" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
           <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
           <div className="absolute inset-0 -z-10 bg-slate-950/75 backdrop-blur-sm" aria-hidden="true" />
           <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
@@ -413,10 +457,12 @@ export default function Home() {
                 const Icon = role.icon;
                 const cardStyle = MAIN_ROLE_CARD_STYLES[roleId];
                 return (
-                  <button
+                  <motion.button
                     key={role.id}
                     type="button"
                     onClick={() => openRole(role.id)}
+                    layoutId={roleId === 'arrival' ? 'card-llegue' : roleId === 'departure' ? 'card-viajar' : undefined}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className={`group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-white/20 ${cardStyle.base} px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-52 sm:p-8`}
                   >
                     <span
@@ -433,7 +479,7 @@ export default function Home() {
                       <span className="mt-2 block text-base font-semibold leading-relaxed text-white md:text-lg">{role.subtitle}</span>
                     </span>
                     <ArrowRight aria-hidden="true" className="relative z-10 shrink-0 text-white/75 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
@@ -478,24 +524,21 @@ export default function Home() {
               </button>
             </div>
           </div>
-        </section>
-      )}
-
-      {screen === 'hub' && (
-        <QrScannerModal
-          isOpen={isQrScannerOpen}
-          language="ES"
-          onClose={() => setIsQrScannerOpen(false)}
-          onScan={handleQrScan}
-        />
+        </motion.section>
       )}
 
       {screen === 'role' && activeRole && (
         selectedRole === 'arrival' ? (
-          <section aria-labelledby="arrival-guide-title" className="relative min-h-screen overflow-x-hidden bg-black">
+          <motion.section
+            key="arrival"
+            layoutId="card-llegue"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            aria-labelledby="arrival-guide-title"
+            className="fixed inset-0 z-50 min-h-screen overflow-y-auto overflow-x-hidden bg-black"
+          >
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-cover bg-center bg-fixed"
+              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
               style={{ backgroundImage: "url('/images/llegadas-bg.jpg')" }}
             />
             <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#001f18]/90 via-[#0a0a0a]/95 to-[#000000]/95" />
@@ -513,7 +556,7 @@ export default function Home() {
               animate="visible"
               variants={{
                 hidden: { opacity: 0 },
-                visible: { opacity: 1, transition: { staggerChildren: 0.16 } }
+                visible: { opacity: 1, transition: { delayChildren: 0.3, staggerChildren: 0.16 } }
               }}
             >
               <motion.header
@@ -576,20 +619,28 @@ export default function Home() {
                     whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                    className="rounded-2xl border border-[#6ee7b7]/30 bg-black/60 p-6 shadow-xl shadow-black/30 backdrop-blur-md transition-all duration-300 hover:border-[#6ee7b7] hover:shadow-[0_0_30px_rgba(110,231,183,0.25)] md:p-8"
+                    className="rounded-3xl border-2 border-[#008767]/30 bg-gradient-to-b from-white via-slate-50 to-slate-100 p-8 text-slate-900 shadow-xl shadow-black/30 transition-all duration-300 hover:border-[#008767] hover:shadow-[0_0_35px_rgba(0,135,103,0.3)] md:p-10"
                   >
-                    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200/30 bg-emerald-950/80 text-emerald-200 shadow-lg drop-shadow-md">
+                    <div className="mb-4 flex w-fit items-center justify-center rounded-2xl bg-[#008767]/10 p-4 text-[#008767]">
                       <StepIcon aria-hidden="true" size={38} strokeWidth={1.8} />
                     </div>
-                    <h2 className="text-xl font-extrabold leading-snug text-white drop-shadow-md md:text-2xl">{title}</h2>
-                    <p className="mt-4 text-lg leading-relaxed text-slate-100 drop-shadow-md">{description}</p>
-                    <ul aria-label={`Servicios: ${title}`} className="mt-6 flex flex-wrap gap-3">
+                    <h2 className="mb-3 text-2xl font-extrabold leading-snug text-slate-900">{title}</h2>
+                    <p className="mb-6 text-base leading-relaxed text-slate-600">{description}</p>
+                    <ul aria-label={`Servicios: ${title}`} className="flex flex-wrap gap-3">
                       {badges.map((badge) => (
-                        <li key={badge} className="inline-flex min-h-11 items-center rounded-full border border-[#6ee7b7]/30 bg-[#6ee7b7]/15 px-4 py-2 text-base font-bold text-[#a7f3d0] shadow-md drop-shadow-md">
+                        <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-[#008767]/30 bg-[#008767]/10 px-4 py-2 text-sm font-semibold text-[#005c46]">
                           {badge}
                         </li>
                       ))}
                     </ul>
+                    <a
+                      href="/images/aifa-mapa.png"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 block text-sm font-bold text-[#008767] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#008767] focus-visible:ring-offset-2"
+                    >
+                      Ver mapa de ubicación →
+                    </a>
                   </motion.article>
                 ))}
               </motion.div>
@@ -606,9 +657,139 @@ export default function Home() {
                 </section>
               )}
             </motion.div>
-          </section>
+          </motion.section>
+        ) : selectedRole === 'departure' ? (
+          <motion.section
+            key="departure"
+            layoutId="card-viajar"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            aria-labelledby="departure-guide-title"
+            className="fixed inset-0 z-50 min-h-screen overflow-y-auto overflow-x-hidden bg-[#020617]"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
+              style={{ backgroundImage: "url('/images/salidas-bg.jpg')" }}
+            />
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#071a35]/90 via-[#020617]/95 to-[#000000]/95" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 18% 38%, rgba(56, 189, 248, 0.15), transparent 30%), radial-gradient(circle at 82% 62%, rgba(125, 211, 252, 0.1), transparent 34%)'
+              }}
+            />
+
+            <motion.div
+              className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-8 sm:py-10"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { delayChildren: 0.3, staggerChildren: 0.16 } }
+              }}
+            >
+              <motion.header
+                className="mb-8 sm:mb-10"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20, staggerChildren: 0.12 } }
+                }}
+              >
+                <motion.button
+                  type="button"
+                  onClick={returnToMenu}
+                  whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.02 }}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-sky-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-blue-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
+                >
+                  <ArrowLeft aria-hidden="true" size={28} />
+                  Volver al Menú Principal
+                </motion.button>
+                <motion.h1
+                  id="departure-guide-title"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
+                >
+                  Voy a viajar
+                </motion.h1>
+                <motion.p
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="mt-3 max-w-3xl text-lg leading-relaxed text-sky-100 drop-shadow-md md:text-xl"
+                >
+                  Check-in, filtros y salas: prepara tu salida y ubica cada etapa antes de abordar.
+                </motion.p>
+              </motion.header>
+
+              <motion.div
+                className="grid flex-1 content-start gap-5 lg:grid-cols-2 xl:grid-cols-3"
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
+                }}
+              >
+                {DEPARTURE_GUIDE_STEPS.map(({ title, description, badges, linkLabel, href, icon: StepIcon }) => (
+                  <motion.article
+                    key={title}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                    }}
+                    whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                    className="rounded-3xl border-2 border-[#2563eb]/40 bg-slate-950/75 p-8 text-white shadow-xl shadow-black/40 backdrop-blur-md transition-all duration-300 hover:border-[#38bdf8] hover:shadow-[0_0_35px_rgba(56,189,248,0.3)] md:p-10"
+                  >
+                    <div className="mb-4 flex w-fit items-center justify-center rounded-2xl bg-[#38bdf8]/15 p-4 text-[#7dd3fc]">
+                      <StepIcon aria-hidden="true" size={38} strokeWidth={1.8} />
+                    </div>
+                    <h2 className="mb-3 text-2xl font-extrabold leading-snug text-white drop-shadow-md">{title}</h2>
+                    <p className="mb-6 text-base leading-relaxed text-slate-100 drop-shadow-md">{description}</p>
+                    <ul aria-label={`Servicios: ${title}`} className="flex flex-wrap gap-3">
+                      {badges.map((badge) => (
+                        <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-[#38bdf8]/30 bg-[#38bdf8]/15 px-4 py-2 text-sm font-semibold text-sky-100">
+                          {badge}
+                        </li>
+                      ))}
+                    </ul>
+                    <a
+                      href={href}
+                      target={href.startsWith('https://') ? '_blank' : undefined}
+                      rel={href.startsWith('https://') ? 'noreferrer' : undefined}
+                      className="mt-4 block text-sm font-bold text-[#38bdf8] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#38bdf8] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                    >
+                      {linkLabel}
+                    </a>
+                  </motion.article>
+                ))}
+              </motion.div>
+
+              {qrTargetLocation && (
+                <section className="mt-7 rounded-2xl border-2 border-sky-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
+                  <p className="text-sm font-bold uppercase tracking-wider text-sky-200 drop-shadow-md">Ubicación detectada</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="mt-3 flex items-center gap-2 text-base font-bold text-sky-100 drop-shadow-md">
+                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                  </p>
+                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-sky-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                </section>
+              )}
+            </motion.div>
+          </motion.section>
         ) : (
-        <section className="mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
+        <motion.section key={`role-${selectedRole}`} className="mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
           <button
             type="button"
             onClick={returnToMenu}
@@ -707,8 +888,18 @@ export default function Home() {
               </button>
             </div>
           </article>
-        </section>
+        </motion.section>
         )
+      )}
+      </AnimatePresence>
+
+      {screen === 'hub' && (
+        <QrScannerModal
+          isOpen={isQrScannerOpen}
+          language="ES"
+          onClose={() => setIsQrScannerOpen(false)}
+          onScan={handleQrScan}
+        />
       )}
 
       {screen === 'survey' && (
