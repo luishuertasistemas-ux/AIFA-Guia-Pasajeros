@@ -544,30 +544,37 @@ export default function Home() {
                       ? '/images/btn-objetos-olvidados.jpg'
                       : '/images/btn-mascotas.jpg';
                   return (
-                    <button
+                    <motion.button
                       key={role.id}
                       type="button"
                       onClick={() => openRole(role.id)}
-                      className="relative isolate flex min-h-24 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-red-200/70 bg-cover bg-center px-4 py-5 text-center text-base font-bold text-white shadow-lg transition hover:border-white hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-200 sm:text-lg"
+                      whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.02 }}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                      className="group relative isolate flex min-h-28 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/30 bg-white/10 bg-cover bg-center px-4 py-5 text-center text-base font-bold text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:border-white/70 focus:outline-none focus:ring-4 focus:ring-white sm:text-lg"
                       style={{ backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.72)), url("${backgroundImage}")` }}
                     >
-                      <Icon aria-hidden="true" size={26} className="relative z-10 shrink-0 text-white drop-shadow-md" />
-                      <span className="relative z-10 drop-shadow-md">{role.title}</span>
-                    </button>
+                      <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-white/5 transition-colors duration-300 group-hover:bg-sky-400/10" />
+                      <Icon aria-hidden="true" size={28} className="relative z-10 shrink-0 text-white drop-shadow-md" />
+                      <span className="relative z-10 text-lg leading-snug drop-shadow-md sm:text-xl">{role.title}</span>
+                    </motion.button>
                   );
                 })}
                 </div>
               </nav>
-              <button
+              <motion.button
                 type="button"
                 onClick={openSurvey}
-                className="relative isolate inline-flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-2xl border border-red-100 bg-cover bg-center px-6 py-4 text-lg font-bold text-white shadow-xl shadow-red-950/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-red-200"
+                whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.015 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                className="relative isolate inline-flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/30 bg-white/10 bg-cover bg-center px-6 py-4 text-lg font-bold text-white shadow-xl shadow-red-950/50 backdrop-blur-md transition-colors duration-300 hover:border-white/70 focus:outline-none focus:ring-4 focus:ring-white sm:text-xl"
                 style={{ backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.7)), url("/images/btn-experiencia.jpg")' }}
               >
                 <MessageCircle aria-hidden="true" size={22} className="relative z-10 text-white drop-shadow-md" />
                 <span className="relative z-10 drop-shadow-md">Cuéntanos tu experiencia</span>
                 <ArrowRight aria-hidden="true" size={20} className="relative z-10 text-white drop-shadow-md" />
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.section>
@@ -1169,10 +1176,17 @@ export default function Home() {
           </motion.section>
         ) : (
         <motion.section key={`role-${selectedRole}`} className={`relative isolate mx-auto flex min-h-[calc(100svh-15rem)] w-full ${selectedRole === 'transport' ? 'max-w-7xl' : 'max-w-5xl'} flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10`}>
-          {selectedRole === 'transport' && (
+          {['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') && (
             <>
               <div aria-hidden="true" className="fixed inset-0 z-0">
-                <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
+                <Image
+                  src={selectedRole === 'lost-items' ? '/images/btn-objetos-olvidados.jpg' : selectedRole === 'pets' ? '/images/btn-mascotas.jpg' : '/images/aifa-terminal.jpg'}
+                  alt=""
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover object-center"
+                />
               </div>
               <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/65 backdrop-blur-[2px]" />
             </>
@@ -1186,10 +1200,10 @@ export default function Home() {
               <ArrowLeft aria-hidden="true" size={19} /> Volver al Menú Principal
             </button>
 
-          <article className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-3xl ${selectedRole === 'transport' ? 'border border-white/30 bg-white/5 shadow-xl backdrop-blur-md' : 'border border-white/10 bg-slate-900 shadow-2xl'}`}>
+          <article className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-3xl ${['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') ? 'border border-white/30 bg-white/5 shadow-xl backdrop-blur-md' : 'border border-white/10 bg-slate-900 shadow-2xl'}`}>
             <div className="absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
               <Image src={timeTheme.image} alt="" fill sizes="(max-width: 640px) 100vw, 960px" className="object-cover object-center" />
-              <div className={`absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 ${selectedRole === 'transport' ? 'to-slate-950/20' : 'to-slate-900'}`} aria-hidden="true" />
+              <div className={`absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 ${['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') ? 'to-slate-950/20' : 'to-slate-900'}`} aria-hidden="true" />
             </div>
             <div className="relative z-10 flex flex-1 flex-col p-5 pt-28 sm:p-8 sm:pt-36">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{timeTheme.label} en el AIFA</p>
@@ -1198,7 +1212,7 @@ export default function Home() {
                 <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{activeRole.title}</h1>
               </div>
               <p className="mt-2 text-sm font-semibold text-slate-300 sm:text-base">{activeRole.subtitle}</p>
-              <p className="mt-5 max-w-3xl text-base leading-relaxed text-slate-100">{activeRole.description}</p>
+              <p className={`mt-5 max-w-3xl text-base leading-relaxed text-slate-100 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'rounded-2xl border border-white/30 bg-white/10 p-5 text-lg shadow-xl backdrop-blur-md' : ''}`}>{activeRole.description}</p>
               {qrTargetLocation && (
                 <section className="mt-6 rounded-xl border border-emerald-200/40 bg-emerald-950/70 p-4 text-white" aria-labelledby="qr-location-title">
                   <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Ubicación detectada</p>
@@ -1288,22 +1302,30 @@ export default function Home() {
                   )}
                 </div>
               ) : (
-                <ol className="mt-7 space-y-3">
+                <ol className={`mt-7 grid gap-4 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'md:grid-cols-2' : 'space-y-3'}`}>
                   {activeRole.steps.map((step, index) => (
-                    <li key={step} className="flex items-start gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+                    <motion.li
+                      key={step}
+                      whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                      className={`flex min-h-24 items-start gap-3 rounded-3xl p-5 text-white transition-colors duration-300 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'border border-white/30 bg-white/10 text-lg shadow-xl backdrop-blur-md hover:border-emerald-200/70 hover:bg-white/15' : 'border border-white/10 bg-slate-950/50'}`}
+                    >
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
-                      <span className="pt-0.5 text-sm leading-relaxed text-slate-100">{step}</span>
-                    </li>
+                      <span className="pt-0.5 text-base leading-relaxed text-slate-100">{step}</span>
+                    </motion.li>
                   ))}
                 </ol>
               )}
-              <button
+              <motion.button
                 type="button"
                 onClick={returnToMenu}
-                className="mt-7 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:w-fit"
+                whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                className="mt-7 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors duration-300 hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300 sm:w-fit"
               >
                 <ArrowLeft aria-hidden="true" size={18} /> Volver al Menú Principal
-              </button>
+              </motion.button>
             </div>
           </article>
           </div>
@@ -1322,37 +1344,59 @@ export default function Home() {
       )}
 
       {screen === 'survey' && (
-        <section className="mx-auto min-h-[calc(100svh-15rem)] w-full max-w-5xl px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
-          <button
+        <motion.section
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.35 }}
+          className="relative isolate min-h-[calc(100svh-15rem)] overflow-hidden sm:min-h-[calc(100svh-12rem)]"
+        >
+          <div aria-hidden="true" className="fixed inset-0 z-0">
+            <Image src="/images/btn-experiencia.jpg" alt="" fill sizes="100vw" className="object-cover object-center" />
+          </div>
+          <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/70 backdrop-blur-sm" />
+          <div className="relative z-10 mx-auto min-h-[calc(100svh-15rem)] w-full max-w-5xl px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
+          <motion.button
             type="button"
             onClick={selectedSurveyOption ? () => setSelectedSurveyOption(null) : returnToMenu}
-            className="mb-5 inline-flex min-h-[48px] items-center gap-2 px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            whileHover={shouldReduceMotion ? undefined : { x: -2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+            className="mb-5 inline-flex min-h-14 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300"
           >
             <ArrowLeft aria-hidden="true" size={19} /> {selectedSurveyOption ? 'Volver a las opciones' : 'Volver al Menú Principal'}
-          </button>
+          </motion.button>
 
           {!selectedSurveyOption ? (
             <div>
-              <header className="mb-7">
+              <header className="mb-7 rounded-3xl border border-white/30 bg-white/10 p-6 text-white shadow-xl backdrop-blur-md sm:p-8">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Tu experiencia importa</p>
                 <h1 className="mt-2 text-2xl font-bold sm:text-3xl">¿Cómo estuvo tu visita?</h1>
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">Elige la opción que mejor describe lo que viviste.</p>
+                <p className="mt-2 text-base leading-relaxed text-slate-100">Elige la opción que mejor describe lo que viviste.</p>
               </header>
               {(['halago', 'queja'] as const).map((category) => (
-                <section key={category} className="mb-8" aria-labelledby={`survey-${category}`}>
-                  <h2 id={`survey-${category}`} className="mb-3 flex items-center gap-2 text-lg font-bold">
+                <motion.section
+                  key={category}
+                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+                  className="mb-6 rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6"
+                  aria-labelledby={`survey-${category}`}
+                >
+                  <h2 id={`survey-${category}`} className="mb-4 flex items-center gap-3 text-xl font-bold sm:text-2xl">
                     {category === 'halago'
-                      ? <Check aria-hidden="true" size={20} className="text-emerald-300" />
-                      : <TriangleAlert aria-hidden="true" size={20} className="text-amber-300" />}
+                      ? <Check aria-hidden="true" size={24} className="text-emerald-300" />
+                      : <TriangleAlert aria-hidden="true" size={24} className="text-amber-300" />}
                     {category === 'halago' ? 'Quiero reconocer algo' : 'Quiero compartir algo por mejorar'}
                   </h2>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {OPCIONES_ENCUESTA.filter((option) => option.categoria === category).map((option) => (
-                      <button
+                      <motion.button
                         key={option.id}
                         type="button"
                         onClick={() => selectSurveyOption(option)}
-                        className={`group relative isolate flex min-h-32 items-center gap-4 overflow-hidden rounded-lg border border-white/20 ${option.colorBg} px-5 py-7 text-left text-white shadow-md transition hover:border-white/70 hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-white`}
+                        whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+                        whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                        className={`group relative isolate flex min-h-32 items-center gap-4 overflow-hidden rounded-3xl border border-white/30 ${option.colorBg} bg-white/10 px-5 py-6 text-left text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:border-white/80 hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white`}
                       >
                         <span className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
                           {option.imagenFondo && (
@@ -1361,36 +1405,34 @@ export default function Home() {
                               alt=""
                               fill
                               sizes="(max-width: 640px) 100vw, 50vw"
-                              className="object-cover opacity-30"
+                              className="object-cover opacity-35"
                             />
                           )}
                           <span className="absolute inset-0 bg-slate-950/35" />
                         </span>
                         <span className="relative z-10 flex w-full items-center gap-4">
                           <span className="shrink-0 text-3xl" aria-hidden="true">{option.icono}</span>
-                          <span className="flex-1 text-lg font-bold leading-snug text-white sm:text-xl">{option.texto}</span>
+                          <span className="flex-1 text-lg font-bold leading-snug text-white drop-shadow-md sm:text-xl">{option.texto}</span>
                           <ArrowRight aria-hidden="true" size={22} className="shrink-0 text-white" />
                         </span>
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
-                </section>
+                </motion.section>
               ))}
             </div>
           ) : (
-            <article className="relative isolate overflow-hidden border border-white/10 bg-slate-900 shadow-2xl">
-              <div className="absolute inset-0 -z-10">
-                <FallbackImage
-                  key={selectedSurveyOption.id}
-                  src={surveyResponse?.imagenFondo ?? '/images/aifa-terminal.jpg'}
-                  fallback="/images/aifa-terminal.jpg"
-                  alt=""
-                  sizes="(max-width: 1024px) 100vw, 960px"
-                  className="object-cover opacity-20"
-                  fill
-                />
+            <motion.article
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+              className="relative isolate overflow-hidden rounded-3xl border border-white/30 bg-white/10 text-white shadow-2xl backdrop-blur-md"
+            >
+              <div aria-hidden="true" className="absolute inset-0 z-0">
+                <Image src="/images/btn-experiencia.jpg" alt="" sizes="(max-width: 1024px) 100vw, 960px" className="object-cover opacity-25" fill />
+                <div className="absolute inset-0 bg-slate-950/65" />
               </div>
-              <div className="relative p-5 sm:p-8">
+              <div className="relative z-10 p-6 sm:p-8">
                 <p className="text-3xl" aria-hidden="true">{selectedSurveyOption.icono}</p>
                 <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
                   {surveyFinished ? 'Gracias por compartir tu experiencia' : surveyResponse?.titulo}
@@ -1401,48 +1443,53 @@ export default function Home() {
                     : surveyResponse?.mensaje}
                 </p>
                 {surveyFinished && surveyDetails.trim() && (
-                  <p className="mt-5 whitespace-pre-wrap border-l-2 border-emerald-300 bg-slate-950/60 px-4 py-3 text-sm leading-relaxed text-slate-100">
+                  <p className="mt-5 whitespace-pre-wrap rounded-2xl border border-emerald-400/40 bg-emerald-500/20 px-4 py-3 text-base leading-relaxed text-emerald-50">
                     {surveyDetails}
                   </p>
                 )}
                 {!surveyFinished && (
                   <>
-                    <p className="mt-6 border-l-2 border-emerald-300 pl-3 text-sm font-semibold text-emerald-100">{selectedSurveyOption.texto}</p>
-                    <label htmlFor="survey-details" className="mt-6 block text-sm font-semibold text-white">{surveyResponse?.placeholderTexto}</label>
+                    <p className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-base font-semibold text-emerald-100">{selectedSurveyOption.texto}</p>
+                    <label htmlFor="survey-details" className="mt-6 block text-base font-semibold text-white">{surveyResponse?.placeholderTexto}</label>
                     <textarea
                       id="survey-details"
                       value={surveyDetails}
                       onChange={(event) => setSurveyDetails(event.target.value)}
                       rows={4}
                       maxLength={500}
-                      className="mt-2 w-full resize-y border border-white/20 bg-slate-950/80 p-3 text-sm leading-relaxed text-white placeholder:text-slate-400 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="mt-2 w-full resize-y rounded-xl border border-white/30 bg-white/10 p-4 text-base leading-relaxed text-white placeholder:text-slate-300 backdrop-blur-md focus:border-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-300/50"
                     />
                     <p className="mt-2 text-xs leading-relaxed text-slate-300">
                       <MessageCircle aria-hidden="true" size={14} className="mr-1 inline" />
                       Este directorio no envía reportes; para atención inmediata, acércate al personal TIA.
                     </p>
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => setSurveyFinished(true)}
-                      className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-white"
+                      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                      className="mt-5 inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-emerald-200/70 bg-emerald-300 px-6 py-3 text-base font-bold text-slate-950 shadow-[0_0_24px_rgba(52,211,153,0.25)] transition-colors hover:bg-emerald-200 focus:outline-none focus:ring-4 focus:ring-white"
                     >
                       Finalizar <ArrowRight aria-hidden="true" size={18} />
-                    </button>
+                    </motion.button>
                   </>
                 )}
                 {surveyFinished && (
-                  <button
+                  <motion.button
                     type="button"
                     onClick={returnToMenu}
-                    className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 border border-white/30 bg-slate-950/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                    whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                    className="mt-6 inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300"
                   >
                     Volver al Menú Principal <ArrowRight aria-hidden="true" size={18} />
-                  </button>
+                  </motion.button>
                 )}
               </div>
-            </article>
+            </motion.article>
           )}
-        </section>
+          </div>
+        </motion.section>
       )}
 
       {screen !== 'welcome' && (
