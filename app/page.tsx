@@ -538,15 +538,21 @@ export default function Home() {
                 {SUPPORT_ROLE_IDS.map((roleId) => {
                   const role = ROLE_INFO[roleId];
                   const Icon = role.icon;
+                  const backgroundImage = roleId === 'transport'
+                    ? '/images/btn-transporte.jpg'
+                    : roleId === 'lost-items'
+                      ? '/images/btn-objetos-olvidados.jpg'
+                      : '/images/btn-mascotas.jpg';
                   return (
                     <button
                       key={role.id}
                       type="button"
                       onClick={() => openRole(role.id)}
-                      className="flex min-h-24 items-center justify-center gap-3 rounded-2xl border border-red-200/70 bg-gradient-to-br from-red-700 via-rose-700 to-red-800 px-4 py-5 text-center text-base font-bold text-white shadow-lg transition hover:border-white hover:from-red-600 hover:via-rose-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 sm:text-lg"
+                      className="relative isolate flex min-h-24 items-center justify-center gap-3 overflow-hidden rounded-2xl border border-red-200/70 bg-cover bg-center px-4 py-5 text-center text-base font-bold text-white shadow-lg transition hover:border-white hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-200 sm:text-lg"
+                      style={{ backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.72)), url("${backgroundImage}")` }}
                     >
-                      <Icon aria-hidden="true" size={26} className="shrink-0 text-white" />
-                      <span>{role.title}</span>
+                      <Icon aria-hidden="true" size={26} className="relative z-10 shrink-0 text-white drop-shadow-md" />
+                      <span className="relative z-10 drop-shadow-md">{role.title}</span>
                     </button>
                   );
                 })}
@@ -555,11 +561,12 @@ export default function Home() {
               <button
                 type="button"
                 onClick={openSurvey}
-                className="inline-flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border border-red-100 bg-gradient-to-r from-red-500 via-rose-600 to-red-700 px-6 py-4 text-lg font-bold text-white shadow-xl shadow-red-950/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-red-200"
+                className="relative isolate inline-flex min-h-16 w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-2xl border border-red-100 bg-cover bg-center px-6 py-4 text-lg font-bold text-white shadow-xl shadow-red-950/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-red-200"
+                style={{ backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.7)), url("/images/btn-experiencia.jpg")' }}
               >
-                <MessageCircle aria-hidden="true" size={22} className="text-white" />
-                Cuéntanos tu experiencia
-                <ArrowRight aria-hidden="true" size={20} className="text-white" />
+                <MessageCircle aria-hidden="true" size={22} className="relative z-10 text-white drop-shadow-md" />
+                <span className="relative z-10 drop-shadow-md">Cuéntanos tu experiencia</span>
+                <ArrowRight aria-hidden="true" size={20} className="relative z-10 text-white drop-shadow-md" />
               </button>
             </div>
           </div>
