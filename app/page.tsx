@@ -571,17 +571,17 @@ export default function Home() {
             layoutId="card-llegue"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             aria-labelledby="arrival-guide-title"
-            className="fixed inset-0 z-50 min-h-screen overflow-y-auto overflow-x-hidden bg-black"
+            className="fixed inset-0 z-50 isolate min-h-screen overflow-y-auto overflow-x-hidden bg-transparent"
           >
             <div
               aria-hidden="true"
-              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
+              className="fixed inset-0 z-0 h-full w-full bg-cover bg-center"
               style={{ backgroundImage: "url('/images/llegadas-bg.jpg')" }}
             />
-            <div aria-hidden="true" className="absolute inset-0 bg-slate-950/40" />
+            <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/40" />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none fixed inset-0 z-0"
               style={{
                 backgroundImage: 'radial-gradient(circle at 18% 38%, rgba(110, 231, 183, 0.15), transparent 30%), radial-gradient(circle at 82% 62%, rgba(167, 243, 208, 0.1), transparent 34%)'
               }}
@@ -701,17 +701,17 @@ export default function Home() {
             layoutId="card-vengo"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             aria-labelledby="pickup-guide-title"
-            className="fixed inset-0 z-50 min-h-screen overflow-y-auto overflow-x-hidden bg-[#120b02]"
+            className="fixed inset-0 z-50 isolate min-h-screen overflow-y-auto overflow-x-hidden bg-transparent"
           >
             <div
               aria-hidden="true"
-              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
+              className="fixed inset-0 z-0 h-full w-full bg-cover bg-center"
               style={{ backgroundImage: "url('/images/encuentro-bg.jpg')" }}
             />
-            <div aria-hidden="true" className="absolute inset-0 bg-slate-950/40" />
+            <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/40" />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none fixed inset-0 z-0"
               style={{
                 backgroundImage: 'radial-gradient(circle at 18% 38%, rgba(245, 158, 11, 0.15), transparent 30%), radial-gradient(circle at 82% 62%, rgba(251, 191, 36, 0.1), transparent 34%)'
               }}
@@ -831,17 +831,17 @@ export default function Home() {
             layoutId="card-viajar"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             aria-labelledby="departure-guide-title"
-            className="fixed inset-0 z-50 min-h-screen overflow-y-auto overflow-x-hidden bg-[#020617]"
+            className="fixed inset-0 z-50 isolate min-h-screen overflow-y-auto overflow-x-hidden bg-transparent"
           >
             <div
               aria-hidden="true"
-              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
+              className="fixed inset-0 z-0 h-full w-full bg-cover bg-center"
               style={{ backgroundImage: "url('/images/salidas-bg.jpg')" }}
             />
-            <div aria-hidden="true" className="absolute inset-0 bg-slate-950/40" />
+            <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/40" />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none fixed inset-0 z-0"
               style={{
                 backgroundImage: 'radial-gradient(circle at 18% 38%, rgba(56, 189, 248, 0.15), transparent 30%), radial-gradient(circle at 82% 62%, rgba(125, 211, 252, 0.1), transparent 34%)'
               }}
@@ -961,11 +961,11 @@ export default function Home() {
             layoutId="card-turismo"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             aria-labelledby="tourism-guide-title"
-            className="fixed inset-0 z-50 min-h-screen w-full overflow-y-auto bg-slate-950"
+            className="fixed inset-0 z-50 isolate min-h-screen w-full overflow-y-auto bg-transparent"
           >
             <div
               aria-hidden="true"
-              className="absolute inset-0 min-h-screen bg-cover bg-center bg-fixed"
+              className="fixed inset-0 z-0 h-full w-full bg-cover bg-center"
               style={{ backgroundImage: "url('/images/museo-mamut.jpg')" }}
             />
             <div aria-hidden="true" className="absolute inset-0 bg-slate-950/40" />
