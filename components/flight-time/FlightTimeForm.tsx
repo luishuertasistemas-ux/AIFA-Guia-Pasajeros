@@ -27,7 +27,7 @@ export function FlightTimeForm({ fields, selectedGateId, errors, onFieldsChange,
             value={fields.flightDate}
             onChange={(event) => onFieldsChange({ ...fields, flightDate: event.target.value })}
             aria-invalid={Boolean(errors.flightDate)}
-            className="mt-2 block min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-amber-300 focus:ring-2 focus:ring-amber-300/50"
+            className="mt-2 block min-h-11 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50"
           />
           <FieldError message={errors.flightDate} />
         </label>
@@ -40,7 +40,7 @@ export function FlightTimeForm({ fields, selectedGateId, errors, onFieldsChange,
             value={fields.boardingTime}
             onChange={(event) => onFieldsChange({ ...fields, boardingTime: event.target.value })}
             aria-invalid={Boolean(errors.boardingTime)}
-            className="mt-2 block min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-amber-300 focus:ring-2 focus:ring-amber-300/50"
+            className="mt-2 block min-h-11 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50"
           />
           <FieldError message={errors.boardingTime} />
         </label>
@@ -52,18 +52,18 @@ export function FlightTimeForm({ fields, selectedGateId, errors, onFieldsChange,
             value={selectedGateId}
             onChange={(event) => onGateChange(event.target.value)}
             aria-invalid={Boolean(errors.gate)}
-            className="mt-2 block min-h-11 w-full rounded-lg border border-white/20 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-amber-300 focus:ring-2 focus:ring-amber-300/50"
+            className="mt-2 block min-h-11 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50"
           >
-            <option value="">Selecciona una puerta</option>
+            <option value="" className="bg-slate-900 text-white">Selecciona una puerta</option>
             {BOARDING_GATES.map((gateId) => (
-              <option key={gateId} value={gateId}>Puerta {gateId.replace('puerta-', '')}</option>
+              <option key={gateId} value={gateId} className="bg-slate-900 text-white">Puerta {gateId.replace('puerta-', '')}</option>
             ))}
           </select>
           <FieldError message={errors.gate} />
         </label>
       </div>
 
-      <button type="submit" className="mt-5 min-h-11 rounded-xl bg-amber-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-slate-900">
+      <button type="submit" className="mt-5 min-h-11 rounded-xl bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.35)] transition hover:bg-sky-300 hover:shadow-[0_0_24px_rgba(56,189,248,0.55)] focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-slate-900">
         Calcular mi tiempo
       </button>
     </form>

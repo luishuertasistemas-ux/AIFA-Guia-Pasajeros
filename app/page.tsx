@@ -31,6 +31,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import QrScannerModal from './QrScannerModal';
+import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { MOCK_LOCATIONS } from '@/data/locations';
 import type { Location } from '@/types/location';
 import {
@@ -898,6 +899,10 @@ export default function Home() {
                   Check-in, filtros y salas: prepara tu salida y ubica cada etapa antes de abordar.
                 </motion.p>
               </motion.header>
+
+              <div className="mb-7">
+                <FlightTimeModule currentTime={currentTime} origin={MOCK_LOCATIONS['entrada-principal']} />
+              </div>
 
               <motion.div
                 className="grid flex-1 content-start gap-5 lg:grid-cols-2 xl:grid-cols-3"
