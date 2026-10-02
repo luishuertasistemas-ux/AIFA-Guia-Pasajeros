@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import QrScannerModal from './QrScannerModal';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
+import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 import { MOCK_LOCATIONS } from '@/data/locations';
 import type { Location } from '@/types/location';
 import {
@@ -1160,19 +1161,28 @@ export default function Home() {
             </motion.div>
           </motion.section>
         ) : (
-        <motion.section key={`role-${selectedRole}`} className="mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
-          <button
-            type="button"
-            onClick={returnToMenu}
-            className="mb-5 inline-flex min-h-[48px] w-fit items-center gap-2 rounded-lg px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
-          >
-            <ArrowLeft aria-hidden="true" size={19} /> Volver al Menú Principal
-          </button>
+        <motion.section key={`role-${selectedRole}`} className={`relative isolate mx-auto flex min-h-[calc(100svh-15rem)] w-full ${selectedRole === 'transport' ? 'max-w-7xl' : 'max-w-5xl'} flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10`}>
+          {selectedRole === 'transport' && (
+            <>
+              <div aria-hidden="true" className="fixed inset-0 z-0">
+                <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
+              </div>
+              <div aria-hidden="true" className="fixed inset-0 z-0 bg-slate-950/65 backdrop-blur-[2px]" />
+            </>
+          )}
+          <div className="relative z-10 flex flex-1 flex-col">
+            <button
+              type="button"
+              onClick={returnToMenu}
+              className="mb-5 inline-flex min-h-[48px] w-fit items-center gap-2 rounded-lg px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            >
+              <ArrowLeft aria-hidden="true" size={19} /> Volver al Menú Principal
+            </button>
 
-          <article className="relative isolate flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
+          <article className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-3xl ${selectedRole === 'transport' ? 'border border-white/30 bg-white/5 shadow-xl backdrop-blur-md' : 'border border-white/10 bg-slate-900 shadow-2xl'}`}>
             <div className="absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
               <Image src={timeTheme.image} alt="" fill sizes="(max-width: 640px) 100vw, 960px" className="object-cover object-center" />
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 to-slate-900" aria-hidden="true" />
+              <div className={`absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 ${selectedRole === 'transport' ? 'to-slate-950/20' : 'to-slate-900'}`} aria-hidden="true" />
             </div>
             <div className="relative z-10 flex flex-1 flex-col p-5 pt-28 sm:p-8 sm:pt-36">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{timeTheme.label} en el AIFA</p>
@@ -1196,49 +1206,79 @@ export default function Home() {
               {roleModules ? (
                 <div className="mt-7 space-y-8">
                   {roleModules.map((module) => (
-                    <section key={module.id} aria-labelledby={`${module.id}-title`}>
-                      <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{module.titulo}</h2>
-                      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">{module.descripcion}</p>
+                    <section key={module.id} aria-labelledby={`${module.id}-title`} className={selectedRole === 'transport' ? 'rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6' : undefined}>
+                      <div className={selectedRole === 'transport' ? 'rounded-2xl border border-white/20 bg-white/10 p-4' : undefined}>
+                        <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{module.titulo}</h2>
+                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{module.descripcion}</p>
+                      </div>
                       <ol className="mt-4 grid gap-4 lg:grid-cols-2">
-                        {module.pasos.map((step, index) => {
-                          const fallbackImage = module.id === 'mexibus'
-                            ? '/images/rutas/mexibus-doc/paso-01.jpg'
-                            : '/images/aifa-mapa.png';
-                          return (
-                            <li key={step.id} className="overflow-hidden border border-white/10 bg-slate-950/55">
-                              {step.imagenUrl && (
-                                <div className="relative aspect-[16/9] overflow-hidden bg-slate-800">
-                                  <FallbackImage
-                                    key={step.id}
-                                    src={step.imagenUrl}
-                                    fallback={fallbackImage}
-                                    alt={step.titulo}
-                                    sizes="(max-width: 1024px) 100vw, 50vw"
-                                    className="object-cover"
-                                    fill
-                                  />
-                                </div>
-                              )}
-                              <div className="p-4 sm:p-5">
-                                <div className="flex items-start gap-3">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
-                                  <div>
-                                    <h3 className="font-bold leading-snug text-white">{step.titulo}</h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{step.descripcion}</p>
-                                  </div>
-                                </div>
-                                {step.sabiasQue && (
-                                  <p className="mt-4 border-l-2 border-amber-300 bg-amber-300/10 px-3 py-2 text-sm leading-relaxed text-amber-100">
-                                    <strong>Recomendación:</strong> {step.sabiasQue}
-                                  </p>
-                                )}
+                        {module.pasos.map((step, index) => (
+                          <li key={step.id} className={selectedRole === 'transport' ? 'overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md' : 'overflow-hidden border border-white/10 bg-slate-950/55'}>
+                            {step.imagenUrl && (
+                              <div className="relative mx-3 mt-3 aspect-[16/9] overflow-hidden rounded-2xl border border-white/20 bg-slate-800">
+                                <FallbackImage
+                                  key={step.id}
+                                  src={step.imagenUrl}
+                                  fallback={selectedRole === 'transport' ? '/images/aifa-mapa.png' : module.id === 'mexibus' ? '/images/rutas/mexibus-doc/paso-01.jpg' : '/images/aifa-mapa.png'}
+                                  alt={step.titulo}
+                                  sizes="(max-width: 1024px) 100vw, 50vw"
+                                  className="object-cover"
+                                  fill
+                                />
                               </div>
-                            </li>
-                          );
-                        })}
+                            )}
+                            <div className="p-4 sm:p-5">
+                              <div className="flex items-start gap-3">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
+                                <div>
+                                  <h3 className="font-bold leading-snug text-white">{step.titulo}</h3>
+                                  <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{step.descripcion}</p>
+                                </div>
+                              </div>
+                              {step.sabiasQue && (
+                                <p className={`mt-4 rounded-2xl border px-3 py-2 text-sm leading-relaxed ${selectedRole === 'transport' ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-100' : 'border-l-2 border-amber-300 bg-amber-300/10 text-amber-100'}`}>
+                                  <strong>Recomendación:</strong> {step.sabiasQue}
+                                </p>
+                              )}
+                            </div>
+                          </li>
+                        ))}
                       </ol>
                     </section>
                   ))}
+                  {selectedRole === 'transport' && (
+                    <section aria-labelledby="transport-route-gallery-title" className="rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6">
+                      <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
+                        <h2 id="transport-route-gallery-title" className="text-xl font-bold text-white sm:text-2xl">Ruta Mexibús a documentación</h2>
+                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">Sigue las imágenes en orden desde la estación hasta los mostradores de equipaje.</p>
+                      </div>
+                      <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {mexibusToDocRoute.map((step) => (
+                          <li key={step.stepNumber} className="overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-4 text-white shadow-xl backdrop-blur-md">
+                            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/20">
+                              <Image
+                                src={step.image}
+                                alt={`${step.title}: ${step.stage}`}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="mt-4 flex items-start gap-3">
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{step.stepNumber}</span>
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">{step.stage}</p>
+                                <h3 className="mt-1 font-bold leading-snug text-white">{step.title}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{step.description}</p>
+                                {step.referencePoint && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>Referencia:</strong> {step.referencePoint}</p>}
+                                {step.accessibilityNote && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>Accesibilidad:</strong> {step.accessibilityNote}</p>}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  )}
                 </div>
               ) : (
                 <ol className="mt-7 space-y-3">
@@ -1259,6 +1299,7 @@ export default function Home() {
               </button>
             </div>
           </article>
+          </div>
         </motion.section>
         )
       )}

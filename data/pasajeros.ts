@@ -141,14 +141,12 @@ export const TRANSPORTE_DATA: SubModulo[] = [
         id: "trans-1",
         titulo: "Llegada a la Terminal Mexibús AIFA",
         descripcion: "Se ubica en la planta baja / nivel inferior de la terminal de pasajeros.",
-        sabiasQue: "El pago se realiza mediante la tarjeta Mexipase. Puedes adquirirla y recargarla en las máquinas del acceso.",
-        imagenUrl: "/images/transporte/mexibus-terminal.jpg"
+        sabiasQue: "El pago se realiza mediante la tarjeta Mexipase. Puedes adquirirla y recargarla en las máquinas del acceso."
       },
       {
         id: "trans-2",
         titulo: "Abordaje y Recorrido",
-        descripcion: "Las unidades salen con frecuencia regular hacia las estaciones de interconexión con el Estado de México y CDMX.",
-        imagenUrl: "/images/transporte/mexibus-embarque.jpg"
+        descripcion: "Las unidades salen con frecuencia regular hacia las estaciones de interconexión con el Estado de México y CDMX."
       }
     ]
   },
@@ -161,14 +159,12 @@ export const TRANSPORTE_DATA: SubModulo[] = [
         id: "trans-3",
         titulo: "Taquillas de Taxis Autorizados",
         descripcion: "Ubicadas en el área pública de llegadas. Paga únicamente en los módulos oficiales antes de abordar.",
-        sabiasQue: "Nunca abordes un taxi fuera de la zona autorizada o sin boleto pagado previamente en taquilla por tu seguridad.",
-        imagenUrl: "/images/transporte/taquilla-taxis.jpg"
+        sabiasQue: "Nunca abordes un taxi fuera de la zona autorizada o sin boleto pagado previamente en taquilla por tu seguridad."
       },
       {
         id: "trans-4",
         titulo: "Terminal de Autobuses (Foráneos)",
-        descripcion: "Conexiones directas a Puebla, Querétaro, Pachuca, Toluca y terminales de CDMX (TAPO, Norte, Sur).",
-        imagenUrl: "/images/transporte/terminal-autobuses.jpg"
+        descripcion: "Conexiones directas a Puebla, Querétaro, Pachuca, Toluca y terminales de CDMX (TAPO, Norte, Sur)."
       }
     ]
   }
