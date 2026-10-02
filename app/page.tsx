@@ -34,6 +34,7 @@ import QrScannerModal from './QrScannerModal';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 import { MOCK_LOCATIONS } from '@/data/locations';
+import { useClickSound } from '@/hooks/useClickSound';
 import type { Location } from '@/types/location';
 import {
   OPCIONES_ENCUESTA,
@@ -292,6 +293,7 @@ function getLocationRole(location: Location): RoleId {
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
+  const playClickSound = useClickSound();
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
   const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
@@ -499,7 +501,10 @@ export default function Home() {
                   <motion.button
                     key={role.id}
                     type="button"
-                    onClick={() => openRole(role.id)}
+                    onClick={() => {
+                      playClickSound();
+                      openRole(role.id);
+                    }}
                     layoutId={roleId === 'arrival' ? 'card-llegue' : roleId === 'departure' ? 'card-viajar' : roleId === 'pickup' ? 'card-vengo' : roleId === 'tourism' ? 'card-turismo' : undefined}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className={`group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-white/20 ${cardStyle.base} px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-52 sm:p-8`}
@@ -547,7 +552,10 @@ export default function Home() {
                     <motion.button
                       key={role.id}
                       type="button"
-                      onClick={() => openRole(role.id)}
+                      onClick={() => {
+                        playClickSound();
+                        openRole(role.id);
+                      }}
                       whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.02 }}
                       whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
@@ -564,7 +572,10 @@ export default function Home() {
               </nav>
               <motion.button
                 type="button"
-                onClick={openSurvey}
+                onClick={() => {
+                  playClickSound();
+                  openSurvey();
+                }}
                 whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.015 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
