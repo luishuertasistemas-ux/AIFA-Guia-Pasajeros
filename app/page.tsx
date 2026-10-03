@@ -456,25 +456,27 @@ export default function Home() {
               type="button"
               autoFocus
               onClick={beginExperience}
-              className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70"
+              className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-[0_0_28px_rgba(52,211,153,0.45)] transition hover:bg-emerald-300 hover:shadow-[0_0_36px_rgba(52,211,153,0.6)] focus:outline-none focus:ring-4 focus:ring-emerald-200/70"
             >
               {copy.welcome.start} <ArrowRight aria-hidden="true" size={20} />
             </button>
-            <div className="mt-4 rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg backdrop-blur-xl">
-              <p className="sr-only" id="welcome-language-label">{copy.welcome.languageLabel}</p>
-              <div role="group" aria-labelledby="welcome-language-label" className="flex items-center gap-1">
-                {LANGUAGES.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setLanguage(option)}
-                    aria-label={copy.welcome.languageNames[option]}
-                    aria-pressed={language === option}
-                    className={`min-h-9 rounded-full px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-white sm:px-3.5 ${language === option ? 'bg-white text-slate-950 shadow' : 'text-white/90 hover:bg-white/15'}`}
-                  >
-                    {option}
-                  </button>
-                ))}
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <p className="text-xs font-medium tracking-wide text-white/75" id="welcome-language-label">{copy.welcome.languageLabel}</p>
+              <div className="rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg backdrop-blur-xl">
+                <div role="group" aria-labelledby="welcome-language-label" className="flex items-center gap-1">
+                  {LANGUAGES.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setLanguage(option)}
+                      aria-label={copy.welcome.languageNames[option]}
+                      aria-pressed={language === option}
+                      className={`min-h-9 rounded-full px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-white sm:px-3.5 ${language === option ? 'bg-white text-slate-950 shadow' : 'text-white/90 hover:bg-white/15'}`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

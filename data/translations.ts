@@ -53,7 +53,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       title: '¡Te damos la bienvenida al AIFA!',
       description: 'Tu experiencia en el aeropuerto, guiada paso a paso con la tranquilidad y claridad que mereces.',
       start: 'Iniciar experiencia',
-      languageLabel: 'Selecciona tu idioma',
+      languageLabel: 'Elige tu idioma',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
@@ -100,7 +100,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       title: 'Welcome to AIFA!',
       description: 'Your airport experience, guided step by step with the calm and clarity you deserve.',
       start: 'Start your experience',
-      languageLabel: 'Select your language',
+      languageLabel: 'Select language',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
