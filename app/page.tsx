@@ -467,24 +467,50 @@ export default function Home() {
           <Image src="/images/aifa-terminal.jpg" alt="" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
           <div className="absolute inset-0 -z-10 bg-slate-950/75 backdrop-blur-sm" aria-hidden="true" />
           <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
-            <header className="mb-7 flex flex-col gap-4 sm:mb-9 sm:flex-row sm:items-start sm:justify-between">
+            <header className="mb-7 sm:mb-9">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">AIFA · Guía de pasajeros</p>
                 <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">¿Cómo podemos ayudarte hoy?</h1>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">Elige lo que necesitas y te orientamos en tu visita.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setQrScanMessage('');
-                  setIsQrScannerOpen(true);
-                }}
-                className="inline-flex min-h-12 shrink-0 cursor-pointer items-center justify-center gap-2 self-start rounded-2xl border border-cyan-100/70 bg-gradient-to-r from-cyan-300 to-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-950/40 transition-all duration-300 hover:scale-105 hover:brightness-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white sm:self-auto"
-              >
-                <QrCode aria-hidden="true" size={21} />
-                Escanear QR
-              </button>
             </header>
+
+            <motion.button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setQrScanMessage('');
+                setIsQrScannerOpen(true);
+              }}
+              whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+              className="group relative isolate mb-7 flex min-h-64 w-full cursor-pointer items-center overflow-hidden rounded-3xl border border-cyan-100/70 bg-white/10 p-6 text-left text-white shadow-[0_0_32px_rgba(34,211,238,0.24)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-100 focus:outline-none focus:ring-4 focus:ring-cyan-100 sm:mb-9 sm:min-h-72 sm:p-10"
+              aria-label="Abrir el escáner QR"
+            >
+              <Image
+                src="/images/card-qr-scanner.jpg"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 1152px"
+                className="-z-20 object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+                priority
+              />
+              <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/30" />
+              <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/30 shadow-[inset_0_0_32px_rgba(103,232,249,0.18)]" />
+              <span className="relative z-10 flex max-w-3xl flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-100/60 bg-white/15 text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.45)] backdrop-blur-md sm:h-20 sm:w-20">
+                  <QrCode aria-hidden="true" size={40} strokeWidth={1.7} />
+                </span>
+                <span className="drop-shadow-lg">
+                  <span className="block text-2xl font-extrabold leading-tight sm:text-4xl">¡ALTO! 📱 Vive la Experiencia Digital AIFA</span>
+                  <span className="mt-3 block max-w-2xl text-base font-medium leading-relaxed text-cyan-50 sm:text-lg">Abre tu cámara, escanea los códigos del aeropuerto y navega en tiempo real desde tu celular.</span>
+                  <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-100/60 bg-cyan-200/15 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-colors group-hover:bg-cyan-200/25">
+                    Escanear QR <ArrowRight aria-hidden="true" size={18} />
+                  </span>
+                </span>
+              </span>
+            </motion.button>
 
             {qrScanMessage && (
               <p className="mb-4 rounded-xl border border-emerald-200/40 bg-emerald-900/80 px-4 py-3 text-sm font-semibold text-white" role="status" aria-live="polite">

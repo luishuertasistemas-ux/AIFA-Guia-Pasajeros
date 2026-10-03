@@ -69,30 +69,33 @@ export default function QRPage() {
   return (
     <main className="min-h-screen bg-slate-900 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-8 text-center text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
-            {copy.eyebrow}
-          </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            {copy.title}
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-300">
-            {copy.description}
-          </p>
-          <div className="mt-5 flex justify-center gap-2" role="group" aria-label="Language selector">
+        <header className="mb-8 flex flex-col gap-5 text-white sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
+              {copy.eyebrow}
+            </p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              {copy.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-slate-300">
+              {copy.description}
+            </p>
+          </div>
+          <div className="inline-flex w-fit shrink-0 gap-1 rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg shadow-blue-950/30 backdrop-blur-xl" role="group" aria-label="Language selector">
             {LANGUAGE_OPTIONS.map((option) => (
               <button
                 key={option.code}
                 type="button"
                 onClick={() => setCurrentLang(option.code)}
                 aria-pressed={currentLang === option.code}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-white/80 ${
                   currentLang === option.code
-                    ? 'bg-white text-blue-700'
-                    : 'bg-blue-950/50 text-blue-100 hover:bg-blue-900'
+                    ? 'bg-white/90 text-blue-800 shadow'
+                    : 'text-blue-50 hover:bg-white/15'
                 }`}
               >
-                {option.label}
+                <span className="sm:hidden">{option.code}</span>
+                <span className="hidden sm:inline">{option.label}</span>
               </button>
             ))}
           </div>
