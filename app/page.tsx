@@ -34,12 +34,13 @@ import QrScannerModal from './QrScannerModal';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 import { MOCK_LOCATIONS } from '@/data/locations';
+import { LANGUAGES, translations } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
+import { useLanguage } from '@/LanguageContext';
 import type { Location } from '@/types/location';
 import {
   OPCIONES_ENCUESTA,
   RESPUESTAS_PANTALLA,
-  TIA_INFO_BANNER,
   TRANSPORTE_DATA,
   TURISMO_DATA,
   type OpcionEncuesta,
@@ -294,6 +295,8 @@ function getLocationRole(location: Location): RoleId {
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
   const playClickSound = useClickSound();
+  const { language, setLanguage } = useLanguage();
+  const copy = translations[language];
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
   const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
@@ -421,7 +424,7 @@ export default function Home() {
     }
 
     setQrTargetLocation(null);
-    setQrScanMessage('Código QR leído, pero la ubicación no está registrada en la guía.');
+    setQrScanMessage(copy.navigation.unknownQr);
   };
 
   const activeRole = selectedRole ? ROLE_INFO[selectedRole] : null;
@@ -446,17 +449,34 @@ export default function Home() {
           <Image src="/images/aifa-bienvenida.jpg" alt="" fill priority sizes="100vw" className="object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/45 to-slate-950/75" aria-hidden="true" />
           <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-5 text-center sm:px-8">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-200 sm:text-sm">AIFA · Guía de pasajeros</p>
-            <h1 id="welcome-title" className="text-3xl font-bold leading-tight drop-shadow-lg sm:text-5xl">¡Te damos la bienvenida al AIFA!</h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-100 drop-shadow sm:text-xl">Tu experiencia en el aeropuerto, guiada paso a paso con la tranquilidad y claridad que mereces.</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-200 sm:text-sm">{copy.welcome.brand}</p>
+            <h1 id="welcome-title" className="text-3xl font-bold leading-tight drop-shadow-lg sm:text-5xl">{copy.welcome.title}</h1>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-100 drop-shadow sm:text-xl">{copy.welcome.description}</p>
             <button
               type="button"
               autoFocus
               onClick={beginExperience}
               className="mt-8 inline-flex min-h-[56px] items-center justify-center gap-3 rounded-xl bg-emerald-400 px-7 py-3 text-base font-bold text-slate-950 shadow-xl shadow-emerald-950/40 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-white/70"
             >
-              Iniciar Experiencia <ArrowRight aria-hidden="true" size={20} />
+              {copy.welcome.start} <ArrowRight aria-hidden="true" size={20} />
             </button>
+            <div className="mt-4 rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg backdrop-blur-xl">
+              <p className="sr-only" id="welcome-language-label">{copy.welcome.languageLabel}</p>
+              <div role="group" aria-labelledby="welcome-language-label" className="flex items-center gap-1">
+                {LANGUAGES.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setLanguage(option)}
+                    aria-label={copy.welcome.languageNames[option]}
+                    aria-pressed={language === option}
+                    className={`min-h-9 rounded-full px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-white sm:px-3.5 ${language === option ? 'bg-white text-slate-950 shadow' : 'text-white/90 hover:bg-white/15'}`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -469,9 +489,9 @@ export default function Home() {
           <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-4 pb-6 pt-8 sm:px-8 sm:pt-12">
             <header className="mb-7 sm:mb-9">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">AIFA · Guía de pasajeros</p>
-                <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">¿Cómo podemos ayudarte hoy?</h1>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">Elige lo que necesitas y te orientamos en tu visita.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">{copy.navigation.brand}</p>
+                <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-tight sm:text-4xl">{copy.navigation.heading}</h1>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">{copy.navigation.description}</p>
               </div>
             </header>
 
@@ -486,7 +506,7 @@ export default function Home() {
               whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 280, damping: 22 }}
               className="group relative isolate mb-7 flex min-h-64 w-full cursor-pointer items-center overflow-hidden rounded-3xl border border-cyan-100/70 bg-white/10 p-6 text-left text-white shadow-[0_0_32px_rgba(34,211,238,0.24)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-100 focus:outline-none focus:ring-4 focus:ring-cyan-100 sm:mb-9 sm:min-h-72 sm:p-10"
-              aria-label="Abrir el escáner QR"
+              aria-label={copy.superCard.ariaLabel}
             >
               <Image
                 src="/images/card-qr-scanner.jpg"
@@ -503,10 +523,10 @@ export default function Home() {
                   <QrCode aria-hidden="true" size={40} strokeWidth={1.7} />
                 </span>
                 <span className="drop-shadow-lg">
-                  <span className="block text-2xl font-extrabold leading-tight sm:text-4xl">¡ALTO! 📱 Vive la Experiencia Digital AIFA</span>
-                  <span className="mt-3 block max-w-2xl text-base font-medium leading-relaxed text-cyan-50 sm:text-lg">Abre tu cámara, escanea los códigos del aeropuerto y navega en tiempo real desde tu celular.</span>
+                  <span className="block text-2xl font-extrabold leading-tight sm:text-4xl">{copy.superCard.title}</span>
+                  <span className="mt-3 block max-w-2xl text-base font-medium leading-relaxed text-cyan-50 sm:text-lg">{copy.superCard.description}</span>
                   <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-100/60 bg-cyan-200/15 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-colors group-hover:bg-cyan-200/25">
-                    Escanear QR <ArrowRight aria-hidden="true" size={18} />
+                    {copy.superCard.action} <ArrowRight aria-hidden="true" size={18} />
                   </span>
                 </span>
               </span>
@@ -545,8 +565,8 @@ export default function Home() {
                       <Icon aria-hidden="true" size={32} strokeWidth={1.8} />
                     </span>
                     <span className="relative z-10 min-w-0 flex-1 drop-shadow-md">
-                      <span className="block text-2xl font-bold leading-snug text-white md:text-3xl">{role.title}</span>
-                      <span className="mt-2 block text-base font-semibold leading-relaxed text-white md:text-lg">{role.subtitle}</span>
+                      <span className="block text-2xl font-bold leading-snug text-white md:text-3xl">{copy.navigation.roles[roleId].title}</span>
+                      <span className="mt-2 block text-base font-semibold leading-relaxed text-white md:text-lg">{copy.navigation.roles[roleId].subtitle}</span>
                     </span>
                     <ArrowRight aria-hidden="true" className="relative z-10 shrink-0 text-white/75 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
                   </motion.button>
@@ -559,12 +579,12 @@ export default function Home() {
           <div className="mx-auto w-full max-w-6xl px-4 pb-8 sm:px-8">
             <div className="mx-auto w-full max-w-5xl space-y-6">
               <aside id="tia-help" className={`flex flex-col items-start gap-y-1 rounded-2xl border border-red-200/70 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 px-5 py-4 text-white shadow-xl shadow-red-950/40 transition-all duration-500 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:px-6 ${isTiaBannerActive ? 'ring-4 ring-white ring-offset-4 ring-offset-red-800' : ''}`}>
-                <h2 className="text-base font-bold leading-tight sm:shrink-0 sm:text-lg">{TIA_INFO_BANNER.titulo}</h2>
-                <p className="w-full min-w-0 text-sm leading-relaxed text-white sm:w-auto sm:flex-1 sm:text-base">{TIA_INFO_BANNER.mensaje}</p>
+                <h2 className="text-base font-bold leading-tight sm:shrink-0 sm:text-lg">{copy.services.tiaTitle}</h2>
+                <p className="w-full min-w-0 text-sm leading-relaxed text-white sm:w-auto sm:flex-1 sm:text-base">{copy.services.tiaDescription}</p>
               </aside>
 
-              <nav aria-label="Ayuda rápida">
-                <p className="mb-3 text-base font-bold uppercase tracking-[0.14em] text-white">Ayuda rápida</p>
+              <nav aria-label={copy.navigation.quickHelp}>
+                <p className="mb-3 text-base font-bold uppercase tracking-[0.14em] text-white">{copy.navigation.quickHelp}</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 {SUPPORT_ROLE_IDS.map((roleId) => {
                   const role = ROLE_INFO[roleId];
@@ -590,7 +610,7 @@ export default function Home() {
                     >
                       <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-white/5 transition-colors duration-300 group-hover:bg-sky-400/10" />
                       <Icon aria-hidden="true" size={28} className="relative z-10 shrink-0 text-white drop-shadow-md" />
-                      <span className="relative z-10 text-lg leading-snug drop-shadow-md sm:text-xl">{role.title}</span>
+                      <span className="relative z-10 text-lg leading-snug drop-shadow-md sm:text-xl">{copy.navigation.roles[roleId].title}</span>
                     </motion.button>
                   );
                 })}
@@ -609,7 +629,7 @@ export default function Home() {
                 style={{ backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.7)), url("/images/btn-experiencia.jpg")' }}
               >
                 <MessageCircle aria-hidden="true" size={22} className="relative z-10 text-white drop-shadow-md" />
-                <span className="relative z-10 drop-shadow-md">Cuéntanos tu experiencia</span>
+                <span className="relative z-10 drop-shadow-md">{copy.services.feedback}</span>
                 <ArrowRight aria-hidden="true" size={20} className="relative z-10 text-white drop-shadow-md" />
               </motion.button>
             </div>
@@ -1374,7 +1394,6 @@ export default function Home() {
       {screen === 'hub' && (
         <QrScannerModal
           isOpen={isQrScannerOpen}
-          language="ES"
           onClose={() => setIsQrScannerOpen(false)}
           onScan={handleQrScan}
         />
