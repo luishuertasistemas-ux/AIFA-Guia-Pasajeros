@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { MOCK_LOCATIONS } from '@/data/locations';
-import type { SupportedLanguage } from '@/types/location';
+import { getLocalizedLocationInfo, MOCK_LOCATIONS } from '@/data/locations';
+import { useLanguage } from '@/LanguageContext';
+import type { Language } from '@/data/translations';
 
 const APP_URL = 'https://aifa-guia-pasajeros.vercel.app/?origen=';
-const LANGUAGE_OPTIONS: Array<{ code: SupportedLanguage; label: string }> = [
+const LANGUAGE_OPTIONS = [
   { code: 'ES', label: 'Español' },
   { code: 'EN', label: 'English' },
   { code: 'FR', label: 'Français' },
   { code: 'ZH', label: '中文' }
-];
-const QR_TRANSLATIONS: Record<SupportedLanguage, {
+] as const;
+const QR_TRANSLATIONS: Record<Language, {
   eyebrow: string;
   title: string;
   description: string;
@@ -56,7 +57,7 @@ const QR_TRANSLATIONS: Record<SupportedLanguage, {
 
 export default function QRPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [currentLang, setCurrentLang] = useState<SupportedLanguage>('ES');
+  const { language: currentLang, setLanguage: setCurrentLang } = useLanguage();
   const copy = QR_TRANSLATIONS[currentLang];
 
   const copyLink = async (id: string) => {
@@ -105,7 +106,7 @@ export default function QRPage() {
           {Object.values(MOCK_LOCATIONS).filter((location) => location.isPassengerAccessible).map((location) => {
             const url = `${APP_URL}${location.id}`;
             const isCopied = copiedId === location.id;
-            const locationTranslation = location.translations[currentLang];
+            const locationTranslation = getLocalizedLocationInfo(location, currentLang);
 
             return (
               <article
@@ -120,7 +121,7 @@ export default function QRPage() {
                     {locationTranslation.title}
                   </h2>
                   <p className="mt-2 text-sm text-slate-500">
-                    {location.mapZone}
+                    {locationTranslation.mapZone}
                   </p>
                 </div>
 

@@ -1,19 +1,23 @@
 import type { TimeStatus } from '../../data/timeCalculator';
+import { useLanguage } from '@/LanguageContext';
+import { translations } from '@/data/translations';
 
 type FlightTimeTrafficLightProps = {
   status: TimeStatus | null;
 };
 
-const STATUS_CONFIG: Record<TimeStatus, { label: string; icon: string; classes: string }> = {
-  verde: { label: 'Verde', icon: '✓', classes: 'border-emerald-300/60 bg-emerald-500/20 text-emerald-100' },
-  amarillo: { label: 'Amarillo', icon: '!', classes: 'border-amber-300/70 bg-amber-400/20 text-amber-100' },
-  rojo: { label: 'Rojo', icon: '!', classes: 'border-red-300/70 bg-red-500/20 text-red-100' },
-  error: { label: 'Error', icon: '⚠', classes: 'border-rose-300/70 bg-rose-900/50 text-rose-100' }
+const STATUS_CONFIG: Record<TimeStatus, { icon: string; classes: string }> = {
+  verde: { icon: '✓', classes: 'border-emerald-300/60 bg-emerald-500/20 text-emerald-100' },
+  amarillo: { icon: '!', classes: 'border-amber-300/70 bg-amber-400/20 text-amber-100' },
+  rojo: { icon: '!', classes: 'border-red-300/70 bg-red-500/20 text-red-100' },
+  error: { icon: '⚠', classes: 'border-rose-300/70 bg-rose-900/50 text-rose-100' }
 };
 
 export function FlightTimeTrafficLight({ status }: FlightTimeTrafficLightProps) {
+  const { language } = useLanguage();
+  const copy = translations[language].flightTime.result;
   return (
-    <div className="flex flex-wrap gap-2" aria-label="Estado del tiempo disponible">
+    <div className="flex flex-wrap gap-2" aria-label={translations[language].flightTime.available}>
       {(Object.keys(STATUS_CONFIG) as TimeStatus[]).map((statusKey) => {
         const config = STATUS_CONFIG[statusKey];
         const isActive = status === statusKey;
@@ -24,7 +28,7 @@ export function FlightTimeTrafficLight({ status }: FlightTimeTrafficLightProps) 
             aria-current={isActive ? 'step' : undefined}
           >
             <span aria-hidden="true">{config.icon}</span>
-            {config.label}
+            {copy.traffic[statusKey]}
           </span>
         );
       })}

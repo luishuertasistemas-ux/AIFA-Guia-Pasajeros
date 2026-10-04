@@ -33,14 +33,13 @@ import {
 import QrScannerModal from './QrScannerModal';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
-import { MOCK_LOCATIONS } from '@/data/locations';
-import { LANGUAGES, translations } from '@/data/translations';
+import { getLocalizedLocationInfo, MOCK_LOCATIONS } from '@/data/locations';
+import { LANGUAGES, translations, type Language } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
 import type { Location } from '@/types/location';
 import {
   OPCIONES_ENCUESTA,
-  RESPUESTAS_PANTALLA,
   TRANSPORTE_DATA,
   TURISMO_DATA,
   type OpcionEncuesta,
@@ -50,15 +49,8 @@ import {
 type Screen = 'welcome' | 'hub' | 'role' | 'survey';
 type RoleId = 'arrival' | 'departure' | 'pickup' | 'tourism' | 'transport' | 'lost-items' | 'pets';
 type QrRoute = { role?: RoleId; locationId?: string; activateTia?: boolean };
-type RoleInfo = {
-  id: RoleId;
-  title: string;
-  subtitle: string;
-  description: string;
-  steps: string[];
-  icon: LucideIcon;
-};
-type TimeTheme = { label: string; image: string };
+type RoleInfo = { id: RoleId; icon: LucideIcon };
+type TimeTheme = { image: string };
 type FallbackImageProps = {
   src: string;
   fallback: string;
@@ -86,148 +78,38 @@ function FallbackImage({ src, fallback, alt, sizes, className, fill }: FallbackI
 }
 
 const ROLE_INFO: Record<RoleId, RoleInfo> = {
-  arrival: {
-    id: 'arrival',
-    title: 'Llegué en un vuelo',
-    subtitle: 'Equipaje, migración y salida',
-    description: 'Te ayudamos a orientarte al llegar y a encontrar el siguiente paso de tu recorrido.',
-    steps: ['Sigue la señalización hacia equipaje y llegadas.', 'Localiza servicios y transporte en la terminal.', 'Confirma tu punto de salida antes de continuar.'],
-    icon: Plane
-  },
-  departure: {
-    id: 'departure',
-    title: 'Voy a viajar',
-    subtitle: 'Check-in, filtros y salas',
-    description: 'Organiza tu salida con tiempo y ubica los puntos principales antes de abordar.',
-    steps: ['Consulta con tu aerolínea el mostrador de documentación.', 'Ten a la mano tus documentos para pasar los filtros.', 'Revisa las pantallas para confirmar tu sala y puerta.'],
-    icon: Plane
-  },
-  pickup: {
-    id: 'pickup',
-    title: 'Vengo por alguien',
-    subtitle: 'Punto de encuentro y llegadas',
-    description: 'Coordina un encuentro sencillo en la zona de llegadas y mantente atento a los avisos de vuelo.',
-    steps: ['Confirma la terminal y el horario de llegada.', 'Acuerda un punto de encuentro fácil de reconocer.', 'Sigue la señalización hacia el área pública de llegadas.'],
-    icon: UsersRound
-  },
-  tourism: {
-    id: 'tourism',
-    title: 'Paseo y Turismo',
-    subtitle: 'Museos, plaza y baños temáticos',
-    description: 'Explora los espacios culturales y comerciales del aeropuerto durante tu visita.',
-    steps: ['Visita el Museo del Mamut y sus espacios culturales.', 'Recorre la Plaza Mexicana y consulta sus servicios.', 'Sigue los señalamientos para ubicar los baños temáticos.'],
-    icon: Landmark
-  },
-  transport: {
-    id: 'transport',
-    title: 'Transporte',
-    subtitle: 'Opciones para continuar tu trayecto',
-    description: 'Ubica las conexiones terrestres disponibles y confirma horarios y puntos de abordaje.',
-    steps: ['Sigue la señalización oficial hacia transporte.', 'Confirma horarios, tarifas y disponibilidad con el operador.', 'Conserva tus pertenencias durante el traslado.'],
-    icon: TrainFront
-  },
-  'lost-items': {
-    id: 'lost-items',
-    title: 'Objetos olvidados',
-    subtitle: 'Orientación para recuperar tus pertenencias',
-    description: 'Si olvidaste algo, reporta el objeto con la mayor cantidad de detalles posible.',
-    steps: ['Anota dónde y cuándo viste el objeto por última vez.', 'Describe el objeto y cualquier dato que permita identificarlo.', 'Solicita orientación al personal del aeropuerto o de tu aerolínea.'],
-    icon: Backpack
-  },
-  pets: {
-    id: 'pets',
-    title: 'Mascotas',
-    subtitle: 'Viaja preparado con tu animal de compañía',
-    description: 'Consulta con anticipación las reglas de tu aerolínea y los servicios disponibles en terminal.',
-    steps: ['Confirma requisitos y transportadora directamente con tu aerolínea.', 'Lleva contigo la documentación veterinaria requerida.', 'Mantén a tu mascota bajo supervisión en las áreas permitidas.'],
-    icon: PawPrint
-  }
+  arrival: { id: 'arrival', icon: Plane },
+  departure: { id: 'departure', icon: Plane },
+  pickup: { id: 'pickup', icon: UsersRound },
+  tourism: { id: 'tourism', icon: Landmark },
+  transport: { id: 'transport', icon: TrainFront },
+  'lost-items': { id: 'lost-items', icon: Backpack },
+  pets: { id: 'pets', icon: PawPrint }
 };
 
 type MainRoleId = 'arrival' | 'departure' | 'pickup' | 'tourism';
 
 const MAIN_ROLE_IDS: MainRoleId[] = ['arrival', 'departure', 'pickup', 'tourism'];
 const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
-const ARRIVAL_GUIDE_STEPS = [
-  {
-    title: '1. Reclamo de Equipaje y Control',
-    description: 'Dirígete a las bandas de reclamo de equipaje. Si llegas en un vuelo internacional, pasa por el filtro de Migración e INM.',
-    badges: ['Bandas 1-6', 'Migración INM', 'Aduana'],
-    icon: Luggage
-  },
-  {
-    title: '2. Servicios Esenciales en la Terminal',
-    description: 'Encuentra cajeros automáticos, casas de cambio, sanitarios temáticos, atención médica y módulos de información a la salida.',
-    badges: ['Cajeros ATM', 'Sanitarios', 'Info Turística'],
-    icon: Building2
-  },
-  {
-    title: '3. Transporte y Salida del AIFA',
-    description: 'Conecta directamente con la estación del Mexibús (Línea 1), taxis autorizados, autobuses foráneos o el área de estacionamiento.',
-    badges: ['Mexibús Línea 1', 'Taxis Autorizados', 'Autobuses Foráneos', 'Estacionamiento'],
-    icon: Bus
-  }
+const ARRIVAL_GUIDE_ICONS: LucideIcon[] = [Luggage, Building2, Bus];
+const DEPARTURE_GUIDE_META = [
+  { href: '/images/aifa-mapa.png', icon: Ticket },
+  { href: 'https://aifa.aero', icon: ShieldCheck },
+  { href: '/images/aifa-mapa.png', icon: PlaneTakeoff }
 ];
-const DEPARTURE_GUIDE_STEPS = [
-  {
-    title: '1. Check-in y Documentación',
-    description: 'Ubica los mostradores de tu aerolínea o usa los kioscos digitales para imprimir tu pase de abordar y documentar equipaje de bodega.',
-    badges: ['Mostradores A-F', 'Kioscos Digitales', 'Equipaje'],
-    linkLabel: 'Ver mapa de mostradores →',
-    href: '/images/aifa-mapa.png',
-    icon: Ticket
-  },
-  {
-    title: '2. Filtros de Seguridad e Inspección',
-    description: 'Ten a la mano tu pase de abordar e identificación oficial para ingresar a la zona de salas de última espera.',
-    badges: ['Pase de Abordar', 'Identificación Oficial', 'Filtro Central'],
-    linkLabel: 'Ver requisitos de acceso →',
-    href: 'https://aifa.aero',
-    icon: ShieldCheck
-  },
-  {
-    title: '3. Salas de Ultramar y Abordaje',
-    description: 'Revisa las pantallas de vuelos para confirmar tu sala y puerta de abordaje. Disfruta de tiendas, servicios y áreas de descanso.',
-    badges: ['Puertas A1-A12', 'Pantallas de Vuelos', 'Área Comercial'],
-    linkLabel: 'Ubicar mi puerta →',
-    href: '/images/aifa-mapa.png',
-    icon: PlaneTakeoff
-  }
-];
-const PICKUP_GUIDE_STEPS = [
-  {
-    title: '1. Puntos de Encuentro y Espera',
-    description: 'Ubica las áreas de llegadas nacionales e internacionales. Revisa las pantallas de vuelos en tiempo real para conocer el estatus de llegada.',
-    badges: ['Llegadas Nacionales', 'Llegadas Internacionales', 'Pantallas de Vuelo'],
-    linkLabel: 'Ver mapa de puntos de encuentro →',
-    href: '/images/aifa-mapa.png',
-    icon: UsersRound
-  },
-  {
-    title: '2. Estacionamiento y Tiempo',
-    description: 'Accede al estacionamiento principal o utiliza la zona de espera corta para coordinar el momento exacto en que tu pasajero salga de la terminal.',
-    badges: ['Estacionamiento Principal', 'Pago Digital / Tarjeta', 'Zona de Carga'],
-    linkLabel: 'Tarifas y ubicación de estacionamiento →',
-    href: 'https://aifa.aero',
-    icon: Car
-  },
-  {
-    title: '3. Servicios de Espera Confortable',
-    description: 'Encuentra áreas de descanso, cafeterías, tiendas de conveniencia y sanitarios mientras esperas la llegada de tu vuelo.',
-    badges: ['Cafeterías', 'Sanitarios Temáticos', 'WiFi Gratuito'],
-    linkLabel: 'Ver amenidades de espera →',
-    href: '/images/aifa-mapa.png',
-    icon: Coffee
-  }
+const PICKUP_GUIDE_META = [
+  { href: '/images/aifa-mapa.png', icon: UsersRound },
+  { href: 'https://aifa.aero', icon: Car },
+  { href: '/images/aifa-mapa.png', icon: Coffee }
 ];
 const TOURISM_ATTRACTIONS = [
-  { title: 'Museo del Mamut (Quinametzin)', image: '/images/museo-mamut.jpg', badges: ['Fósiles', 'Tierra de Gigantes'] },
-  { title: 'Museo de la Aviación Militar (MAM)', image: '/images/aviacion-militar.jpg', badges: ['Aeronaves', 'Fuerza Aérea'] },
-  { title: 'Tren Presidencial Olivo', image: '/images/tren-olivo.jpg', badges: ['Vagón Histórico', 'Historia'] }
+  { image: '/images/museo-mamut.jpg' },
+  { image: '/images/aviacion-militar.jpg' },
+  { image: '/images/tren-olivo.jpg' }
 ];
 const TOURISM_COMMERCIAL_ATTRACTIONS = [
-  { title: 'Baños Temáticos', image: '/images/banos-tematicos.jpg', badges: ['Lucha Libre', 'Cine Mexicano', 'Chespirito'] },
-  { title: 'Plaza Comercial Mexica', image: '/images/plaza-mexica.jpg', badges: ['Artesanías', 'Souvenirs', 'Gastronomía'] }
+  { image: '/images/banos-tematicos.jpg' },
+  { image: '/images/plaza-mexica.jpg' }
 ];
 const QR_CODE_ROUTES: Record<string, QrRoute> = {
   'QR-MEXIBUS-01': { role: 'transport' },
@@ -262,9 +144,9 @@ const MAIN_ROLE_CARD_STYLES: Record<MainRoleId, { image?: string; base: string; 
   }
 };
 const TIME_THEMES: Record<'morning' | 'afternoon' | 'night', TimeTheme> = {
-  morning: { label: 'Buenos días', image: '/images/hero-manana.jpg' },
-  afternoon: { label: 'Buenas tardes', image: '/images/hero-tarde.jpg' },
-  night: { label: 'Buenas noches', image: '/images/hero-noche.jpg' }
+  morning: { image: '/images/hero-manana.jpg' },
+  afternoon: { image: '/images/hero-tarde.jpg' },
+  night: { image: '/images/hero-noche.jpg' }
 };
 
 function getTimeTheme(date: Date | null): TimeTheme {
@@ -275,10 +157,11 @@ function getTimeTheme(date: Date | null): TimeTheme {
   return TIME_THEMES.night;
 }
 
-function formatDigitalClock(date: Date | null): string {
+function formatDigitalClock(date: Date | null, language: Language): string {
   if (!date) return '--/--  --:--';
-  const dateLabel = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: '2-digit' }).format(date);
-  const timeLabel = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+  const locale = { ES: 'es-MX', EN: 'en-US', FR: 'fr-FR', ZH: 'zh-CN' }[language];
+  const dateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(date);
+  const timeLabel = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
   return `${dateLabel}  ${timeLabel}`;
 }
 
@@ -297,6 +180,7 @@ export default function Home() {
   const playClickSound = useClickSound();
   const { language, setLanguage } = useLanguage();
   const copy = translations[language];
+  const detailCopy = copy.details;
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
   const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
@@ -428,15 +312,39 @@ export default function Home() {
   };
 
   const activeRole = selectedRole ? ROLE_INFO[selectedRole] : null;
+  const activeRoleCopy = selectedRole ? detailCopy.roles[selectedRole] : null;
   const ActiveRoleIcon = activeRole?.icon;
+  const arrivalCards = detailCopy.arrival.cards.map((card, index) => ({
+    ...card,
+    icon: ARRIVAL_GUIDE_ICONS[index]
+  }));
+  const departureCards = detailCopy.departure.cards.map((card, index) => ({
+    ...card,
+    ...DEPARTURE_GUIDE_META[index]
+  }));
+  const pickupCards = detailCopy.pickup.cards.map((card, index) => ({
+    ...card,
+    ...PICKUP_GUIDE_META[index]
+  }));
+  const tourismAttractions = TOURISM_ATTRACTIONS.map((item, index) => ({
+    ...item,
+    ...detailCopy.tourism.culturalAttractions[index]
+  }));
+  const tourismCommercialAttractions = TOURISM_COMMERCIAL_ATTRACTIONS.map((item, index) => ({
+    ...item,
+    ...detailCopy.tourism.commercialAttractions[index]
+  }));
   const timeTheme = getTimeTheme(currentTime);
+  const localizedQrLocation = qrTargetLocation
+    ? getLocalizedLocationInfo(qrTargetLocation, language)
+    : null;
   const roleModules: SubModulo[] | null = selectedRole === 'tourism'
     ? TURISMO_DATA
     : selectedRole === 'transport'
       ? TRANSPORTE_DATA
       : null;
   const surveyResponse = selectedSurveyOption
-    ? RESPUESTAS_PANTALLA[selectedSurveyOption.categoria]
+    ? copy.survey.responses[selectedSurveyOption.categoria]
     : null;
 
   return (
@@ -639,7 +547,7 @@ export default function Home() {
         </motion.section>
       )}
 
-      {screen === 'role' && activeRole && (
+      {screen === 'role' && activeRole && activeRoleCopy && (
         selectedRole === 'arrival' ? (
           <motion.section
             key="arrival"
@@ -691,7 +599,7 @@ export default function Home() {
                   className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-emerald-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-emerald-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300"
                 >
                   <ArrowLeft aria-hidden="true" size={28} />
-                  Volver al Menú Principal
+                  {detailCopy.backToMenu}
                 </motion.button>
                 <motion.h1
                   id="arrival-guide-title"
@@ -701,7 +609,7 @@ export default function Home() {
                   }}
                   className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
                 >
-                  Llegué en un vuelo
+                  {detailCopy.arrival.title}
                 </motion.h1>
                 <motion.p
                   variants={{
@@ -710,7 +618,7 @@ export default function Home() {
                   }}
                   className="mt-3 max-w-3xl text-lg leading-relaxed text-emerald-100 drop-shadow-md md:text-xl"
                 >
-                  Equipaje, migración y salida: encuentra lo que necesitas para continuar tu recorrido por el AIFA.
+                  {detailCopy.arrival.description}
                 </motion.p>
               </motion.header>
 
@@ -721,7 +629,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {ARRIVAL_GUIDE_STEPS.map(({ title, description, badges, icon: StepIcon }) => (
+                {arrivalCards.map(({ title, description, badges, icon: StepIcon }) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -738,7 +646,7 @@ export default function Home() {
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
                     <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
-                    <ul aria-label={`Servicios: ${title}`} className="flex flex-wrap gap-3">
+                    <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
                       {badges.map((badge) => (
                         <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30">
                           {badge}
@@ -751,21 +659,21 @@ export default function Home() {
                       rel="noreferrer"
                       className="mt-4 block text-sm font-bold text-[#008767] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#008767] focus-visible:ring-offset-2"
                     >
-                      Ver mapa de ubicación →
+                      {detailCopy.arrival.mapLink}
                     </a>
                   </motion.article>
                 ))}
               </motion.div>
 
-              {qrTargetLocation && (
+              {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-7 rounded-2xl border-2 border-emerald-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
-                  <p className="text-sm font-bold uppercase tracking-wider text-emerald-200 drop-shadow-md">Ubicación detectada</p>
-                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
-                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-emerald-200 drop-shadow-md">{detailCopy.detectedLocation}</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{localizedQrLocation.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{localizedQrLocation.description}</p>
                   <p className="mt-3 flex items-center gap-2 text-base font-bold text-emerald-100 drop-shadow-md">
-                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                    <MapPin aria-hidden="true" size={20} /> {localizedQrLocation.mapZone} · {localizedQrLocation.walkTime}
                   </p>
-                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-emerald-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                  {localizedQrLocation.quickTip && <p className="mt-3 text-base leading-relaxed text-emerald-50 drop-shadow-md">{localizedQrLocation.quickTip}</p>}
                 </section>
               )}
             </motion.div>
@@ -821,7 +729,7 @@ export default function Home() {
                   className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-amber-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-amber-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
                 >
                   <ArrowLeft aria-hidden="true" size={28} />
-                  Volver al Menú Principal
+                  {detailCopy.backToMenu}
                 </motion.button>
                 <motion.h1
                   id="pickup-guide-title"
@@ -831,7 +739,7 @@ export default function Home() {
                   }}
                   className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
                 >
-                  Vengo por alguien
+                  {detailCopy.pickup.title}
                 </motion.h1>
                 <motion.p
                   variants={{
@@ -840,7 +748,7 @@ export default function Home() {
                   }}
                   className="mt-3 max-w-3xl text-lg leading-relaxed text-amber-100 drop-shadow-md md:text-xl"
                 >
-                  Puntos de encuentro, estacionamiento y servicios para esperar con comodidad la llegada de tu pasajero.
+                  {detailCopy.pickup.description}
                 </motion.p>
               </motion.header>
 
@@ -851,7 +759,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {PICKUP_GUIDE_STEPS.map(({ title, description, badges, linkLabel, href, icon: StepIcon }) => (
+                {pickupCards.map(({ title, description, badges, linkLabel, href, icon: StepIcon }) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -868,7 +776,7 @@ export default function Home() {
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
                     <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
-                    <ul aria-label={`Servicios: ${title}`} className="flex flex-wrap gap-3">
+                    <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
                       {badges.map((badge) => (
                         <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-amber-100 backdrop-blur-sm transition-all hover:border-amber-300 hover:bg-amber-500/30">
                           {badge}
@@ -887,15 +795,15 @@ export default function Home() {
                 ))}
               </motion.div>
 
-              {qrTargetLocation && (
+              {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-7 rounded-2xl border-2 border-amber-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
-                  <p className="text-sm font-bold uppercase tracking-wider text-amber-200 drop-shadow-md">Ubicación detectada</p>
-                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
-                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-amber-200 drop-shadow-md">{detailCopy.detectedLocation}</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{localizedQrLocation.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{localizedQrLocation.description}</p>
                   <p className="mt-3 flex items-center gap-2 text-base font-bold text-amber-100 drop-shadow-md">
-                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                    <MapPin aria-hidden="true" size={20} /> {localizedQrLocation.mapZone} · {localizedQrLocation.walkTime}
                   </p>
-                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-amber-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                  {localizedQrLocation.quickTip && <p className="mt-3 text-base leading-relaxed text-amber-50 drop-shadow-md">{localizedQrLocation.quickTip}</p>}
                 </section>
               )}
             </motion.div>
@@ -951,7 +859,7 @@ export default function Home() {
                   className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-sky-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-blue-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
                 >
                   <ArrowLeft aria-hidden="true" size={28} />
-                  Volver al Menú Principal
+                  {detailCopy.backToMenu}
                 </motion.button>
                 <motion.h1
                   id="departure-guide-title"
@@ -961,7 +869,7 @@ export default function Home() {
                   }}
                   className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
                 >
-                  Voy a viajar
+                  {detailCopy.departure.title}
                 </motion.h1>
                 <motion.p
                   variants={{
@@ -970,7 +878,7 @@ export default function Home() {
                   }}
                   className="mt-3 max-w-3xl text-lg leading-relaxed text-sky-100 drop-shadow-md md:text-xl"
                 >
-                  Check-in, filtros y salas: prepara tu salida y ubica cada etapa antes de abordar.
+                  {detailCopy.departure.description}
                 </motion.p>
               </motion.header>
 
@@ -985,7 +893,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {DEPARTURE_GUIDE_STEPS.map(({ title, description, badges, linkLabel, href, icon: StepIcon }) => (
+                {departureCards.map(({ title, description, badges, linkLabel, href, icon: StepIcon }) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -1002,7 +910,7 @@ export default function Home() {
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
                     <p className="mb-6 text-base font-normal leading-relaxed text-slate-100/90">{description}</p>
-                    <ul aria-label={`Servicios: ${title}`} className="flex flex-wrap gap-3">
+                    <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
                       {badges.map((badge) => (
                         <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-sky-100 backdrop-blur-sm transition-all hover:border-sky-300 hover:bg-sky-500/30">
                           {badge}
@@ -1021,15 +929,15 @@ export default function Home() {
                 ))}
               </motion.div>
 
-              {qrTargetLocation && (
+              {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-7 rounded-2xl border-2 border-sky-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
-                  <p className="text-sm font-bold uppercase tracking-wider text-sky-200 drop-shadow-md">Ubicación detectada</p>
-                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
-                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-sky-200 drop-shadow-md">{detailCopy.detectedLocation}</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{localizedQrLocation.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{localizedQrLocation.description}</p>
                   <p className="mt-3 flex items-center gap-2 text-base font-bold text-sky-100 drop-shadow-md">
-                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                    <MapPin aria-hidden="true" size={20} /> {localizedQrLocation.mapZone} · {localizedQrLocation.walkTime}
                   </p>
-                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-sky-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                  {localizedQrLocation.quickTip && <p className="mt-3 text-base leading-relaxed text-sky-50 drop-shadow-md">{localizedQrLocation.quickTip}</p>}
                 </section>
               )}
             </motion.div>
@@ -1085,7 +993,7 @@ export default function Home() {
                   className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-violet-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-violet-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-300"
                 >
                   <ArrowLeft aria-hidden="true" size={28} />
-                  Volver al Menú Principal
+                  {detailCopy.backToMenu}
                 </motion.button>
                 <motion.h1
                   id="tourism-guide-title"
@@ -1095,7 +1003,7 @@ export default function Home() {
                   }}
                   className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl"
                 >
-                  Paseo y Turismo
+                  {detailCopy.tourism.title}
                 </motion.h1>
                 <motion.p
                   variants={{
@@ -1104,7 +1012,7 @@ export default function Home() {
                   }}
                   className="mt-3 max-w-3xl text-lg leading-relaxed text-violet-100 drop-shadow-md md:text-xl"
                 >
-                  Explora los museos, experiencias comerciales y espacios fotográficos del AIFA.
+                  {detailCopy.tourism.description}
                 </motion.p>
               </motion.header>
 
@@ -1126,10 +1034,10 @@ export default function Home() {
                   transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="rounded-3xl border border-white/30 bg-white/10 p-8 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.37)] backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)] md:p-10"
                 >
-                <h2 id="tourism-culture-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">1. Corredor Cultural y Museos</h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-100/90">Descubre los espacios culturales únicos integrados dentro del área aeroportuaria.</p>
+                <h2 id="tourism-culture-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">{detailCopy.tourism.sections[0].title}</h2>
+                <p className="mt-3 text-base leading-relaxed text-slate-100/90">{detailCopy.tourism.sections[0].description}</p>
                   <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {TOURISM_ATTRACTIONS.map(({ title, image, badges }) => (
+                    {tourismAttractions.map(({ title, image, badges }) => (
                       <motion.article
                         key={title}
                         whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
@@ -1142,7 +1050,7 @@ export default function Home() {
                         </div>
                         <div className="p-5">
                           <h3 className="text-lg font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h3>
-                          <ul aria-label={`Atractivos: ${title}`} className="mt-4 flex flex-wrap gap-2">
+                          <ul aria-label={`${detailCopy.attractions}: ${title}`} className="mt-4 flex flex-wrap gap-2">
                             {badges.map((badge) => (
                               <li key={badge} className="rounded-xl border border-white/20 bg-white/15 px-3 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm">{badge}</li>
                             ))}
@@ -1164,10 +1072,10 @@ export default function Home() {
                   transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="rounded-3xl border border-white/30 bg-white/10 p-8 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.37)] backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)] md:p-10"
                 >
-                <h2 id="tourism-commercial-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">2. Experiencia Comercial y Baños Temáticos</h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-100/90">Recorre los atractivos de la cultura popular mexicana dentro del terminal.</p>
+                <h2 id="tourism-commercial-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">{detailCopy.tourism.sections[1].title}</h2>
+                <p className="mt-3 text-base leading-relaxed text-slate-100/90">{detailCopy.tourism.sections[1].description}</p>
                   <div className="mt-6 grid gap-5 md:grid-cols-2">
-                    {TOURISM_COMMERCIAL_ATTRACTIONS.map(({ title, image, badges }) => (
+                    {tourismCommercialAttractions.map(({ title, image, badges }) => (
                       <motion.article
                         key={title}
                         whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
@@ -1180,7 +1088,7 @@ export default function Home() {
                         </div>
                         <div className="p-5">
                           <h3 className="text-lg font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h3>
-                          <ul aria-label={`Atractivos: ${title}`} className="mt-4 flex flex-wrap gap-2">
+                          <ul aria-label={`${detailCopy.attractions}: ${title}`} className="mt-4 flex flex-wrap gap-2">
                             {badges.map((badge) => (
                               <li key={badge} className="rounded-xl border border-white/20 bg-white/15 px-3 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm">{badge}</li>
                             ))}
@@ -1202,10 +1110,10 @@ export default function Home() {
                   transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="rounded-3xl border border-white/30 bg-white/10 p-8 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.37)] backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)] md:p-10"
                 >
-                <h2 id="tourism-photo-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">3. Miradores y Zonas Fotográficas</h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-100/90">Encuentra las mejores ubicaciones para fotos de recuerdo con la torre de control y las letras monumentales.</p>
-                  <ul aria-label="Puntos fotográficos" className="mt-5 flex flex-wrap gap-3">
-                    {['Letras AIFA', 'Mirador Principal', 'Zonas Verdes'].map((badge) => (
+                <h2 id="tourism-photo-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">{detailCopy.tourism.sections[2].title}</h2>
+                <p className="mt-3 text-base leading-relaxed text-slate-100/90">{detailCopy.tourism.sections[2].description}</p>
+                  <ul aria-label={detailCopy.photoPoints} className="mt-5 flex flex-wrap gap-3">
+                    {detailCopy.tourism.photoBadges.map((badge) => (
                       <li key={badge} className="rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm">{badge}</li>
                     ))}
                   </ul>
@@ -1215,20 +1123,20 @@ export default function Home() {
                     rel="noreferrer"
                     className="mt-5 block text-sm font-bold text-violet-200 hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2"
                   >
-                    Ver mapa de puntos fotográficos →
+                    {detailCopy.tourism.photoLink}
                   </a>
                 </motion.section>
               </motion.div>
 
-              {qrTargetLocation && (
+              {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-7 rounded-2xl border-2 border-violet-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
-                  <p className="text-sm font-bold uppercase tracking-wider text-violet-200 drop-shadow-md">Ubicación detectada</p>
-                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{qrTargetLocation.translations.ES.title}</h2>
-                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-violet-200 drop-shadow-md">{detailCopy.detectedLocation}</p>
+                  <h2 id="qr-location-title" className="mt-2 text-xl font-extrabold drop-shadow-md">{localizedQrLocation.title}</h2>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-100 drop-shadow-md">{localizedQrLocation.description}</p>
                   <p className="mt-3 flex items-center gap-2 text-base font-bold text-violet-100 drop-shadow-md">
-                    <MapPin aria-hidden="true" size={20} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                    <MapPin aria-hidden="true" size={20} /> {localizedQrLocation.mapZone} · {localizedQrLocation.walkTime}
                   </p>
-                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-base leading-relaxed text-violet-50 drop-shadow-md">{qrTargetLocation.quickTip.ES}</p>}
+                  {localizedQrLocation.quickTip && <p className="mt-3 text-base leading-relaxed text-violet-50 drop-shadow-md">{localizedQrLocation.quickTip}</p>}
                 </section>
               )}
             </motion.div>
@@ -1256,7 +1164,7 @@ export default function Home() {
               onClick={returnToMenu}
               className="mb-5 inline-flex min-h-[48px] w-fit items-center gap-2 rounded-lg px-3 text-sm font-semibold text-emerald-200 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
             >
-              <ArrowLeft aria-hidden="true" size={19} /> Volver al Menú Principal
+              <ArrowLeft aria-hidden="true" size={19} /> {detailCopy.backToMenu}
             </button>
 
           <article className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-3xl ${['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') ? 'border border-white/30 bg-white/5 shadow-xl backdrop-blur-md' : 'border border-white/10 bg-slate-900 shadow-2xl'}`}>
@@ -1265,31 +1173,33 @@ export default function Home() {
               <div className={`absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/65 ${['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') ? 'to-slate-950/20' : 'to-slate-900'}`} aria-hidden="true" />
             </div>
             <div className="relative z-10 flex flex-1 flex-col p-5 pt-28 sm:p-8 sm:pt-36">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{timeTheme.label} en el AIFA</p>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{(currentTime && currentTime.getHours() >= 6 && currentTime.getHours() < 12 ? detailCopy.timeOfDay.morning : currentTime && currentTime.getHours() >= 12 && currentTime.getHours() < 19 ? detailCopy.timeOfDay.afternoon : detailCopy.timeOfDay.night)} · AIFA</p>
               <div className="mt-3 flex items-center gap-3">
                 {ActiveRoleIcon && <ActiveRoleIcon aria-hidden="true" className="shrink-0 text-emerald-200" size={32} strokeWidth={1.8} />}
-                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{activeRole.title}</h1>
+                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{activeRoleCopy.title}</h1>
               </div>
-              <p className="mt-2 text-sm font-semibold text-slate-300 sm:text-base">{activeRole.subtitle}</p>
-              <p className={`mt-5 max-w-3xl text-base leading-relaxed text-slate-100 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'rounded-2xl border border-white/30 bg-white/10 p-5 text-lg shadow-xl backdrop-blur-md' : ''}`}>{activeRole.description}</p>
-              {qrTargetLocation && (
+              <p className="mt-2 text-sm font-semibold text-slate-300 sm:text-base">{activeRoleCopy.subtitle}</p>
+              <p className={`mt-5 max-w-3xl text-base leading-relaxed text-slate-100 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'rounded-2xl border border-white/30 bg-white/10 p-5 text-lg shadow-xl backdrop-blur-md' : ''}`}>{activeRoleCopy.description}</p>
+              {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-6 rounded-xl border border-emerald-200/40 bg-emerald-950/70 p-4 text-white" aria-labelledby="qr-location-title">
-                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Ubicación detectada</p>
-                  <h2 id="qr-location-title" className="mt-1 text-lg font-bold">{qrTargetLocation.translations.ES.title}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-100">{qrTargetLocation.translations.ES.description}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">{detailCopy.detectedLocation}</p>
+                  <h2 id="qr-location-title" className="mt-1 text-lg font-bold">{localizedQrLocation.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-100">{localizedQrLocation.description}</p>
                   <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-emerald-100">
-                    <MapPin aria-hidden="true" size={17} /> {qrTargetLocation.mapZone} · {qrTargetLocation.walkTime}
+                    <MapPin aria-hidden="true" size={17} /> {localizedQrLocation.mapZone} · {localizedQrLocation.walkTime}
                   </p>
-                  {qrTargetLocation.quickTip?.ES && <p className="mt-3 text-sm leading-relaxed text-emerald-50">{qrTargetLocation.quickTip.ES}</p>}
+                  {localizedQrLocation.quickTip && <p className="mt-3 text-sm leading-relaxed text-emerald-50">{localizedQrLocation.quickTip}</p>}
                 </section>
               )}
               {roleModules ? (
                 <div className="mt-7 space-y-8">
-                  {roleModules.map((module) => (
+                  {roleModules.map((module) => {
+                    const localizedModule = detailCopy.modules[module.id];
+                    return (
                     <section key={module.id} aria-labelledby={`${module.id}-title`} className={selectedRole === 'transport' ? 'rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6' : undefined}>
                       <div className={selectedRole === 'transport' ? 'rounded-2xl border border-white/20 bg-white/10 p-4' : undefined}>
-                        <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{module.titulo}</h2>
-                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{module.descripcion}</p>
+                        <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{localizedModule.title}</h2>
+                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{localizedModule.description}</p>
                       </div>
                       <ol className="mt-4 grid gap-4 lg:grid-cols-2">
                         {module.pasos.map((step, index) => (
@@ -1300,7 +1210,7 @@ export default function Home() {
                                   key={step.id}
                                   src={step.imagenUrl}
                                   fallback={selectedRole === 'transport' ? '/images/aifa-mapa.png' : module.id === 'mexibus' ? '/images/rutas/mexibus-doc/paso-01.jpg' : '/images/aifa-mapa.png'}
-                                  alt={step.titulo}
+                                  alt={localizedModule.steps[step.id].title}
                                   sizes="(max-width: 1024px) 100vw, 50vw"
                                   className="object-cover"
                                   fill
@@ -1311,13 +1221,13 @@ export default function Home() {
                               <div className="flex items-start gap-3">
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{index + 1}</span>
                                 <div>
-                                  <h3 className="font-bold leading-snug text-white">{step.titulo}</h3>
-                                  <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{step.descripcion}</p>
+                                  <h3 className="font-bold leading-snug text-white">{localizedModule.steps[step.id].title}</h3>
+                                  <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{localizedModule.steps[step.id].description}</p>
                                 </div>
                               </div>
-                              {step.sabiasQue && (
+                              {localizedModule.steps[step.id].tip && (
                                 <p className={`mt-4 rounded-2xl border px-3 py-2 text-sm leading-relaxed ${selectedRole === 'transport' ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-100' : 'border-l-2 border-amber-300 bg-amber-300/10 text-amber-100'}`}>
-                                  <strong>Recomendación:</strong> {step.sabiasQue}
+                                  <strong>{detailCopy.recommendation}</strong> {localizedModule.steps[step.id].tip}
                                 </p>
                               )}
                             </div>
@@ -1325,20 +1235,23 @@ export default function Home() {
                         ))}
                       </ol>
                     </section>
-                  ))}
+                    );
+                  })}
                   {selectedRole === 'transport' && (
                     <section aria-labelledby="transport-route-gallery-title" className="rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6">
                       <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
-                        <h2 id="transport-route-gallery-title" className="text-xl font-bold text-white sm:text-2xl">Ruta Mexibús a documentación</h2>
-                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">Sigue las imágenes en orden desde la estación hasta los mostradores de equipaje.</p>
+                        <h2 id="transport-route-gallery-title" className="text-xl font-bold text-white sm:text-2xl">{detailCopy.routeGallery.title}</h2>
+                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{detailCopy.routeGallery.description}</p>
                       </div>
                       <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {mexibusToDocRoute.map((step) => (
+                        {mexibusToDocRoute.map((step, index) => {
+                          const routeStep = detailCopy.routeGallery.steps[index];
+                          return (
                           <li key={step.stepNumber} className="overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-4 text-white shadow-xl backdrop-blur-md">
                             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/20">
                               <Image
                                 src={step.image}
-                                alt={`${step.title}: ${step.stage}`}
+                                alt={`${routeStep.title}: ${routeStep.stage}`}
                                 fill
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                 className="object-cover"
@@ -1347,22 +1260,23 @@ export default function Home() {
                             <div className="mt-4 flex items-start gap-3">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{step.stepNumber}</span>
                               <div>
-                                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">{step.stage}</p>
-                                <h3 className="mt-1 font-bold leading-snug text-white">{step.title}</h3>
-                                <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{step.description}</p>
-                                {step.referencePoint && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>Referencia:</strong> {step.referencePoint}</p>}
-                                {step.accessibilityNote && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>Accesibilidad:</strong> {step.accessibilityNote}</p>}
+                                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">{routeStep.stage}</p>
+                                <h3 className="mt-1 font-bold leading-snug text-white">{routeStep.title}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{routeStep.description}</p>
+                                {routeStep.referencePoint && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>{detailCopy.reference}</strong> {routeStep.referencePoint}</p>}
+                                {routeStep.accessibilityNote && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>{detailCopy.accessibility}</strong> {routeStep.accessibilityNote}</p>}
                               </div>
                             </div>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ol>
                     </section>
                   )}
                 </div>
               ) : (
                 <ol className={`mt-7 grid gap-4 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'md:grid-cols-2' : 'space-y-3'}`}>
-                  {activeRole.steps.map((step, index) => (
+                  {activeRoleCopy.steps.map((step, index) => (
                     <motion.li
                       key={step}
                       whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
@@ -1383,7 +1297,7 @@ export default function Home() {
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                 className="mt-7 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors duration-300 hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300 sm:w-fit"
               >
-                <ArrowLeft aria-hidden="true" size={18} /> Volver al Menú Principal
+                <ArrowLeft aria-hidden="true" size={18} /> {detailCopy.backToMenu}
               </motion.button>
             </div>
           </article>
@@ -1420,15 +1334,15 @@ export default function Home() {
             whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
             className="mb-5 inline-flex min-h-14 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300"
           >
-            <ArrowLeft aria-hidden="true" size={19} /> {selectedSurveyOption ? 'Volver a las opciones' : 'Volver al Menú Principal'}
+            <ArrowLeft aria-hidden="true" size={19} /> {selectedSurveyOption ? copy.survey.backToOptions : detailCopy.backToMenu}
           </motion.button>
 
           {!selectedSurveyOption ? (
             <div>
               <header className="mb-7 rounded-3xl border border-white/30 bg-white/10 p-6 text-white shadow-xl backdrop-blur-md sm:p-8">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Tu experiencia importa</p>
-                <h1 className="mt-2 text-2xl font-bold sm:text-3xl">¿Cómo estuvo tu visita?</h1>
-                <p className="mt-2 text-base leading-relaxed text-slate-100">Elige la opción que mejor describe lo que viviste.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">{copy.survey.matters}</p>
+                <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{copy.survey.heading}</h1>
+                <p className="mt-2 text-base leading-relaxed text-slate-100">{copy.survey.instruction}</p>
               </header>
               {(['halago', 'queja'] as const).map((category) => (
                 <motion.section
@@ -1443,7 +1357,7 @@ export default function Home() {
                     {category === 'halago'
                       ? <Check aria-hidden="true" size={24} className="text-emerald-300" />
                       : <TriangleAlert aria-hidden="true" size={24} className="text-amber-300" />}
-                    {category === 'halago' ? 'Quiero reconocer algo' : 'Quiero compartir algo por mejorar'}
+                    {copy.survey.categories[category]}
                   </h2>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {OPCIONES_ENCUESTA.filter((option) => option.categoria === category).map((option) => (
@@ -1470,7 +1384,7 @@ export default function Home() {
                         </span>
                         <span className="relative z-10 flex w-full items-center gap-4">
                           <span className="shrink-0 text-3xl" aria-hidden="true">{option.icono}</span>
-                          <span className="flex-1 text-lg font-bold leading-snug text-white drop-shadow-md sm:text-xl">{option.texto}</span>
+                          <span className="flex-1 text-lg font-bold leading-snug text-white drop-shadow-md sm:text-xl">{copy.survey.options[option.id]}</span>
                           <ArrowRight aria-hidden="true" size={22} className="shrink-0 text-white" />
                         </span>
                       </motion.button>
@@ -1493,12 +1407,12 @@ export default function Home() {
               <div className="relative z-10 p-6 sm:p-8">
                 <p className="text-3xl" aria-hidden="true">{selectedSurveyOption.icono}</p>
                 <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl">
-                  {surveyFinished ? 'Gracias por compartir tu experiencia' : surveyResponse?.titulo}
+                  {surveyFinished ? copy.survey.thankYou : surveyResponse?.title}
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-100 sm:text-base">
                   {surveyFinished
-                    ? 'Tu comentario se mantiene en esta pantalla y no se envía al aeropuerto. Para recibir ayuda inmediata, acércate con confianza al personal TIA.'
-                    : surveyResponse?.mensaje}
+                    ? copy.survey.notSubmitted
+                    : surveyResponse?.message}
                 </p>
                 {surveyFinished && surveyDetails.trim() && (
                   <p className="mt-5 whitespace-pre-wrap rounded-2xl border border-emerald-400/40 bg-emerald-500/20 px-4 py-3 text-base leading-relaxed text-emerald-50">
@@ -1507,8 +1421,8 @@ export default function Home() {
                 )}
                 {!surveyFinished && (
                   <>
-                    <p className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-base font-semibold text-emerald-100">{selectedSurveyOption.texto}</p>
-                    <label htmlFor="survey-details" className="mt-6 block text-base font-semibold text-white">{surveyResponse?.placeholderTexto}</label>
+                    <p className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-base font-semibold text-emerald-100">{copy.survey.options[selectedSurveyOption.id]}</p>
+                    <label htmlFor="survey-details" className="mt-6 block text-base font-semibold text-white">{surveyResponse?.placeholder}</label>
                     <textarea
                       id="survey-details"
                       value={surveyDetails}
@@ -1519,7 +1433,7 @@ export default function Home() {
                     />
                     <p className="mt-2 text-xs leading-relaxed text-slate-300">
                       <MessageCircle aria-hidden="true" size={14} className="mr-1 inline" />
-                      Este directorio no envía reportes; para atención inmediata, acércate al personal TIA.
+                      {copy.survey.immediateHelp}
                     </p>
                     <motion.button
                       type="button"
@@ -1528,7 +1442,7 @@ export default function Home() {
                       whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                       className="mt-5 inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-emerald-200/70 bg-emerald-300 px-6 py-3 text-base font-bold text-slate-950 shadow-[0_0_24px_rgba(52,211,153,0.25)] transition-colors hover:bg-emerald-200 focus:outline-none focus:ring-4 focus:ring-white"
                     >
-                      Finalizar <ArrowRight aria-hidden="true" size={18} />
+                      {copy.survey.finish} <ArrowRight aria-hidden="true" size={18} />
                     </motion.button>
                   </>
                 )}
@@ -1540,7 +1454,7 @@ export default function Home() {
                     whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                     className="mt-6 inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-base font-semibold text-white shadow-lg backdrop-blur-md transition-colors hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-emerald-300"
                   >
-                    Volver al Menú Principal <ArrowRight aria-hidden="true" size={18} />
+                    {detailCopy.backToMenu} <ArrowRight aria-hidden="true" size={18} />
                   </motion.button>
                 )}
               </div>
@@ -1556,8 +1470,8 @@ export default function Home() {
             <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 px-4 py-3 text-left text-slate-950 shadow-lg shadow-teal-950/30" aria-live="polite">
               <Clock3 aria-hidden="true" size={22} />
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.12em]">Hora local</p>
-                <p className="font-mono text-lg font-bold tabular-nums">{formatDigitalClock(currentTime)}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em]">{detailCopy.localTime}</p>
+                <p className="font-mono text-lg font-bold tabular-nums">{formatDigitalClock(currentTime, language)}</p>
               </div>
             </div>
             <Link
@@ -1566,9 +1480,9 @@ export default function Home() {
               rel="noopener noreferrer"
               className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-white animate-pulse"
             >
-              <ExternalLink aria-hidden="true" size={18} /> Sitio Oficial AIFA
+              <ExternalLink aria-hidden="true" size={18} /> {detailCopy.officialSite}
             </Link>
-            <p className="max-w-sm text-xs leading-relaxed text-slate-300 sm:text-right">Aeropuerto Internacional Felipe Ángeles — Guiando tu camino paso a paso.</p>
+            <p className="max-w-sm text-xs leading-relaxed text-slate-300 sm:text-right">{detailCopy.footerDescription}</p>
           </div>
         </footer>
       )}

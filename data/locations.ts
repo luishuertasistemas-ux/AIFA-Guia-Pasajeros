@@ -1,4 +1,61 @@
-import type { Location, NavigationRoute } from '../types/location';
+import type { Location, LocationMapZone, NavigationRoute, SupportedLanguage } from '../types/location';
+
+const LOCALIZED_MAP_ZONES: Record<LocationMapZone, Record<SupportedLanguage, string>> = {
+  'Nivel 1 - Zona Principal': {
+    ES: 'Nivel 1 - Zona Principal',
+    EN: 'Level 1 - Main Area',
+    FR: 'Niveau 1 - Zone principale',
+    ZH: '1层 - 主区域'
+  },
+  'Nivel 2 - Concourse Central': {
+    ES: 'Nivel 2 - Concourse Central',
+    EN: 'Level 2 - Central Concourse',
+    FR: 'Niveau 2 - Hall central',
+    ZH: '2层 - 中央大厅'
+  },
+  'Nivel 1 - Concourse Central': {
+    ES: 'Nivel 1 - Concourse Central',
+    EN: 'Level 1 - Central Concourse',
+    FR: 'Niveau 1 - Hall central',
+    ZH: '1层 - 中央大厅'
+  },
+  'Nivel 1 - Zona Comercial': {
+    ES: 'Nivel 1 - Zona Comercial',
+    EN: 'Level 1 - Shopping Area',
+    FR: 'Niveau 1 - Zone commerciale',
+    ZH: '1层 - 商业区'
+  },
+  'Nivel 2 - Concourse Norte': {
+    ES: 'Nivel 2 - Concourse Norte',
+    EN: 'Level 2 - North Concourse',
+    FR: 'Niveau 2 - Hall nord',
+    ZH: '2层 - 北侧大厅'
+  },
+  'Nivel 2 - Concourse Sur': {
+    ES: 'Nivel 2 - Concourse Sur',
+    EN: 'Level 2 - South Concourse',
+    FR: 'Niveau 2 - Hall sud',
+    ZH: '2层 - 南侧大厅'
+  },
+  'Nivel 1 - Zona Cultural': {
+    ES: 'Nivel 1 - Zona Cultural',
+    EN: 'Level 1 - Cultural Area',
+    FR: 'Niveau 1 - Zone culturelle',
+    ZH: '1层 - 文化区'
+  },
+  'Nivel 1 - Zona de Hangares': {
+    ES: 'Nivel 1 - Zona de Hangares',
+    EN: 'Level 1 - Hangar Area',
+    FR: 'Niveau 1 - Zone des hangars',
+    ZH: '1层 - 机库区'
+  },
+  'Nivel 1 - Zona Histórica': {
+    ES: 'Nivel 1 - Zona Histórica',
+    EN: 'Level 1 - Historic Area',
+    FR: 'Niveau 1 - Zone historique',
+    ZH: '1层 - 历史区'
+  }
+};
 
 export const MOCK_LOCATIONS: Record<string, Location> = {
   'entrada-principal': {
@@ -11,7 +68,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Entrée principale - Accès A', description: 'Point d’accès principal de l’aéroport.' },
       ZH: { title: '主入口 - A 入口', description: '机场的主要入口。' }
     },
-    walkTime: '0 min a pie',
+    walkTimeMinutes: 0,
     images: ['/images/hero-manana.jpg', '/images/hero-tarde.jpg'],
     mapZone: 'Nivel 1 - Zona Principal'
   },
@@ -25,7 +82,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Contrôle de sécurité central', description: 'Point de départ du parcours des passagers.' },
       ZH: { title: '中央安检处', description: '旅客流程的起点。' }
     },
-    walkTime: '3 min a pie',
+    walkTimeMinutes: 3,
     images: ['/images/hero-tarde.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 2 - Concourse Central'
   },
@@ -39,7 +96,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Toilettes pour femmes - Niveau 1', description: 'Toilettes pour femmes près de la zone commerciale.' },
       ZH: { title: '女洗手间 - 1层', description: '位于商业区附近的女洗手间。' }
     },
-    walkTime: '5 min a pie',
+    walkTimeMinutes: 5,
     images: ['/images/hero-noche.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 1 - Zona Comercial',
     quickTip: {
@@ -65,7 +122,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Porte d’embarquement 105', description: 'Porte d’embarquement dans la zone nord.' },
       ZH: { title: '105号登机口', description: '位于北区的登机口。' }
     },
-    walkTime: '8 min a pie',
+    walkTimeMinutes: 8,
     images: ['/images/hero-tarde.jpg', '/images/hero-noche.jpg'],
     mapZone: 'Nivel 2 - Concourse Norte'
   },
@@ -79,7 +136,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Porte d’embarquement 108', description: 'Porte d’embarquement dans la zone sud.' },
       ZH: { title: '108号登机口', description: '位于南区的登机口。' }
    },
-    walkTime: '10 min a pie',
+    walkTimeMinutes: 10,
     images: ['/images/hero-noche.jpg', '/images/hero-tarde.jpg'],
     mapZone: 'Nivel 2 - Concourse Sur'
   },
@@ -93,7 +150,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Toilettes thématiques (Lucha Libre)', description: 'Toilettes uniques inspirées de la lucha libre.' },
       ZH: { title: '主题洗手间（自由摔跤）', description: '以自由摔跤为主题的特色洗手间。' }
     },
-    walkTime: '3 min a pie',
+    walkTimeMinutes: 3,
     images: ['/images/hero-noche.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 2 - Concourse Norte',
     quickTip: {
@@ -119,7 +176,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Salon VIP Centurion', description: 'Salon exclusif avec restauration et services.' },
       ZH: { title: 'Centurion 贵宾休息室', description: '提供餐饮和旅客服务的专属休息室。' }
     },
-    walkTime: '6 min a pie',
+    walkTimeMinutes: 6,
     images: ['/images/hero-tarde.jpg', '/images/museo-mamut.jpg'],
     mapZone: 'Nivel 2 - Concourse Central'
   },
@@ -133,7 +190,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Musée du Mammouth (Terre des Géants)', description: 'Espace culturel et paléontologique avec des fossiles monumentaux.' },
       ZH: { title: '猛犸象博物馆（巨人之地）', description: '展示巨型化石的文化与古生物空间。' }
     },
-    walkTime: '5 min a pie',
+    walkTimeMinutes: 5,
     images: ['/images/museo-mamut.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 1 - Zona Cultural',
     quickTip: {
@@ -159,7 +216,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Musée de l’aviation militaire (MAM)', description: 'H hangars interactifs et avions historiques.' },
       ZH: { title: '军事航空博物馆（MAM）', description: '互动机库与历史飞机展览。' }
     },
-    walkTime: '12 min a pie',
+    walkTimeMinutes: 12,
     images: ['/images/hero-tarde.jpg', '/images/hero-noche.jpg'],
     mapZone: 'Nivel 1 - Zona de Hangares'
   },
@@ -173,7 +230,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Train présidentiel Olmecas', description: 'Wagon historique et espace thématique à découvrir.' },
       ZH: { title: '奥尔梅克总统列车', description: '历史车厢与主题体验区。' }
     },
-    walkTime: '9 min a pie',
+    walkTimeMinutes: 9,
     images: ['/images/hero-manana.jpg', '/images/museo-mamut.jpg'],
     mapZone: 'Nivel 1 - Zona Histórica'
   },
@@ -187,11 +244,28 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
       FR: { title: 'Plaza Mexicana / Zone commerciale', description: 'Point central vers les salons, boutiques et restaurants.' },
       ZH: { title: '墨西哥广场 / 商业区', description: '通往休息室、商店和餐厅的中心区域。' }
     },
-    walkTime: '4 min a pie',
+    walkTimeMinutes: 4,
     images: ['/images/hero-tarde.jpg', '/images/hero-manana.jpg'],
     mapZone: 'Nivel 1 - Concourse Central'
   }
 };
+
+export function getLocalizedLocationInfo(location: Location, language: SupportedLanguage) {
+  const walkLabel = {
+    ES: 'a pie',
+    EN: 'walk',
+    FR: 'à pied',
+    ZH: '步行'
+  }[language];
+
+  return {
+    ...location.translations[language],
+    mapZone: LOCALIZED_MAP_ZONES[location.mapZone][language],
+    walkTime: `${location.walkTimeMinutes} min ${walkLabel}`,
+    quickTip: location.quickTip?.[language],
+    curiosity: location.curiosity?.[language]
+  };
+}
 
 export const MOCK_ROUTES: Record<string, NavigationRoute> = {
   'entrada-principal-puerta-105': {
@@ -204,7 +278,13 @@ export const MOCK_ROUTES: Record<string, NavigationRoute> = {
       { step: 3, instruction: 'Pasa por el Filtro de Seguridad Central.' },
       { step: 4, instruction: 'Gira a la izquierda en el pasillo principal hacia la Zona Norte.' },
       { step: 5, instruction: 'Camina 150 metros. La Puerta 105 estará a tu derecha.' }
-    ]
+    ],
+    stepTranslations: {
+      ES: ['Ingresa por los detectores del Acceso A.', 'Toma las escaleras eléctricas hacia el Nivel 2.', 'Pasa por el Filtro de Seguridad Central.', 'Gira a la izquierda en el pasillo principal hacia la Zona Norte.', 'Camina 150 metros. La Puerta 105 estará a tu derecha.'],
+      EN: ['Enter through the Access A screening gates.', 'Take the escalators to Level 2.', 'Go through the Central Security Checkpoint.', 'Turn left in the main corridor toward the North Area.', 'Walk 150 meters. Gate 105 will be on your right.'],
+      FR: ['Passez par les portiques de l’accès A.', 'Prenez les escaliers mécaniques jusqu’au niveau 2.', 'Passez le contrôle de sécurité central.', 'Tournez à gauche dans le couloir principal vers la zone nord.', 'Marchez 150 mètres. La porte 105 se trouvera à votre droite.'],
+      ZH: ['从 A 入口安检通道进入。', '乘自动扶梯前往2层。', '通过中央安全检查处。', '在主通道左转前往北区。', '步行150米，105号登机口在右侧。']
+    }
   },
   'filtro-seguridad-banos-lucha-libre': {
     originId: 'filtro-seguridad',
@@ -213,7 +293,13 @@ export const MOCK_ROUTES: Record<string, NavigationRoute> = {
     steps: [
       { step: 1, instruction: 'Camina hacia el pasillo de la Zona Norte.' },
       { step: 2, instruction: 'Los sanitarios temáticos están a 50 metros a la izquierda.' }
-    ]
+    ],
+    stepTranslations: {
+      ES: ['Camina hacia el pasillo de la Zona Norte.', 'Los sanitarios temáticos están a 50 metros a la izquierda.'],
+      EN: ['Walk toward the North Area corridor.', 'The themed restrooms are 50 meters to the left.'],
+      FR: ['Avancez vers le couloir de la zone nord.', 'Les toilettes à thème se trouvent à 50 mètres sur la gauche.'],
+      ZH: ['沿通道前往北区。', '主题洗手间在左侧50米处。']
+    }
   }
 };
 

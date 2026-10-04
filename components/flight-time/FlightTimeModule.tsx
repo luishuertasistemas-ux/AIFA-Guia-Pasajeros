@@ -8,6 +8,8 @@ import { FlightTimeForm } from './FlightTimeForm';
 import { FlightTimeResult } from './FlightTimeResult';
 import { FlightTimeTrafficLight } from './FlightTimeTrafficLight';
 import { calculateFlightTime, getDefaultFlightTimeFields, type FlightTimeFields, type FlightTimeValidation, validateFlightTimeFields } from './flightTimeUtils';
+import { useLanguage } from '@/LanguageContext';
+import { translations } from '@/data/translations';
 
 type FlightTimeModuleProps = {
   currentTime: Date | null;
@@ -15,6 +17,8 @@ type FlightTimeModuleProps = {
 };
 
 export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps) {
+  const { language } = useLanguage();
+  const copy = translations[language].flightTime;
   const [isOpen, setIsOpen] = useState(false);
   const [fields, setFields] = useState<FlightTimeFields>(() => getDefaultFlightTimeFields());
   const [selectedGateId, setSelectedGateId] = useState('');
@@ -32,7 +36,7 @@ export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps)
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateFlightTimeFields(fields, currentTime || new Date());
-    if (!selectedGateId) nextErrors.gate = 'Selecciona una puerta de abordaje.';
+    if (!selectedGateId) nextErrors.gate = copy.errors.gate;
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || !currentTime || !selectedGateId) {
       setHasSubmitted(false);
@@ -53,20 +57,20 @@ export function FlightTimeModule({ currentTime, origin }: FlightTimeModuleProps)
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-200">Modo Serenidad</p>
-            <h2 id="flight-time-title" className="mt-1 text-xl font-bold text-white sm:text-2xl">¿Me da tiempo para mi vuelo?</h2>
-            <p className="mt-1 max-w-xl text-sm text-slate-200">Calcula tu margen real desde tu ubicación actual hasta la puerta de abordaje.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-200">{copy.mode}</p>
+            <h2 id="flight-time-title" className="mt-1 text-xl font-bold text-white sm:text-2xl">{copy.title}</h2>
+            <p className="mt-1 max-w-xl text-sm text-slate-200">{copy.description}</p>
           </div>
           <FlightTimeTrafficLight status={currentStatus} />
         </div>
 
         <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-bold text-white">Voy a viajar</p>
-            <p className="mt-1 text-xs text-slate-300">Indica tu vuelo para recibir una orientación personalizada.</p>
+            <p className="text-sm font-bold text-white">{copy.travelPrompt}</p>
+            <p className="mt-1 text-xs text-slate-300">{copy.travelDescription}</p>
           </div>
           <button type="button" onClick={() => setIsOpen((open) => !open)} className="min-h-11 rounded-xl bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.35)] transition hover:bg-sky-300 hover:shadow-[0_0_24px_rgba(56,189,248,0.55)] focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-slate-900">
-            {isOpen ? 'Cerrar' : 'Abrir formulario'}
+            {isOpen ? copy.closeForm : copy.openForm}
           </button>
         </div>
 
