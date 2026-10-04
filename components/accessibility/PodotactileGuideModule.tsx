@@ -4,17 +4,38 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Camera, CameraOff, Footprints, Pause, Play } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { translations } from '@/data/translations';
+import { PodotactileCameraOverlay } from './PodotactileCameraOverlay';
 
 type DetectionResult = {
   found: boolean;
-  points: { x: number; y: number }[];
+  points: { x: number; y: number; halfWidth: number }[];
 };
+
+function isYellowOrGold(red: number, green: number, blue: number): boolean {
+  const normalizedRed = red / 255;
+  const normalizedGreen = green / 255;
+  const normalizedBlue = blue / 255;
+  const max = Math.max(normalizedRed, normalizedGreen, normalizedBlue);
+  const min = Math.min(normalizedRed, normalizedGreen, normalizedBlue);
+  const delta = max - min;
+  if (max < 0.2 || delta / max < 0.14) return false;
+
+  let hue = 0;
+  if (delta > 0) {
+    if (max === normalizedRed) hue = 60 * (((normalizedGreen - normalizedBlue) / delta) % 6);
+    else if (max === normalizedGreen) hue = 60 * ((normalizedBlue - normalizedRed) / delta + 2);
+    else hue = 60 * ((normalizedRed - normalizedGreen) / delta + 4);
+  }
+  if (hue < 0) hue += 360;
+  return hue >= 20 && hue <= 82
+    && red >= blue * 1.1
+    && green >= blue * 1.04;
+}
 
 function analyzeFrame(
   image: ImageData,
   width: number,
   height: number,
-  overlay: HTMLCanvasElement,
 ): DetectionResult {
   const { data } = image;
   const rowCount = 10;
@@ -22,22 +43,25 @@ function analyzeFrame(
   const rowX = Array.from({ length: rowCount }, () => 0);
   const yellowRows = Array.from({ length: rowCount }, () => 0);
   const yellowX = Array.from({ length: rowCount }, () => 0);
+  const yellowMinX = Array.from({ length: rowCount }, () => width);
+  const yellowMaxX = Array.from({ length: rowCount }, () => 0);
   const edgeHistogram = Array.from({ length: rowCount }, () => Array<number>(width).fill(0));
   let yellowTotal = 0;
-  let edgeTotal = 0;
 
-  for (let y = Math.floor(height * 0.35); y < height - 1; y += 2) {
-    const row = Math.min(rowCount - 1, Math.floor(((y / height) - 0.35) / 0.65 * rowCount));
+  const scanTop = Math.floor(height * 0.2);
+  for (let y = scanTop; y < height - 1; y += 2) {
+    const row = Math.min(rowCount - 1, Math.floor(((y / height) - 0.2) / 0.8 * rowCount));
     for (let x = 2; x < width - 2; x += 2) {
       const index = (y * width + x) * 4;
       const red = data[index];
       const green = data[index + 1];
       const blue = data[index + 2];
-      const isYellow = red > 115 && green > 90 && blue < 125 && red > blue * 1.3 && green > blue * 1.12;
 
-      if (isYellow) {
+      if (isYellowOrGold(red, green, blue)) {
         yellowRows[row] += 1;
         yellowX[row] += x;
+        yellowMinX[row] = Math.min(yellowMinX[row], x);
+        yellowMaxX[row] = Math.max(yellowMaxX[row], x);
         yellowTotal += 1;
         continue;
       }
@@ -48,9 +72,8 @@ function analyzeFrame(
       const rightGray = (data[rightIndex] + data[rightIndex + 1] + data[rightIndex + 2]) / 3;
       const gray = (red + green + blue) / 3;
       const horizontalEdge = Math.abs(rightGray - leftGray);
-      if (gray < 175 && horizontalEdge > 42) {
+      if (gray < 215 && horizontalEdge > 24) {
         edgeHistogram[row][x] += horizontalEdge;
-        edgeTotal += 1;
       }
     }
   }
@@ -60,7 +83,7 @@ function analyzeFrame(
     const peaks: { x: number; strength: number }[] = [];
     for (let x = 4; x < width - 4; x += 2) {
       const strength = edgeHistogram[row][x - 2] + edgeHistogram[row][x] + edgeHistogram[row][x + 2];
-      if (strength < 150) continue;
+      if (strength < 90) continue;
       if (strength >= edgeHistogram[row][x - 4] + edgeHistogram[row][x + 4]) {
         peaks.push({ x, strength });
         x += 4;
@@ -71,8 +94,8 @@ function analyzeFrame(
     for (let left = 0; left < peaks.length; left += 1) {
       for (let right = left + 1; right < peaks.length; right += 1) {
         const separation = peaks[right].x - peaks[left].x;
-        if (separation < width * 0.06) continue;
-        if (separation > width * 0.6) break;
+        if (separation < width * 0.035) continue;
+        if (separation > width * 0.65) break;
         const strength = peaks[left].strength + peaks[right].strength;
         if (!bestPair || strength > bestPair.strength) {
           bestPair = { center: (peaks[left].x + peaks[right].x) / 2, strength };
@@ -86,61 +109,25 @@ function analyzeFrame(
     }
   }
 
-  const useYellow = yellowTotal >= 12 && yellowTotal >= edgeTotal * 0.1;
-  const minimumHits = useYellow ? 2 : 300;
+  const useYellow = yellowTotal >= 8;
+  const minimumHits = useYellow ? 1 : 160;
   const points: DetectionResult['points'] = [];
   for (let index = 0; index < rowCount; index += 1) {
     const hits = useYellow ? yellowRows[index] : rowHits[index];
     const weightedX = useYellow ? yellowX[index] : rowX[index];
     if (hits < minimumHits) continue;
+    const measuredHalfWidth = useYellow
+      ? Math.max(0, (yellowMaxX[index] - yellowMinX[index]) / 2)
+      : width * 0.035;
     points.push({
       x: weightedX / hits,
-      y: height * (0.35 + ((index + 0.5) / rowCount) * 0.65)
+      y: height * (0.2 + ((index + 0.5) / rowCount) * 0.8),
+      halfWidth: Math.max(width * 0.025, measuredHalfWidth)
     });
   }
 
-  const found = points.length >= 4 && (useYellow ? yellowTotal >= 12 : edgePairs >= 4);
-  const context = overlay.getContext('2d');
-  if (!context) return { found, points };
-  context.clearRect(0, 0, overlay.width, overlay.height);
-  if (!found) return { found, points: [] };
-
-  const scaleX = overlay.width / width;
-  const scaleY = overlay.height / height;
-  context.save();
-  context.scale(scaleX, scaleY);
-
-  const path = new Path2D();
-  points.forEach(({ x, y }, index) => {
-    if (index === 0) path.moveTo(x, y);
-    else path.lineTo(x, y);
-  });
-  context.lineCap = 'round';
-  context.lineJoin = 'round';
-  context.shadowColor = 'rgba(52, 211, 153, 0.95)';
-  context.shadowBlur = 24;
-  context.strokeStyle = 'rgba(52, 211, 153, 0.5)';
-  context.lineWidth = width * 0.075;
-  context.stroke(path);
-  context.shadowBlur = 0;
-  context.strokeStyle = 'rgba(236, 253, 245, 0.95)';
-  context.lineWidth = Math.max(3, width * 0.012);
-  context.stroke(path);
-
-  const arrowPoint = points[Math.floor(points.length * 0.62)];
-  if (arrowPoint) {
-    context.translate(arrowPoint.x, arrowPoint.y);
-    context.rotate(-Math.PI / 2);
-    context.fillStyle = 'rgba(236, 253, 245, 0.98)';
-    context.beginPath();
-    context.moveTo(width * 0.04, 0);
-    context.lineTo(-width * 0.025, -width * 0.028);
-    context.lineTo(-width * 0.025, width * 0.028);
-    context.closePath();
-    context.fill();
-  }
-  context.restore();
-  return { found, points };
+  const found = points.length >= 3 && (useYellow ? yellowTotal >= 8 : edgePairs >= 3);
+  return { found, points: found ? points : [] };
 }
 
 export function PodotactileGuideModule() {
@@ -156,6 +143,7 @@ export function PodotactileGuideModule() {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isTransition, setIsTransition] = useState(false);
   const [isRouteDetected, setIsRouteDetected] = useState(false);
+  const [detectionPoints, setDetectionPoints] = useState<DetectionResult['points']>([]);
   const [hasAttemptedDetection, setHasAttemptedDetection] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState('');
@@ -166,6 +154,7 @@ export function PodotactileGuideModule() {
     streamRef.current = null;
     setIsCameraOn(false);
     setIsRouteDetected(false);
+    setDetectionPoints([]);
     previousDetectionRef.current = false;
     const overlay = overlayRef.current;
     const context = overlay?.getContext('2d');
@@ -238,7 +227,8 @@ export function PodotactileGuideModule() {
           overlay.height = video.videoHeight;
         }
         frameContext.drawImage(video, 0, 0, frameWidth, frameHeight);
-        const result = analyzeFrame(frameContext.getImageData(0, 0, frameWidth, frameHeight), frameWidth, frameHeight, overlay);
+        const result = analyzeFrame(frameContext.getImageData(0, 0, frameWidth, frameHeight), frameWidth, frameHeight);
+        setDetectionPoints(result.points);
         setHasAttemptedDetection(true);
         detectionStreakRef.current = result.found === previousDetectionRef.current
           ? 0
@@ -303,7 +293,13 @@ export function PodotactileGuideModule() {
           muted
           playsInline
         />
-        <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 h-full w-full object-cover" aria-hidden="true" />
+        <PodotactileCameraOverlay
+          canvasRef={overlayRef}
+          points={detectionPoints}
+          visible={isRouteDetected && !isTransition}
+          sourceWidth={192}
+          sourceHeight={144}
+        />
         {!isCameraOn && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/75 px-6 text-center text-sm text-slate-200">
             <Camera aria-hidden="true" size={34} className="text-emerald-200" />
@@ -343,7 +339,8 @@ export function PodotactileGuideModule() {
           <button type="button" onClick={() => {
             setIsTransition(true);
             setIsRouteDetected(false);
-            previousDetectionRef.current = false;
+              setDetectionPoints([]);
+              previousDetectionRef.current = false;
             setAnnouncement(copy.detectionPaused);
           }} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-amber-200/35 bg-amber-200/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-200/20 focus:outline-none focus:ring-4 focus:ring-amber-100/50">
             <Pause aria-hidden="true" size={18} /> {copy.transitionStart}
