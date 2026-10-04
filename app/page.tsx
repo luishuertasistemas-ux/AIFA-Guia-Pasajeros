@@ -15,6 +15,7 @@ import {
   Coffee,
   Clock3,
   ExternalLink,
+  Footprints,
   Landmark,
   Luggage,
   MapPin,
@@ -1193,6 +1194,18 @@ export default function Home() {
               )}
               {roleModules ? (
                 <div className="mt-7 space-y-8">
+                  {selectedRole === 'transport' && (
+                    <>
+                      <Link
+                        href="/accessibility"
+                        className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-emerald-200/35 bg-emerald-300/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-300/20 focus:outline-none focus:ring-4 focus:ring-emerald-100/50"
+                      >
+                        <Footprints aria-hidden="true" size={19} />
+                        {copy.podotactile.title}
+                        <ArrowRight aria-hidden="true" size={17} />
+                      </Link>
+                    </>
+                  )}
                   {roleModules.map((module) => {
                     const localizedModule = detailCopy.modules[module.id];
                     return (

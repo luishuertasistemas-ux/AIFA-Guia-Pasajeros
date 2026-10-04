@@ -165,6 +165,135 @@ type FlightTimeTranslations = {
   };
 };
 
+type PodotactileTranslations = {
+  title: string;
+  description: string;
+  startCamera: string;
+  stopCamera: string;
+  permissionHint: string;
+  cameraError: string;
+  unsupported: string;
+  transitionStart: string;
+  transitionFinish: string;
+  transitionStatus: string;
+  searching: string;
+  detected: string;
+  lost: string;
+  detectionPaused: string;
+  noDetection: string;
+  step: string;
+  previous: string;
+  next: string;
+  routeDetected: string;
+  routeLost: string;
+  visualAid: string;
+  cameraActive: string;
+  permissionRequired: string;
+};
+
+const podotactileTranslations: Record<Language, PodotactileTranslations> = {
+  ES: {
+    title: 'Guía de piso',
+    description: 'Apunta la cámara hacia el recorrido podotáctil. La superposición visual es orientativa y puede fallar; confirma siempre la ruta con la señalización y el entorno.',
+    startCamera: 'Activar cámara',
+    stopCamera: 'Apagar cámara',
+    permissionHint: 'La cámara solo se activa cuando pulsas el botón. Se procesa el video en este dispositivo y no se guarda.',
+    cameraError: 'No se pudo iniciar la cámara. Revisa los permisos del navegador y vuelve a intentarlo.',
+    unsupported: 'Este navegador no permite acceder a la cámara. Abre la guía en un navegador compatible y mediante HTTPS.',
+    transitionStart: 'Iniciar transición en escaleras',
+    transitionFinish: 'Terminé las escaleras; reanudar detección',
+    transitionStatus: 'Transición en escaleras',
+    searching: 'Buscando ruta podotáctil',
+    detected: 'Ruta podotáctil detectada',
+    lost: 'Ruta no detectada',
+    detectionPaused: 'Detección pausada durante la transición',
+    noDetection: 'No se distingue una ruta con suficiente confianza. Revisa el entorno y continúa con precaución.',
+    step: 'Paso',
+    previous: 'Paso anterior',
+    next: 'Siguiente paso',
+    routeDetected: 'La cámara detectó un posible recorrido.',
+    routeLost: 'Se perdió la detección visual del recorrido.',
+    visualAid: 'Ayuda visual experimental; no sustituye la guía táctil, la señalización ni la asistencia personal.',
+    cameraActive: 'Cámara activa',
+    permissionRequired: 'Pulsa “Activar cámara” y concede permiso para comenzar.'
+  },
+  EN: {
+    title: 'Floor guide',
+    description: 'Point the camera toward the tactile route. The visual overlay is advisory and may be inaccurate; always confirm your way using signs and your surroundings.',
+    startCamera: 'Turn on camera',
+    stopCamera: 'Turn off camera',
+    permissionHint: 'The camera starts only when you press the button. Video is processed on this device and is not saved.',
+    cameraError: 'The camera could not be started. Check browser permissions and try again.',
+    unsupported: 'This browser cannot access the camera. Open the guide in a compatible browser over HTTPS.',
+    transitionStart: 'Start stair transition',
+    transitionFinish: 'Stairs complete; resume detection',
+    transitionStatus: 'Stair transition',
+    searching: 'Searching for tactile route',
+    detected: 'Tactile route detected',
+    lost: 'Route not detected',
+    detectionPaused: 'Detection paused during transition',
+    noDetection: 'No route is visible with sufficient confidence. Check your surroundings and proceed carefully.',
+    step: 'Step',
+    previous: 'Previous step',
+    next: 'Next step',
+    routeDetected: 'The camera detected a possible route.',
+    routeLost: 'Visual route detection was lost.',
+    visualAid: 'Experimental visual aid; it does not replace tactile guidance, signage, or personal assistance.',
+    cameraActive: 'Camera active',
+    permissionRequired: 'Press “Turn on camera” and grant permission to begin.'
+  },
+  FR: {
+    title: 'Guide au sol',
+    description: 'Dirigez la caméra vers le parcours podotactile. Le repère visuel est indicatif et peut être imprécis ; vérifiez toujours votre itinéraire avec la signalisation et votre environnement.',
+    startCamera: 'Activer la caméra',
+    stopCamera: 'Désactiver la caméra',
+    permissionHint: 'La caméra ne démarre que lorsque vous appuyez sur le bouton. La vidéo est traitée sur cet appareil et n’est pas enregistrée.',
+    cameraError: 'Impossible de démarrer la caméra. Vérifiez les autorisations du navigateur et réessayez.',
+    unsupported: 'Ce navigateur ne permet pas d’accéder à la caméra. Ouvrez le guide dans un navigateur compatible via HTTPS.',
+    transitionStart: 'Commencer la transition dans les escaliers',
+    transitionFinish: 'Escaliers terminés ; reprendre la détection',
+    transitionStatus: 'Transition dans les escaliers',
+    searching: 'Recherche du parcours podotactile',
+    detected: 'Parcours podotactile détecté',
+    lost: 'Parcours non détecté',
+    detectionPaused: 'Détection en pause pendant la transition',
+    noDetection: 'Aucun parcours suffisamment identifiable. Vérifiez votre environnement et avancez prudemment.',
+    step: 'Étape',
+    previous: 'Étape précédente',
+    next: 'Étape suivante',
+    routeDetected: 'La caméra a détecté un parcours possible.',
+    routeLost: 'La détection visuelle du parcours a été perdue.',
+    visualAid: 'Aide visuelle expérimentale ; elle ne remplace pas le guidage tactile, la signalisation ou une aide humaine.',
+    cameraActive: 'Caméra active',
+    permissionRequired: 'Appuyez sur « Activer la caméra » et autorisez l’accès pour commencer.'
+  },
+  ZH: {
+    title: '地面指引',
+    description: '将摄像头对准触觉引导路线。视觉叠加仅供参考，可能不准确；请始终结合标志和周围环境确认路线。',
+    startCamera: '开启摄像头',
+    stopCamera: '关闭摄像头',
+    permissionHint: '只有点击按钮后才会开启摄像头。视频仅在本设备处理，不会保存。',
+    cameraError: '无法启动摄像头。请检查浏览器权限后重试。',
+    unsupported: '此浏览器无法访问摄像头。请通过 HTTPS 使用兼容的浏览器打开指南。',
+    transitionStart: '开始扶梯过渡',
+    transitionFinish: '已通过扶梯；恢复检测',
+    transitionStatus: '扶梯过渡',
+    searching: '正在查找触觉引导路线',
+    detected: '已检测到触觉引导路线',
+    lost: '未检测到路线',
+    detectionPaused: '过渡期间已暂停检测',
+    noDetection: '未能以足够置信度识别路线。请观察周围环境并谨慎前行。',
+    step: '步骤',
+    previous: '上一步',
+    next: '下一步',
+    routeDetected: '摄像头检测到可能的路线。',
+    routeLost: '路线的视觉检测已中断。',
+    visualAid: '实验性视觉辅助，不能替代触觉引导、标志或人工协助。',
+    cameraActive: '摄像头已开启',
+    permissionRequired: '点击“开启摄像头”并授予权限后开始。'
+  }
+};
+
 const flightTimeTranslations: Record<Language, FlightTimeTranslations> = {
   ES: {
     mode: 'Modo Serenidad', title: '¿Me da tiempo para mi vuelo?', description: 'Calcula tu margen real desde tu ubicación actual hasta la puerta de abordaje.',
@@ -718,6 +847,7 @@ type TranslationDictionary = {
   details: DetailTranslations;
   survey: SurveyTranslations;
   flightTime: FlightTimeTranslations;
+  podotactile: PodotactileTranslations;
 };
 
 export const translations: Record<Language, TranslationDictionary> = {
@@ -769,7 +899,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.ES,
     survey: surveyTranslations.ES,
-    flightTime: flightTimeTranslations.ES
+    flightTime: flightTimeTranslations.ES,
+    podotactile: podotactileTranslations.ES
   },
   EN: {
     welcome: {
@@ -819,7 +950,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.EN,
     survey: surveyTranslations.EN,
-    flightTime: flightTimeTranslations.EN
+    flightTime: flightTimeTranslations.EN,
+    podotactile: podotactileTranslations.EN
   },
   FR: {
     welcome: {
@@ -869,7 +1001,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.FR,
     survey: surveyTranslations.FR,
-    flightTime: flightTimeTranslations.FR
+    flightTime: flightTimeTranslations.FR,
+    podotactile: podotactileTranslations.FR
   },
   ZH: {
     welcome: {
@@ -919,6 +1052,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.ZH,
     survey: surveyTranslations.ZH,
-    flightTime: flightTimeTranslations.ZH
+    flightTime: flightTimeTranslations.ZH,
+    podotactile: podotactileTranslations.ZH
   }
 };
