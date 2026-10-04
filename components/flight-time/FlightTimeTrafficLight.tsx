@@ -17,7 +17,7 @@ export function FlightTimeTrafficLight({ status }: FlightTimeTrafficLightProps) 
   const { language } = useLanguage();
   const copy = translations[language].flightTime.result;
   return (
-    <div className="flex flex-wrap gap-2" aria-label={translations[language].flightTime.available}>
+    <div className="flex flex-wrap gap-2" aria-label={copy.available}>
       {(Object.keys(STATUS_CONFIG) as TimeStatus[]).map((statusKey) => {
         const config = STATUS_CONFIG[statusKey];
         const isActive = status === statusKey;
