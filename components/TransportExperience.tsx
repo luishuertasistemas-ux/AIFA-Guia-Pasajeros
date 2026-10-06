@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Bus, CarFront, Clock3, TrainFront } from 'lucide-react';
 import RouteMapExplorer from '@/components/RouteMapExplorer';
 import type { DetailTranslations, TransportCategoryId, TransportTranslations } from '@/data/translations';
@@ -15,13 +16,19 @@ type TransportExperienceProps = {
 };
 
 const CATEGORY_IMAGES: Record<TransportCategoryId, string> = {
-  mexibus: '/images/rutas/mexibus-doc/paso-01.jpg',
+  mexibus: '/images/transporte/mexibus-terminal-aifa.jpg',
   suburban: '/images/rutas/mexibus-doc/paso-03.jpg',
-  taxis: '/images/rutas/mexibus-doc/paso-02.jpg',
-  buses: '/images/rutas/mexibus-doc/paso-04.jpg'
+  taxis: '/images/transporte/taxis-autorizados-aifa.jpg',
+  buses: '/images/transporte/autobuses-ejecutivos-aifa.jpg'
 };
 
 const CATEGORY_IDS: TransportCategoryId[] = ['mexibus', 'suburban', 'taxis', 'buses'];
+
+const HERO_SLIDES: { categoryId: 'mexibus' | 'buses' | 'taxis'; src: string }[] = [
+  { categoryId: 'mexibus', src: '/images/transporte/mexibus-terminal-aifa.jpg' },
+  { categoryId: 'buses', src: '/images/transporte/autobuses-ejecutivos-aifa.jpg' },
+  { categoryId: 'taxis', src: '/images/transporte/taxis-autorizados-aifa.jpg' }
+];
 
 export default function TransportExperience({
   copy,
@@ -30,6 +37,8 @@ export default function TransportExperience({
   onOpenImage,
   onBackToMenu
 }: TransportExperienceProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<TransportCategoryId | null>(null);
   const taxiDetails = details.modules['taxis-autobuses'].steps;
   const selectedCopy = selectedCategory ? copy[selectedCategory] : null;
@@ -50,6 +59,16 @@ export default function TransportExperience({
   const recommendations = selectedCategory === 'taxis'
     ? copy.taxiRecommendations
     : copy.busRecommendations;
+  const heroSlide = HERO_SLIDES[activeHeroSlide];
+  const heroCategory = copy[heroSlide.categoryId];
+
+  useEffect(() => {
+    if (selectedCategory || shouldReduceMotion) return;
+    const intervalId = window.setInterval(() => {
+      setActiveHeroSlide((current) => (current + 1) % HERO_SLIDES.length);
+    }, 5500);
+    return () => window.clearInterval(intervalId);
+  }, [selectedCategory, shouldReduceMotion]);
 
   return (
     <section
@@ -80,6 +99,51 @@ export default function TransportExperience({
             <ArrowLeft aria-hidden="true" size={24} />
             {selectedCategory ? copy.detailBack : details.backToMenu}
           </button>
+          {!selectedCategory && (
+            <div
+              aria-label={copy.heroCarouselLabel}
+              aria-roledescription={copy.carouselRole}
+              className="group relative mb-7 h-52 overflow-hidden rounded-3xl bg-gradient-to-br from-sky-300/90 via-emerald-300/65 to-rose-300/55 p-px shadow-[0_0_24px_rgba(56,189,248,0.18),inset_0_1px_1px_rgba(255,255,255,0.65)] sm:h-72 lg:h-80"
+            >
+              <div className="relative isolate h-full overflow-hidden rounded-[calc(1.5rem-1px)] bg-slate-950">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={heroSlide.src}
+                    initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 1.025 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.8, ease: 'easeInOut' }}
+                    className="absolute inset-0"
+                  >
+                    <Image
+                      src={heroSlide.src}
+                      alt={heroCategory.imageAlt}
+                      fill
+                      priority={activeHeroSlide === 0}
+                      sizes="(max-width: 768px) 100vw, 1200px"
+                      className="object-cover"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/15 to-slate-950/10" />
+                <p className="absolute bottom-5 left-5 rounded-full border border-emerald-100/35 bg-slate-950/55 px-4 py-2 text-sm font-bold text-emerald-100 shadow-lg backdrop-blur-md sm:bottom-7 sm:left-7 sm:text-base">
+                  {heroCategory.title}
+                </p>
+                <div className="absolute bottom-6 right-5 flex items-center gap-2 sm:bottom-8 sm:right-7" role="group" aria-label={copy.heroCarouselLabel}>
+                  {HERO_SLIDES.map((slide, index) => (
+                    <button
+                      key={slide.src}
+                      type="button"
+                      onClick={() => setActiveHeroSlide(index)}
+                      aria-label={`${copy.showSlideLabel} ${index + 1}: ${copy[slide.categoryId].title}`}
+                      aria-pressed={index === activeHeroSlide}
+                      className={`h-2.5 rounded-full border border-white/70 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300 ${index === activeHeroSlide ? 'w-8 bg-emerald-300' : 'w-2.5 bg-white/60 hover:bg-white'}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {selectedCategory && selectedCopy ? (
             <>
               <h1 id="transport-welcome-title" className="text-3xl font-extrabold text-white drop-shadow-md md:text-5xl">{selectedCopy.title}</h1>
@@ -90,7 +154,7 @@ export default function TransportExperience({
               <h1 id="transport-welcome-title" className="max-w-5xl text-3xl font-extrabold text-white drop-shadow-md md:text-5xl">
                 {copy.welcomeTitle}
               </h1>
-              <p className="mt-3 max-w-4xl rounded-2xl border border-white/15 bg-slate-950/45 p-4 text-lg font-medium leading-relaxed text-white shadow-lg drop-shadow-md backdrop-blur-md md:text-xl">
+              <p className="mt-3 max-w-4xl rounded-2xl border border-emerald-100/20 bg-slate-950/55 p-4 text-justify text-lg font-medium leading-relaxed text-white shadow-lg drop-shadow-md backdrop-blur-md md:text-xl">
                 {copy.welcomeDescription}
               </p>
               <p className="mt-4 flex max-w-4xl items-start gap-3 rounded-2xl border border-sky-200/25 bg-slate-950/35 p-4 text-sm leading-relaxed text-white shadow-xl backdrop-blur-xl sm:text-base">
@@ -218,7 +282,7 @@ export default function TransportExperience({
                       />
                       <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/50 to-slate-950/10" />
                       <span className="relative z-10">
-                        <span className="block text-xl font-extrabold text-white drop-shadow-md sm:text-2xl">{category.title}</span>
+                        <span className="block text-xl font-extrabold text-emerald-100 drop-shadow-md sm:text-2xl">{category.title}</span>
                         <span className="mt-2 block max-w-xl rounded-xl border border-white/15 bg-slate-950/45 p-3 text-sm font-medium leading-relaxed text-white shadow-md drop-shadow sm:text-base">{category.summary}</span>
                         <span className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200/40 bg-emerald-500/20 px-4 py-2 text-sm font-bold text-emerald-50 backdrop-blur-md transition group-hover:bg-emerald-400/30">
                           {copy.categoryAction} <ArrowRight aria-hidden="true" size={17} />

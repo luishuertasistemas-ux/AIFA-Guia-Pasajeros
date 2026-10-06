@@ -51,6 +51,9 @@ export type TransportCategoryId = 'mexibus' | 'suburban' | 'taxis' | 'buses';
 export type TransportTranslations = {
   welcomeTitle: string;
   welcomeDescription: string;
+  heroCarouselLabel: string;
+  carouselRole: string;
+  showSlideLabel: string;
   liveMessage: string;
   categoriesTitle: string;
   categoryAction: string;
@@ -533,7 +536,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     },
     transport: {
       welcomeTitle: '¿Buscas un medio de transporte para llegar a tu destino?',
-      welcomeDescription: 'En esta sección encontrarás todos los medios de transporte de primer mundo disponibles en el AIFA, clasificados por rutas, estaciones y costos para que sepas exactamente cuánto vas a pagar.',
+      welcomeDescription: 'El Aeropuerto Internacional Felipe Ángeles cuenta con los siguientes medios de transporte de primer nivel para que puedas llegar a tu destino a tiempo y moverte cómodamente. En esta sección vas a encontrar los medios de transporte y sus rutas muy bien definidos para que no te pierdas y disfrutes tu estancia. ¡Bienvenido!',
+      heroCarouselLabel: 'Carrusel de medios de transporte',
+      carouselRole: 'carrusel',
+      showSlideLabel: 'Mostrar imagen',
       liveMessage: 'A esta hora del día cuentas con opciones disponibles de transporte. Aquí te decimos a dónde va cada una, sus tarifas y puntos de abordaje.',
       categoriesTitle: 'Elige cómo quieres continuar tu viaje',
       categoryAction: 'Ver ruta y detalles',
@@ -750,7 +756,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     },
     transport: {
       welcomeTitle: 'Looking for transportation to your destination?',
-      welcomeDescription: 'Explore the world-class transportation options available at AIFA, organized by routes, stations, and fares so you know what to expect before you travel.',
+      welcomeDescription: 'Felipe Ángeles International Airport offers the following first-class transportation options to help you reach your destination on time and travel in comfort. In this section, you will find clearly defined transportation options and routes so you can find your way and enjoy your stay. Welcome!',
+      heroCarouselLabel: 'Transportation options carousel',
+      carouselRole: 'carousel',
+      showSlideLabel: 'Show image',
       liveMessage: 'At this time of day, transportation options are available. Find out where each one goes, its fares, and where to board.',
       categoriesTitle: 'Choose how to continue your journey',
       categoryAction: 'View route and details',
@@ -967,7 +976,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     },
     transport: {
       welcomeTitle: 'Vous cherchez un moyen de transport pour rejoindre votre destination ?',
-      welcomeDescription: 'Découvrez les moyens de transport disponibles à l’AIFA, classés par itinéraires, stations et tarifs pour connaître le coût de votre trajet avant de partir.',
+      welcomeDescription: 'L’aéroport international Felipe Ángeles propose les moyens de transport de premier ordre suivants pour vous permettre d’arriver à destination à l’heure et de vous déplacer confortablement. Vous trouverez dans cette section des moyens de transport et des itinéraires clairement définis pour vous orienter et profiter pleinement de votre séjour. Bienvenue !',
+      heroCarouselLabel: 'Carrousel des moyens de transport',
+      carouselRole: 'carrousel',
+      showSlideLabel: 'Afficher l’image',
       liveMessage: 'À cette heure, plusieurs options de transport sont disponibles. Découvrez leurs destinations, tarifs et points d’embarquement.',
       categoriesTitle: 'Choisissez la suite de votre voyage',
       categoryAction: 'Voir l’itinéraire et les détails',
@@ -1184,7 +1196,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     },
     transport: {
       welcomeTitle: '正在寻找前往目的地的交通方式吗？',
-      welcomeDescription: '查看 AIFA 提供的交通方式，按线路、车站和票价分类，提前了解行程和费用。',
+      welcomeDescription: '费利佩·安赫莱斯国际机场提供以下一流交通方式，助您准时抵达目的地并舒适出行。本栏目清晰介绍各类交通方式及路线，让您轻松找到方向，尽享旅程。欢迎！',
+      heroCarouselLabel: '交通方式轮播图',
+      carouselRole: '轮播图',
+      showSlideLabel: '显示图片',
       liveMessage: '此时有多种交通方式可供选择。这里可以查看各线路目的地、票价和乘车点。',
       categoriesTitle: '选择继续行程的方式',
       categoryAction: '查看线路和详情',
