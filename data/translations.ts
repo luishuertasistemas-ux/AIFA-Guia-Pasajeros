@@ -196,6 +196,46 @@ const surveyTranslations: Record<Language, SurveyTranslations> = {
   }
 };
 
+export type VideoCallTranslations = {
+  button: string;
+  title: string;
+  privacy: string;
+  requestingPermissions: string;
+  calling: string;
+  connected: string;
+  waiting: string;
+  localVideoLabel: string;
+  remoteVideoLabel: string;
+  endCall: string;
+  permissionError: string;
+  connectionError: string;
+  ratingTitle: string;
+  ratingPrompt: string;
+  commentLabel: string;
+  commentPlaceholder: string;
+  submitRating: string;
+  close: string;
+  ratingRequired: string;
+  thanks: string;
+  managerTitle: string;
+  managerDescription: string;
+  managerOnline: string;
+  managerOffline: string;
+  activateAlerts: string;
+  waitingForCalls: string;
+  incomingCall: string;
+  acceptCall: string;
+  finishCall: string;
+  callHistory: string;
+  noCallHistory: string;
+  durationLabel: string;
+  dateLabel: string;
+  managementIdLabel: string;
+  ratingLabel: string;
+  soundAlert: string;
+  peerIdError: string;
+};
+
 type FlightTimeTranslations = {
   mode: string;
   title: string;
@@ -1338,6 +1378,7 @@ type TranslationDictionary = {
   };
   details: DetailTranslations;
   survey: SurveyTranslations;
+  videoCall: VideoCallTranslations;
   flightTime: FlightTimeTranslations;
   podotactile: PodotactileTranslations;
 };
@@ -1393,6 +1434,45 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.ES,
     survey: surveyTranslations.ES,
+    videoCall: {
+      button: 'Asistencia Humana por Video',
+      title: 'Asistencia Humana por Video',
+      privacy: 'Se solicitarán permisos de cámara y micrófono. El video se transmite directamente entre dispositivos.',
+      requestingPermissions: 'Solicitando permisos de cámara y micrófono...',
+      calling: 'Llamando a Gestor de Servicio AIFA...',
+      connected: 'Videollamada conectada',
+      waiting: 'Esperando que el gestor acepte la llamada...',
+      localVideoLabel: 'Tu cámara',
+      remoteVideoLabel: 'Gestor de Servicio AIFA',
+      endCall: 'Finalizar videollamada',
+      permissionError: 'No se pudo acceder a la cámara o al micrófono. Revisa los permisos del navegador y vuelve a intentarlo.',
+      connectionError: 'No fue posible conectar con el gestor. Comprueba tu conexión a internet e inténtalo de nuevo.',
+      ratingTitle: 'Califica la atención recibida',
+      ratingPrompt: '¿Cómo fue tu experiencia con el gestor?',
+      commentLabel: 'Comentario (opcional)',
+      commentPlaceholder: 'Cuéntanos cómo podemos mejorar...',
+      submitRating: 'Guardar evaluación',
+      close: 'Cerrar',
+      ratingRequired: 'Selecciona una calificación de 1 a 5 estrellas.',
+      thanks: 'Gracias. Tu evaluación quedó guardada en este dispositivo.',
+      managerTitle: 'Consola de videollamadas AIFA',
+      managerDescription: 'Mantén esta pantalla abierta para recibir solicitudes de asistencia por video.',
+      managerOnline: 'Consola conectada; lista para recibir llamadas.',
+      managerOffline: 'Conectando con el servicio de llamadas...',
+      activateAlerts: 'Activar alertas sonoras',
+      waitingForCalls: 'Esperando llamadas de pasajeros',
+      incomingCall: 'Llamada entrante de un pasajero',
+      acceptCall: 'Aceptar Videollamada',
+      finishCall: 'Finalizar Llamada',
+      callHistory: 'Bitácora de llamadas',
+      noCallHistory: 'Aún no hay llamadas registradas.',
+      durationLabel: 'Duración',
+      dateLabel: 'Fecha',
+      managementIdLabel: 'ID de gestión',
+      ratingLabel: 'Calificación',
+      soundAlert: 'Alerta sonora activada',
+      peerIdError: 'No se pudo abrir la consola de llamadas. El ID del gestor puede estar ocupado.',
+    },
     flightTime: flightTimeTranslations.ES,
     podotactile: podotactileTranslations.ES
   },
@@ -1446,6 +1526,45 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.EN,
     survey: surveyTranslations.EN,
+    videoCall: {
+      button: 'Live Video Assistance',
+      title: 'Live Video Assistance',
+      privacy: 'Camera and microphone access will be requested. Video is streamed directly between devices.',
+      requestingPermissions: 'Requesting camera and microphone access...',
+      calling: 'Calling the AIFA Service Manager...',
+      connected: 'Video call connected',
+      waiting: 'Waiting for the manager to accept the call...',
+      localVideoLabel: 'Your camera',
+      remoteVideoLabel: 'AIFA Service Manager',
+      endCall: 'End video call',
+      permissionError: 'Could not access your camera or microphone. Check browser permissions and try again.',
+      connectionError: 'Could not connect to the manager. Check your internet connection and try again.',
+      ratingTitle: 'Rate the assistance you received',
+      ratingPrompt: 'How was your experience with the manager?',
+      commentLabel: 'Comment (optional)',
+      commentPlaceholder: 'Tell us how we can improve...',
+      submitRating: 'Save rating',
+      close: 'Close',
+      ratingRequired: 'Select a rating from 1 to 5 stars.',
+      thanks: 'Thank you. Your rating was saved on this device.',
+      managerTitle: 'AIFA video call console',
+      managerDescription: 'Keep this screen open to receive video assistance requests.',
+      managerOnline: 'Console connected; ready to receive calls.',
+      managerOffline: 'Connecting to the call service...',
+      activateAlerts: 'Enable sound alerts',
+      waitingForCalls: 'Waiting for passenger calls',
+      incomingCall: 'Incoming passenger call',
+      acceptCall: 'Accept video call',
+      finishCall: 'End call',
+      callHistory: 'Call log',
+      noCallHistory: 'No calls have been recorded yet.',
+      durationLabel: 'Duration',
+      dateLabel: 'Date',
+      managementIdLabel: 'Management ID',
+      ratingLabel: 'Rating',
+      soundAlert: 'Sound alert enabled',
+      peerIdError: 'Could not open the call console. The manager ID may already be in use.',
+    },
     flightTime: flightTimeTranslations.EN,
     podotactile: podotactileTranslations.EN
   },
@@ -1499,6 +1618,45 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.FR,
     survey: surveyTranslations.FR,
+    videoCall: {
+      button: 'Assistance humaine en vidéo',
+      title: 'Assistance humaine en vidéo',
+      privacy: 'L’accès à la caméra et au microphone sera demandé. La vidéo est transmise directement entre les appareils.',
+      requestingPermissions: 'Demande d’accès à la caméra et au microphone...',
+      calling: 'Appel du responsable de service AIFA...',
+      connected: 'Appel vidéo connecté',
+      waiting: 'En attente de l’acceptation du responsable...',
+      localVideoLabel: 'Votre caméra',
+      remoteVideoLabel: 'Responsable de service AIFA',
+      endCall: 'Terminer l’appel vidéo',
+      permissionError: 'Impossible d’accéder à la caméra ou au microphone. Vérifiez les autorisations du navigateur et réessayez.',
+      connectionError: 'Impossible de joindre le responsable. Vérifiez votre connexion Internet et réessayez.',
+      ratingTitle: 'Évaluez l’assistance reçue',
+      ratingPrompt: 'Comment s’est passée votre expérience avec le responsable ?',
+      commentLabel: 'Commentaire (facultatif)',
+      commentPlaceholder: 'Dites-nous comment nous améliorer...',
+      submitRating: 'Enregistrer l’évaluation',
+      close: 'Fermer',
+      ratingRequired: 'Choisissez une note de 1 à 5 étoiles.',
+      thanks: 'Merci. Votre évaluation a été enregistrée sur cet appareil.',
+      managerTitle: 'Console d’appels vidéo AIFA',
+      managerDescription: 'Gardez cet écran ouvert pour recevoir les demandes d’assistance vidéo.',
+      managerOnline: 'Console connectée ; prête à recevoir des appels.',
+      managerOffline: 'Connexion au service d’appels...',
+      activateAlerts: 'Activer les alertes sonores',
+      waitingForCalls: 'En attente des appels des passagers',
+      incomingCall: 'Appel entrant d’un passager',
+      acceptCall: 'Accepter l’appel vidéo',
+      finishCall: 'Terminer l’appel',
+      callHistory: 'Journal des appels',
+      noCallHistory: 'Aucun appel enregistré pour le moment.',
+      durationLabel: 'Durée',
+      dateLabel: 'Date',
+      managementIdLabel: 'ID de gestion',
+      ratingLabel: 'Évaluation',
+      soundAlert: 'Alerte sonore activée',
+      peerIdError: 'Impossible d’ouvrir la console. L’identifiant du responsable est peut-être déjà utilisé.',
+    },
     flightTime: flightTimeTranslations.FR,
     podotactile: podotactileTranslations.FR
   },
@@ -1552,6 +1710,45 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     details: detailTranslations.ZH,
     survey: surveyTranslations.ZH,
+    videoCall: {
+      button: '视频人工协助',
+      title: '视频人工协助',
+      privacy: '系统将请求使用摄像头和麦克风。视频将在设备之间直接传输。',
+      requestingPermissions: '正在请求摄像头和麦克风权限...',
+      calling: '正在呼叫 AIFA 服务管理员...',
+      connected: '视频通话已连接',
+      waiting: '正在等待管理员接听...',
+      localVideoLabel: '您的摄像头',
+      remoteVideoLabel: 'AIFA 服务管理员',
+      endCall: '结束视频通话',
+      permissionError: '无法访问摄像头或麦克风。请检查浏览器权限后重试。',
+      connectionError: '无法连接管理员。请检查网络连接后重试。',
+      ratingTitle: '请评价您获得的服务',
+      ratingPrompt: '您对管理员的服务体验如何？',
+      commentLabel: '评论（可选）',
+      commentPlaceholder: '请告诉我们如何改进...',
+      submitRating: '保存评价',
+      close: '关闭',
+      ratingRequired: '请选择 1 至 5 星。',
+      thanks: '谢谢。您的评价已保存在此设备上。',
+      managerTitle: 'AIFA 视频通话控制台',
+      managerDescription: '请保持此页面打开，以接收旅客的视频协助请求。',
+      managerOnline: '控制台已连接，等待来电。',
+      managerOffline: '正在连接通话服务...',
+      activateAlerts: '启用声音提醒',
+      waitingForCalls: '正在等待旅客来电',
+      incomingCall: '旅客来电',
+      acceptCall: '接听视频通话',
+      finishCall: '结束通话',
+      callHistory: '通话记录',
+      noCallHistory: '暂无通话记录。',
+      durationLabel: '时长',
+      dateLabel: '日期',
+      managementIdLabel: '管理编号',
+      ratingLabel: '评价',
+      soundAlert: '声音提醒已启用',
+      peerIdError: '无法打开通话控制台。管理员 ID 可能已被占用。',
+    },
     flightTime: flightTimeTranslations.ZH,
     podotactile: podotactileTranslations.ZH
   }

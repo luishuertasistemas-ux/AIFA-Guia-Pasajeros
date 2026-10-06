@@ -34,6 +34,7 @@ import QrScannerModal from './QrScannerModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import NetworkStatusBanner from '@/components/NetworkStatusBanner';
 import TransportExperience from '@/components/TransportExperience';
+import VideoAssistance from '@/components/VideoAssistance';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
 import { LANGUAGES, translations, type Language } from '@/data/translations';
@@ -1555,6 +1556,7 @@ export default function Home() {
         gestureHint={detailCopy.routeMap.gestureHint}
         onClose={closeImageViewer}
       />
+      {screen !== 'welcome' && <VideoAssistance copy={copy.videoCall} />}
       {screen !== 'welcome' && (
         <NetworkStatusBanner
           wifiHint={copy.wifiHint}
