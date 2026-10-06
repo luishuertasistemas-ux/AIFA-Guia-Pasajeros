@@ -46,7 +46,29 @@ export type RouteMapTranslations = {
   stationDetails: Record<string, string>;
 };
 
-type DetailTranslations = {
+export type TransportCategoryId = 'mexibus' | 'suburban' | 'taxis' | 'buses';
+
+export type TransportTranslations = {
+  welcomeTitle: string;
+  welcomeDescription: string;
+  liveMessage: string;
+  categoriesTitle: string;
+  categoryAction: string;
+  detailBack: string;
+  itineraryTitle: string;
+  recommendationsTitle: string;
+  boardingPointLabel: string;
+  taxiFareNote: string;
+  busFareNote: string;
+  taxis: { title: string; summary: string; details: string; imageAlt: string };
+  buses: { title: string; summary: string; details: string; imageAlt: string };
+  mexibus: { title: string; summary: string; imageAlt: string };
+  suburban: { title: string; summary: string; imageAlt: string };
+  taxiRecommendations: string[];
+  busRecommendations: string[];
+};
+
+export type DetailTranslations = {
   backToMenu: string;
   backToOptions: string;
   detectedLocation: string;
@@ -80,6 +102,7 @@ type DetailTranslations = {
   modules: Record<string, ModuleTranslation>;
   routeGallery: { title: string; description: string; steps: { stage: string; title: string; description: string; referencePoint?: string; accessibilityNote?: string }[] };
   routeMap: RouteMapTranslations;
+  transport: TransportTranslations;
   timeOfDay: { morning: string; afternoon: string; night: string };
   localTime: string;
   officialSite: string;
@@ -505,6 +528,51 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         }
       }
     },
+    transport: {
+      welcomeTitle: '¿Buscas un medio de transporte para llegar a tu destino?',
+      welcomeDescription: 'En esta sección encontrarás todos los medios de transporte de primer mundo disponibles en el AIFA, clasificados por rutas, estaciones y costos para que sepas exactamente cuánto vas a pagar.',
+      liveMessage: 'A esta hora del día cuentas con opciones disponibles de transporte. Aquí te decimos a dónde va cada una, sus tarifas y puntos de abordaje.',
+      categoriesTitle: 'Elige cómo quieres continuar tu viaje',
+      categoryAction: 'Ver ruta y detalles',
+      detailBack: 'Volver a opciones de transporte',
+      itineraryTitle: 'Itinerario y abordaje',
+      recommendationsTitle: 'Recomendaciones para tu viaje',
+      boardingPointLabel: 'Punto de abordaje',
+      taxiFareNote: 'Las tarifas varían según el destino y el servicio. Consulta y paga el precio vigente únicamente en la taquilla oficial antes de abordar.',
+      busFareNote: 'Las tarifas y horarios dependen de la línea y el destino. Confirma precio, disponibilidad y andén en la taquilla o con el operador.',
+      mexibus: {
+        title: 'Mexibús Línea 1',
+        summary: 'Conexión económica entre Ojo de Agua, Tecámac y la Terminal AIFA.',
+        imageAlt: 'Acceso y andén del Mexibús',
+      },
+      suburban: {
+        title: 'Tren Suburbano Lechería – AIFA',
+        summary: 'Conexión ferroviaria entre Lechería y la zona aeroportuaria del AIFA.',
+        imageAlt: 'Tren suburbano en una estación',
+      },
+      taxis: {
+        title: 'Taxis autorizados y plataformas',
+        summary: 'Traslados directos desde el área oficial de llegadas del aeropuerto.',
+        details: 'Los módulos de taxis autorizados se encuentran en el área pública de llegadas. Para servicios por plataforma, sigue las indicaciones del aeropuerto al punto de recogida designado.',
+        imageAlt: 'Área de llegadas y acceso a transporte terrestre en el AIFA',
+      },
+      buses: {
+        title: 'Autobuses foráneos e interurbanos',
+        summary: 'Salidas a ciudades y terminales regionales desde la terminal de autobuses.',
+        details: 'La terminal ofrece conexiones a Puebla, Querétaro, Pachuca, Toluca y terminales de Ciudad de México como TAPO, Norte y Sur. Confirma el destino y andén antes de abordar.',
+        imageAlt: 'Señalización de conexiones de transporte en la terminal del AIFA',
+      },
+      taxiRecommendations: [
+        'Compra el servicio solo en taquillas oficiales y verifica el destino y el total antes de pagar.',
+        'Para plataformas, utiliza únicamente el punto de recogida indicado por el aeropuerto y confirma los datos del vehículo.',
+        'No aceptes ofertas de transporte de personas que aborden pasajeros fuera de las áreas autorizadas.'
+      ],
+      busRecommendations: [
+        'Confirma destino, horario, disponibilidad y andén directamente con la línea de autobús.',
+        'Compra el boleto en taquilla o en los canales oficiales del operador y conserva el comprobante.',
+        'Llega con anticipación y mantén contigo tus documentos y equipaje.'
+      ]
+    },
     routeMap: {
       title: 'Rutas de transporte al AIFA',
       description: 'Explora las estaciones de cada conexión. Selecciona una estación para consultar su zona, conexiones locales y lugares de interés cercanos.',
@@ -673,6 +741,51 @@ const detailTranslations: Record<Language, DetailTranslations> = {
           'trans-4': { title: 'Intercity Bus Terminal', description: 'Direct connections to Puebla, Querétaro, Pachuca, Toluca, and Mexico City terminals (TAPO, North, and South).' }
         }
       }
+    },
+    transport: {
+      welcomeTitle: 'Looking for transportation to your destination?',
+      welcomeDescription: 'Explore the world-class transportation options available at AIFA, organized by routes, stations, and fares so you know what to expect before you travel.',
+      liveMessage: 'At this time of day, transportation options are available. Find out where each one goes, its fares, and where to board.',
+      categoriesTitle: 'Choose how to continue your journey',
+      categoryAction: 'View route and details',
+      detailBack: 'Back to transportation options',
+      itineraryTitle: 'Itinerary and boarding',
+      recommendationsTitle: 'Travel recommendations',
+      boardingPointLabel: 'Boarding point',
+      taxiFareNote: 'Fares vary by destination and service. Check and pay the current fare only at the official counter before boarding.',
+      busFareNote: 'Fares and schedules depend on the operator and destination. Confirm the fare, availability, and bay at the counter or with the operator.',
+      mexibus: {
+        title: 'Mexibús Line 1',
+        summary: 'Affordable connection between Ojo de Agua, Tecámac, and AIFA Terminal.',
+        imageAlt: 'Mexibús station entrance and platform',
+      },
+      suburban: {
+        title: 'Suburban Train Lechería – AIFA',
+        summary: 'Rail connection between Lechería and the AIFA airport area.',
+        imageAlt: 'Suburban train at a station',
+      },
+      taxis: {
+        title: 'Authorized taxis and ride-hailing',
+        summary: 'Direct rides from the airport’s official arrivals area.',
+        details: 'Authorized taxi counters are in the public arrivals area. For ride-hailing services, follow airport signs to the designated pickup point.',
+        imageAlt: 'Arrivals area and ground transportation access at AIFA',
+      },
+      buses: {
+        title: 'Intercity and regional buses',
+        summary: 'Services to cities and regional terminals from the bus terminal.',
+        details: 'The terminal offers connections to Puebla, Querétaro, Pachuca, Toluca, and Mexico City terminals such as TAPO, North, and South. Confirm your destination and bay before boarding.',
+        imageAlt: 'Transportation connection signs inside the AIFA terminal',
+      },
+      taxiRecommendations: [
+        'Buy service only at official counters and verify your destination and total fare before paying.',
+        'For ride-hailing, use only the airport-designated pickup point and verify the vehicle details.',
+        'Do not accept transportation offers from people approaching passengers outside authorized areas.'
+      ],
+      busRecommendations: [
+        'Confirm destination, schedule, availability, and boarding bay directly with the bus operator.',
+        'Buy your ticket at the counter or through official operator channels, and keep your receipt.',
+        'Arrive early and keep your travel documents and luggage with you.'
+      ]
     },
     routeMap: {
       title: 'Transit routes to AIFA',
@@ -843,6 +956,51 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         }
       }
     },
+    transport: {
+      welcomeTitle: 'Vous cherchez un moyen de transport pour rejoindre votre destination ?',
+      welcomeDescription: 'Découvrez les moyens de transport disponibles à l’AIFA, classés par itinéraires, stations et tarifs pour connaître le coût de votre trajet avant de partir.',
+      liveMessage: 'À cette heure, plusieurs options de transport sont disponibles. Découvrez leurs destinations, tarifs et points d’embarquement.',
+      categoriesTitle: 'Choisissez la suite de votre voyage',
+      categoryAction: 'Voir l’itinéraire et les détails',
+      detailBack: 'Retour aux options de transport',
+      itineraryTitle: 'Itinéraire et embarquement',
+      recommendationsTitle: 'Conseils pour votre trajet',
+      boardingPointLabel: 'Point d’embarquement',
+      taxiFareNote: 'Les tarifs varient selon la destination et le service. Vérifiez et payez le tarif en vigueur uniquement au guichet officiel avant de monter.',
+      busFareNote: 'Les tarifs et horaires dépendent de la ligne et de la destination. Confirmez le tarif, la disponibilité et le quai au guichet ou auprès de l’opérateur.',
+      mexibus: {
+        title: 'Mexibús ligne 1',
+        summary: 'Liaison économique entre Ojo de Agua, Tecámac et le terminal AIFA.',
+        imageAlt: 'Accès et quai de la station Mexibús',
+      },
+      suburban: {
+        title: 'Train suburbain Lechería – AIFA',
+        summary: 'Liaison ferroviaire entre Lechería et la zone aéroportuaire de l’AIFA.',
+        imageAlt: 'Train suburbain en gare',
+      },
+      taxis: {
+        title: 'Taxis autorisés et plateformes',
+        summary: 'Trajets directs depuis la zone officielle des arrivées de l’aéroport.',
+        details: 'Les guichets des taxis autorisés se trouvent dans la zone publique des arrivées. Pour les plateformes, suivez les panneaux de l’aéroport jusqu’au point de prise en charge désigné.',
+        imageAlt: 'Zone des arrivées et accès aux transports terrestres de l’AIFA',
+      },
+      buses: {
+        title: 'Autocars interurbains et régionaux',
+        summary: 'Départs vers des villes et gares régionales depuis la gare routière.',
+        details: 'La gare routière dessert Puebla, Querétaro, Pachuca, Toluca et les gares de Mexico telles que TAPO, Norte et Sur. Confirmez la destination et le quai avant l’embarquement.',
+        imageAlt: 'Panneaux de correspondance dans le terminal de l’AIFA',
+      },
+      taxiRecommendations: [
+        'Achetez votre trajet uniquement aux guichets officiels et vérifiez la destination et le prix total avant de payer.',
+        'Pour les plateformes, utilisez uniquement le point de prise en charge indiqué par l’aéroport et vérifiez les informations du véhicule.',
+        'Refusez les offres de transport proposées hors des zones autorisées.'
+      ],
+      busRecommendations: [
+        'Confirmez la destination, l’horaire, la disponibilité et le quai directement auprès de l’opérateur.',
+        'Achetez votre billet au guichet ou par les canaux officiels de l’opérateur et conservez le justificatif.',
+        'Arrivez à l’avance et gardez vos documents et bagages avec vous.'
+      ]
+    },
     routeMap: {
       title: 'Itinéraires de transport vers l’AIFA',
       description: 'Explorez les stations de chaque liaison. Sélectionnez une station pour connaître son secteur, les correspondances locales et les lieux d’intérêt à proximité.',
@@ -1011,6 +1169,51 @@ const detailTranslations: Record<Language, DetailTranslations> = {
           'trans-4': { title: '长途巴士站', description: '可直达 Puebla、Querétaro、Pachuca、Toluca 以及墨西哥城各汽车站（TAPO、北站、南站）。' }
         }
       }
+    },
+    transport: {
+      welcomeTitle: '正在寻找前往目的地的交通方式吗？',
+      welcomeDescription: '查看 AIFA 提供的交通方式，按线路、车站和票价分类，提前了解行程和费用。',
+      liveMessage: '此时有多种交通方式可供选择。这里可以查看各线路目的地、票价和乘车点。',
+      categoriesTitle: '选择继续行程的方式',
+      categoryAction: '查看线路和详情',
+      detailBack: '返回交通选项',
+      itineraryTitle: '行程与乘车',
+      recommendationsTitle: '出行建议',
+      boardingPointLabel: '乘车地点',
+      taxiFareNote: '票价因目的地和服务而异。请在上车前仅于官方柜台查询并支付当前票价。',
+      busFareNote: '票价和时刻表因线路及目的地而异。请在柜台或向运营方确认票价、班次和站台。',
+      mexibus: {
+        title: 'Mexibús 1号线',
+        summary: '连接 Ojo de Agua、Tecámac 和 AIFA 航站楼的经济线路。',
+        imageAlt: 'Mexibús 车站入口和站台',
+      },
+      suburban: {
+        title: '城郊铁路 Lechería – AIFA',
+        summary: '连接 Lechería 与 AIFA 机场区域的铁路线路。',
+        imageAlt: '车站内的城郊列车',
+      },
+      taxis: {
+        title: '授权出租车和网约车',
+        summary: '从机场官方到达区出发的直达服务。',
+        details: '授权出租车柜台位于公共到达区。如使用网约车，请按照机场指示前往指定上车点。',
+        imageAlt: 'AIFA 到达区及地面交通入口',
+      },
+      buses: {
+        title: '城际及区域巴士',
+        summary: '从巴士站前往各城市和区域汽车站。',
+        details: '巴士站提供前往 Puebla、Querétaro、Pachuca、Toluca 以及墨西哥城 TAPO、北站和南站的线路。上车前请确认目的地和站台。',
+        imageAlt: 'AIFA 航站楼内的交通换乘指示牌',
+      },
+      taxiRecommendations: [
+        '仅在官方柜台购买服务，付款前确认目的地和总价。',
+        '使用网约车时，仅前往机场指定上车点，并核对车辆信息。',
+        '请勿接受授权区域以外人员主动提供的交通服务。'
+      ],
+      busRecommendations: [
+        '直接向巴士运营方确认目的地、时刻、班次和站台。',
+        '请在柜台或运营方官方渠道购票，并保留凭证。',
+        '提前抵达，并随身保管证件和行李。'
+      ]
     },
     routeMap: {
       title: '前往 AIFA 的交通线路',

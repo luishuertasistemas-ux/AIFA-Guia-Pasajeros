@@ -8,10 +8,15 @@ import type { RouteMapTranslations } from '@/data/translations';
 type RouteMapExplorerProps = {
   copy: RouteMapTranslations;
   onOpenImage: (src: string, alt: string) => void;
+  initialRouteId?: 'mexibus' | 'suburban';
 };
 
-export default function RouteMapExplorer({ copy, onOpenImage }: RouteMapExplorerProps) {
-  const [selectedRouteId, setSelectedRouteId] = useState<'mexibus' | 'suburban'>('mexibus');
+export default function RouteMapExplorer({
+  copy,
+  onOpenImage,
+  initialRouteId = 'mexibus'
+}: RouteMapExplorerProps) {
+  const [selectedRouteId, setSelectedRouteId] = useState<'mexibus' | 'suburban'>(initialRouteId);
   const route = transitRoutes.find(({ id }) => id === selectedRouteId) ?? transitRoutes[0];
   const [selectedStationId, setSelectedStationId] = useState(route.stations[0].id);
   const selectedStation = route.stations.find(({ id }) => id === selectedStationId) ?? route.stations[0];

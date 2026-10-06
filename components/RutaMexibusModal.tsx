@@ -11,14 +11,11 @@ type RutaMexibusModalProps = {
 
 export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [imageError, setImageError] = useState(false);
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const currentStep = mexibusToDocRoute[currentStepIndex];
+  const imageError = failedImage === currentStep.image;
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === mexibusToDocRoute.length - 1;
-
-  useEffect(() => {
-    setImageError(false);
-  }, [currentStep.image]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -104,7 +101,7 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
                 alt={`${currentStep.title}: ${currentStep.stage}`}
                 fill
                 sizes="(max-width: 640px) calc(100vw - 2.5rem), 576px"
-                onError={() => setImageError(true)}
+                onError={() => setFailedImage(currentStep.image)}
                 className="h-52 w-full rounded-2xl object-cover shadow-md"
               />
             )}

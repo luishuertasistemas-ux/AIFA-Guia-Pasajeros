@@ -54,6 +54,7 @@ export default function ImageLightbox({
     if (!src) return;
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const activePointers = pointers.current;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         handleClose();
@@ -79,7 +80,7 @@ export default function ImageLightbox({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus();
-      pointers.current.clear();
+      activePointers.clear();
       pinchStart.current = null;
       panStart.current = null;
     };

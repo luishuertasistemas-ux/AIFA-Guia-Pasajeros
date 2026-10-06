@@ -21,13 +21,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    try {
-      const savedLanguage = window.localStorage.getItem(STORAGE_KEY);
-      if (isLanguage(savedLanguage)) setLanguage(savedLanguage);
-    } catch (error) {
-      console.error('No se pudo leer el idioma guardado.', error);
-    }
-    setIsInitialized(true);
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const savedLanguage = window.localStorage.getItem(STORAGE_KEY);
+        if (isLanguage(savedLanguage)) setLanguage(savedLanguage);
+      } catch (error) {
+        console.error('No se pudo leer el idioma guardado.', error);
+      }
+      setIsInitialized(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   useEffect(() => {

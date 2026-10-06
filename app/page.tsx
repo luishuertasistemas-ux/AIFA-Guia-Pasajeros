@@ -15,7 +15,6 @@ import {
   Coffee,
   Clock3,
   ExternalLink,
-  Footprints,
   Landmark,
   Luggage,
   MapPin,
@@ -34,9 +33,8 @@ import {
 import QrScannerModal from './QrScannerModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import NetworkStatusBanner from '@/components/NetworkStatusBanner';
-import RouteMapExplorer from '@/components/RouteMapExplorer';
+import TransportExperience from '@/components/TransportExperience';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
-import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
 import { LANGUAGES, translations, type Language } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
@@ -44,7 +42,6 @@ import { useLanguage } from '@/LanguageContext';
 import type { Location } from '@/types/location';
 import {
   OPCIONES_ENCUESTA,
-  TRANSPORTE_DATA,
   TURISMO_DATA,
   type OpcionEncuesta,
   type SubModulo
@@ -354,11 +351,7 @@ export default function Home() {
   const localizedQrLocation = qrTargetLocation
     ? getLocalizedLocationInfo(qrTargetLocation, language)
     : null;
-  const roleModules: SubModulo[] | null = selectedRole === 'tourism'
-    ? TURISMO_DATA
-    : selectedRole === 'transport'
-      ? TRANSPORTE_DATA
-      : null;
+  const roleModules: SubModulo[] | null = selectedRole === 'tourism' ? TURISMO_DATA : null;
   const surveyResponse = selectedSurveyOption
     ? copy.survey.responses[selectedSurveyOption.categoria]
     : null;
@@ -1233,8 +1226,16 @@ export default function Home() {
               )}
             </motion.div>
           </motion.section>
+        ) : selectedRole === 'transport' ? (
+          <TransportExperience
+            copy={detailCopy.transport}
+            details={detailCopy}
+            currentTimeLabel={currentTime ? formatDigitalClock(currentTime, language) : ''}
+            onOpenImage={openImageViewer}
+            onBackToMenu={returnToMenu}
+          />
         ) : (
-        <motion.section key={`role-${selectedRole}`} className={`relative isolate mx-auto flex min-h-[calc(100svh-15rem)] w-full ${selectedRole === 'transport' ? 'max-w-7xl' : 'max-w-5xl'} flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10`}>
+        <motion.section key={`role-${selectedRole}`} className="relative isolate mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">
           {['transport', 'lost-items', 'pets'].includes(selectedRole ?? '') && (
             <>
               <div aria-hidden="true" className="fixed inset-0 z-0">
@@ -1285,35 +1286,23 @@ export default function Home() {
               )}
               {roleModules ? (
                 <div className="mt-7 space-y-8">
-                  {selectedRole === 'transport' && (
-                    <>
-                      <Link
-                        href="/accessibility"
-                        className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-emerald-200/35 bg-emerald-300/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-300/20 focus:outline-none focus:ring-4 focus:ring-emerald-100/50"
-                      >
-                        <Footprints aria-hidden="true" size={19} />
-                        {copy.podotactile.title}
-                        <ArrowRight aria-hidden="true" size={17} />
-                      </Link>
-                    </>
-                  )}
                   {roleModules.map((module) => {
                     const localizedModule = detailCopy.modules[module.id];
                     return (
-                    <section key={module.id} aria-labelledby={`${module.id}-title`} className={selectedRole === 'transport' ? 'rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6' : undefined}>
-                      <div className={selectedRole === 'transport' ? 'rounded-2xl border border-white/20 bg-white/10 p-4' : undefined}>
+                    <section key={module.id} aria-labelledby={`${module.id}-title`}>
+                      <div>
                         <h2 id={`${module.id}-title`} className="text-xl font-bold text-white sm:text-2xl">{localizedModule.title}</h2>
                         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{localizedModule.description}</p>
                       </div>
                       <ol className="mt-4 grid gap-4 lg:grid-cols-2">
                         {module.pasos.map((step, index) => (
-                          <li key={step.id} className={selectedRole === 'transport' ? 'overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md' : 'overflow-hidden border border-white/10 bg-slate-950/55'}>
+                          <li key={step.id} className="overflow-hidden border border-white/10 bg-slate-950/55">
                             {step.imagenUrl && (
                               <div className="relative mx-3 mt-3 aspect-[16/9] overflow-hidden rounded-2xl border border-white/20 bg-slate-800">
                                 <FallbackImage
                                   key={step.id}
                                   src={step.imagenUrl}
-                                  fallback={selectedRole === 'transport' ? '/images/aifa-mapa.png' : module.id === 'mexibus' ? '/images/rutas/mexibus-doc/paso-01.jpg' : '/images/aifa-mapa.png'}
+                                  fallback="/images/aifa-mapa.png"
                                   alt={localizedModule.steps[step.id].title}
                                   sizes="(max-width: 1024px) 100vw, 50vw"
                                   className="object-cover"
@@ -1332,7 +1321,7 @@ export default function Home() {
                                 </div>
                               </div>
                               {localizedModule.steps[step.id].tip && (
-                                <p className={`mt-4 rounded-2xl border px-3 py-2 text-sm leading-relaxed ${selectedRole === 'transport' ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-100' : 'border-l-2 border-amber-300 bg-amber-300/10 text-amber-100'}`}>
+                                <p className="mt-4 rounded-2xl border border-l-2 border-amber-300 bg-amber-300/10 px-3 py-2 text-sm leading-relaxed text-amber-100">
                                   <strong>{detailCopy.recommendation}</strong> {localizedModule.steps[step.id].tip}
                                 </p>
                               )}
@@ -1343,52 +1332,6 @@ export default function Home() {
                     </section>
                     );
                   })}
-                  {selectedRole === 'transport' && (
-                    <RouteMapExplorer copy={detailCopy.routeMap} onOpenImage={openImageViewer} />
-                  )}
-                  {selectedRole === 'transport' && (
-                    <section aria-labelledby="transport-route-gallery-title" className="rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6">
-                      <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
-                        <h2 id="transport-route-gallery-title" className="text-xl font-bold text-white sm:text-2xl">{detailCopy.routeGallery.title}</h2>
-                        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-100/90 sm:text-base">{detailCopy.routeGallery.description}</p>
-                      </div>
-                      <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {mexibusToDocRoute.map((step, index) => {
-                          const routeStep = detailCopy.routeGallery.steps[index];
-                          return (
-                          <li key={step.stepNumber} className="overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-4 text-white shadow-xl backdrop-blur-md">
-                            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/20">
-                              <button
-                                type="button"
-                                onClick={() => openImageViewer(step.image, `${routeStep.title}: ${routeStep.stage}`)}
-                                aria-label={`${detailCopy.routeMap.openImageLabel}: ${routeStep.title}`}
-                                className="absolute inset-0 cursor-zoom-in"
-                              >
-                                <Image
-                                  src={step.image}
-                                  alt={`${routeStep.title}: ${routeStep.stage}`}
-                                  fill
-                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                  className="object-cover"
-                                />
-                              </button>
-                            </div>
-                            <div className="mt-4 flex items-start gap-3">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{step.stepNumber}</span>
-                              <div>
-                                <p className="text-xs font-bold uppercase tracking-wide text-emerald-100">{routeStep.stage}</p>
-                                <h3 className="mt-1 font-bold leading-snug text-white">{routeStep.title}</h3>
-                                <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{routeStep.description}</p>
-                                {routeStep.referencePoint && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>{detailCopy.reference}</strong> {routeStep.referencePoint}</p>}
-                                {routeStep.accessibilityNote && <p className="mt-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3 text-sm leading-relaxed text-emerald-100"><strong>{detailCopy.accessibility}</strong> {routeStep.accessibilityNote}</p>}
-                              </div>
-                            </div>
-                          </li>
-                          );
-                        })}
-                      </ol>
-                    </section>
-                  )}
                 </div>
               ) : (
                 <ol className={`mt-7 grid gap-4 ${['lost-items', 'pets'].includes(selectedRole ?? '') ? 'md:grid-cols-2' : 'space-y-3'}`}>
