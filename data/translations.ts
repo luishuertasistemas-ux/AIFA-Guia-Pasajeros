@@ -19,6 +19,33 @@ type ModuleTranslation = {
   steps: Record<string, { title: string; description: string; tip?: string }>;
 };
 
+export type RouteMapTranslations = {
+  title: string;
+  description: string;
+  selectorLabel: string;
+  mexibusLabel: string;
+  suburbanLabel: string;
+  stationListLabel: string;
+  stationDetailsLabel: string;
+  frequencyLabel: string;
+  travelTimeLabel: string;
+  minutesLabel: string;
+  faresTitle: string;
+  generalFareLabel: string;
+  cardFareLabel: string;
+  transferTitle: string;
+  transferDescription: string;
+  estimateNote: string;
+  viewAirportMap: string;
+  openImageLabel: string;
+  closeViewerLabel: string;
+  zoomInLabel: string;
+  zoomOutLabel: string;
+  resetZoomLabel: string;
+  gestureHint: string;
+  stationDetails: Record<string, string>;
+};
+
 type DetailTranslations = {
   backToMenu: string;
   backToOptions: string;
@@ -52,6 +79,7 @@ type DetailTranslations = {
   };
   modules: Record<string, ModuleTranslation>;
   routeGallery: { title: string; description: string; steps: { stage: string; title: string; description: string; referencePoint?: string; accessibilityNote?: string }[] };
+  routeMap: RouteMapTranslations;
   timeOfDay: { morning: string; afternoon: string; night: string };
   localTime: string;
   officialSite: string;
@@ -477,6 +505,39 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         }
       }
     },
+    routeMap: {
+      title: 'Rutas de transporte al AIFA',
+      description: 'Explora las estaciones de cada conexión. Selecciona una estación para consultar su zona, conexiones locales y lugares de interés cercanos.',
+      selectorLabel: 'Selecciona una ruta',
+      mexibusLabel: 'Mexibús Línea 1 · Ojo de Agua — Terminal AIFA',
+      suburbanLabel: 'Tren Suburbano · Lechería — AIFA',
+      stationListLabel: 'Estaciones',
+      stationDetailsLabel: 'Detalles de estación',
+      frequencyLabel: 'Frecuencia estimada',
+      travelTimeLabel: 'Recorrido completo estimado',
+      minutesLabel: 'min',
+      faresTitle: 'Tarifas Mexibús',
+      generalFareLabel: 'Viaje general',
+      cardFareLabel: 'Tarjeta Mexipase / Movimex (incluye 1 viaje)',
+      transferTitle: 'Transbordo en Ojo de Agua',
+      transferDescription: 'Gratuito con la misma tarjeta dentro de la misma línea. Presenta la tarjeta al hacer el transbordo.',
+      estimateNote: 'Frecuencias y tiempos son estimados; pueden variar según operación y horario. Confirma información vigente con el operador. La tarifa del Tren Suburbano no se muestra aquí.',
+      viewAirportMap: 'Ampliar mapa del AIFA',
+      openImageLabel: 'Ampliar imagen en pantalla completa',
+      closeViewerLabel: 'Cerrar visor de imagen',
+      zoomInLabel: 'Acercar imagen',
+      zoomOutLabel: 'Alejar imagen',
+      resetZoomLabel: 'Restablecer zoom',
+      gestureHint: 'Pellizca para ampliar · arrastra para desplazar · desliza hacia abajo para cerrar',
+      stationDetails: {
+        default: 'Ubicación: zona de {station}. Conexiones: consulta en sitio las rutas de transporte local disponibles. Cerca: servicios y comercios de la zona; confirma accesos y horarios.',
+        'ojo-de-agua': 'Ubicación: estación Ojo de Agua, punto de conexión de la Línea 1. Conexiones: transbordo gratuito con la misma tarjeta dentro de la misma línea. Cerca: servicios y transporte local; confirma el punto de ascenso.',
+        'tecamac-centro': 'Ubicación: centro de Tecámac. Conexiones: consulta transporte local hacia el centro y su plaza principal. Cerca: centro histórico; el Parque Sierra Hermosa requiere traslado local, confirma la ruta.',
+        'terminal-aifa': 'Ubicación: terminal de pasajeros del AIFA. Conexiones: accesos a la terminal, taxis autorizados, autobuses y Tren Suburbano. Cerca: Corredor Cultural y museos del AIFA; revisa horarios y acceso público.',
+        lecheria: 'Ubicación: estación Lechería, punto de conexión con el Tren Suburbano existente. Conexiones: servicios ferroviarios hacia el Valle de México; confirma transbordos y horarios.',
+        aifa: 'Ubicación: estación de la zona aeroportuaria del AIFA. Conexiones: acceso al aeropuerto; sigue la señalización oficial hacia la terminal. Cerca: Corredor Cultural y museos; revisa horarios y acceso público.'
+      }
+    },
     routeGallery: {
       title: 'Ruta Mexibús a documentación',
       description: 'Sigue las imágenes en orden desde la estación hasta los mostradores de equipaje.',
@@ -611,6 +672,39 @@ const detailTranslations: Record<Language, DetailTranslations> = {
           'trans-3': { title: 'Authorized Taxi Counters', description: 'Located in the public arrivals area. Pay only at official counters before boarding.', tip: 'For your safety, never take a taxi outside the authorized area or without a ticket purchased at the counter.' },
           'trans-4': { title: 'Intercity Bus Terminal', description: 'Direct connections to Puebla, Querétaro, Pachuca, Toluca, and Mexico City terminals (TAPO, North, and South).' }
         }
+      }
+    },
+    routeMap: {
+      title: 'Transit routes to AIFA',
+      description: 'Explore the stations on each connection. Select a station to see its area, local connections, and nearby points of interest.',
+      selectorLabel: 'Choose a route',
+      mexibusLabel: 'Mexibús Line 1 · Ojo de Agua — AIFA Terminal',
+      suburbanLabel: 'Suburban Train · Lechería — AIFA',
+      stationListLabel: 'Stations',
+      stationDetailsLabel: 'Station details',
+      frequencyLabel: 'Estimated frequency',
+      travelTimeLabel: 'Estimated end-to-end journey',
+      minutesLabel: 'min',
+      faresTitle: 'Mexibús fares',
+      generalFareLabel: 'Standard single ride',
+      cardFareLabel: 'Mexipase / Movimex card (includes 1 ride)',
+      transferTitle: 'Transfer at Ojo de Agua',
+      transferDescription: 'Free with the same card on the same line. Present your card when transferring.',
+      estimateNote: 'Frequencies and journey times are estimates and may vary by service and time of day. Confirm current information with the operator. The Suburban Train fare is not listed here.',
+      viewAirportMap: 'Enlarge AIFA map',
+      openImageLabel: 'View image full screen',
+      closeViewerLabel: 'Close image viewer',
+      zoomInLabel: 'Zoom in',
+      zoomOutLabel: 'Zoom out',
+      resetZoomLabel: 'Reset zoom',
+      gestureHint: 'Pinch to zoom · drag to pan · swipe down to close',
+      stationDetails: {
+        default: 'Location: {station} area. Connections: check locally for available transport links. Nearby: local services and shops; confirm access and opening times.',
+        'ojo-de-agua': 'Location: Ojo de Agua station, a Line 1 connection point. Connections: free transfer with the same card on the same line. Nearby: local services and transport; confirm the boarding point.',
+        'tecamac-centro': 'Location: central Tecámac. Connections: check local transport to the town center and main square. Nearby: historic center; Sierra Hermosa Park requires local transport, so confirm the route.',
+        'terminal-aifa': 'Location: AIFA passenger terminal. Connections: terminal access, authorized taxis, buses, and the Suburban Train. Nearby: AIFA Cultural Corridor and museums; check opening times and public access.',
+        lecheria: 'Location: Lechería station, connected to the existing Suburban Train. Connections: rail services across the Valley of Mexico; confirm transfers and schedules.',
+        aifa: 'Location: AIFA airport-area station. Connections: airport access; follow official signs to the terminal. Nearby: Cultural Corridor and museums; check opening times and public access.'
       }
     },
     routeGallery: {
@@ -749,6 +843,39 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         }
       }
     },
+    routeMap: {
+      title: 'Itinéraires de transport vers l’AIFA',
+      description: 'Explorez les stations de chaque liaison. Sélectionnez une station pour connaître son secteur, les correspondances locales et les lieux d’intérêt à proximité.',
+      selectorLabel: 'Choisir un itinéraire',
+      mexibusLabel: 'Mexibús ligne 1 · Ojo de Agua — Terminal AIFA',
+      suburbanLabel: 'Train suburbain · Lechería — AIFA',
+      stationListLabel: 'Stations',
+      stationDetailsLabel: 'Détails de la station',
+      frequencyLabel: 'Fréquence estimée',
+      travelTimeLabel: 'Durée estimée du trajet complet',
+      minutesLabel: 'min',
+      faresTitle: 'Tarifs du Mexibús',
+      generalFareLabel: 'Voyage simple',
+      cardFareLabel: 'Carte Mexipase / Movimex (1 voyage inclus)',
+      transferTitle: 'Correspondance à Ojo de Agua',
+      transferDescription: 'Gratuite avec la même carte sur la même ligne. Présentez votre carte lors de la correspondance.',
+      estimateNote: 'Les fréquences et durées sont estimatives et peuvent varier selon le service et l’horaire. Confirmez les informations auprès de l’opérateur. Le tarif du train suburbain n’est pas indiqué ici.',
+      viewAirportMap: 'Agrandir le plan de l’AIFA',
+      openImageLabel: 'Afficher l’image en plein écran',
+      closeViewerLabel: 'Fermer la visionneuse',
+      zoomInLabel: 'Zoom avant',
+      zoomOutLabel: 'Zoom arrière',
+      resetZoomLabel: 'Réinitialiser le zoom',
+      gestureHint: 'Pincez pour zoomer · faites glisser pour déplacer · balayez vers le bas pour fermer',
+      stationDetails: {
+        default: 'Emplacement : secteur de {station}. Correspondances : renseignez-vous sur place sur les transports locaux disponibles. À proximité : commerces et services du quartier ; vérifiez les accès et horaires.',
+        'ojo-de-agua': 'Emplacement : station Ojo de Agua, point de correspondance de la ligne 1. Correspondances : gratuites avec la même carte sur la même ligne. À proximité : services et transports locaux ; confirmez le point de montée.',
+        'tecamac-centro': 'Emplacement : centre de Tecámac. Correspondances : renseignez-vous sur les transports locaux vers le centre et sa place principale. À proximité : centre historique ; le parc Sierra Hermosa nécessite un transport local, confirmez l’itinéraire.',
+        'terminal-aifa': 'Emplacement : terminal passagers de l’AIFA. Correspondances : accès au terminal, taxis autorisés, autocars et train suburbain. À proximité : corridor culturel et musées de l’AIFA ; vérifiez les horaires et l’accès public.',
+        lecheria: 'Emplacement : station Lechería, reliée au train suburbain existant. Correspondances : services ferroviaires dans la vallée de Mexico ; confirmez les correspondances et horaires.',
+        aifa: 'Emplacement : station dans la zone aéroportuaire de l’AIFA. Correspondances : accès à l’aéroport ; suivez la signalisation officielle vers le terminal. À proximité : corridor culturel et musées ; vérifiez les horaires et l’accès public.'
+      }
+    },
     routeGallery: {
       title: 'Itinéraire Mexibús vers l’enregistrement',
       description: 'Suivez les images dans l’ordre, de la station aux comptoirs à bagages.',
@@ -885,6 +1012,39 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         }
       }
     },
+    routeMap: {
+      title: '前往 AIFA 的交通线路',
+      description: '查看各条线路的车站。选择车站可了解所在区域、本地换乘和附近景点。',
+      selectorLabel: '选择线路',
+      mexibusLabel: 'Mexibús 1号线 · Ojo de Agua — AIFA 航站楼',
+      suburbanLabel: '城郊铁路 · Lechería — AIFA',
+      stationListLabel: '车站',
+      stationDetailsLabel: '车站详情',
+      frequencyLabel: '预计发车间隔',
+      travelTimeLabel: '全程预计时间',
+      minutesLabel: '分钟',
+      faresTitle: 'Mexibús 票价',
+      generalFareLabel: '普通单程票',
+      cardFareLabel: 'Mexipase / Movimex 卡（含 1 次乘车）',
+      transferTitle: 'Ojo de Agua 换乘',
+      transferDescription: '同一线路使用同一张卡可免费换乘。换乘时请出示卡片。',
+      estimateNote: '发车间隔和行程时间为估算值，可能因运营情况和时段而变化。请向运营方确认最新信息。此处未列出城郊铁路票价。',
+      viewAirportMap: '放大 AIFA 地图',
+      openImageLabel: '全屏查看图片',
+      closeViewerLabel: '关闭图片查看器',
+      zoomInLabel: '放大',
+      zoomOutLabel: '缩小',
+      resetZoomLabel: '重置缩放',
+      gestureHint: '双指缩放 · 拖动平移 · 向下滑动关闭',
+      stationDetails: {
+        default: '位置：{station} 区域。换乘：请在现场查询可用的本地交通线路。附近：周边服务和商店；请确认开放时间及通行情况。',
+        'ojo-de-agua': '位置：Ojo de Agua 车站，1号线换乘点。换乘：同一线路使用同一张卡可免费换乘。附近：本地服务和交通；请确认乘车地点。',
+        'tecamac-centro': '位置：Tecámac 市中心。换乘：查询前往市中心和主广场的本地交通。附近：历史中心；前往 Sierra Hermosa 公园需乘坐本地交通，请确认路线。',
+        'terminal-aifa': '位置：AIFA 旅客航站楼。换乘：航站楼入口、授权出租车、巴士和城郊铁路。附近：AIFA 文化长廊和博物馆；请确认开放时间及公众通行安排。',
+        lecheria: '位置：Lechería 车站，与现有城郊铁路相连。换乘：墨西哥谷地铁路服务；请确认换乘方式和时刻表。',
+        aifa: '位置：AIFA 机场区域车站。换乘：前往机场；请遵循官方指示前往航站楼。附近：文化长廊和博物馆；请确认开放时间及公众通行安排。'
+      }
+    },
     routeGallery: {
       title: 'Mexibús 至值机区路线',
       description: '按照图片顺序，从车站前往行李托运柜台。',
@@ -901,6 +1061,11 @@ const detailTranslations: Record<Language, DetailTranslations> = {
 };
 
 type TranslationDictionary = {
+  wifiHint: string;
+  networkStatus: {
+    online: string;
+    offline: string;
+  };
   welcome: {
     brand: string;
     title: string;
@@ -946,6 +1111,8 @@ type TranslationDictionary = {
 
 export const translations: Record<Language, TranslationDictionary> = {
   ES: {
+    wifiHint: '¿Sin datos? Conéctate a la red Wi-Fi gratuita del aeropuerto: AIFA-Gratuito',
+    networkStatus: { online: 'En línea', offline: 'Modo Offline' },
     welcome: {
       brand: 'AIFA · Guía de pasajeros',
       title: '¡Te damos la bienvenida al AIFA!',
@@ -997,6 +1164,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     podotactile: podotactileTranslations.ES
   },
   EN: {
+    wifiHint: 'No data? Connect to the airport’s free Wi-Fi network: AIFA-Gratuito',
+    networkStatus: { online: 'Online', offline: 'Offline mode' },
     welcome: {
       brand: 'AIFA · Passenger Guide',
       title: 'Welcome to AIFA!',
@@ -1048,6 +1217,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     podotactile: podotactileTranslations.EN
   },
   FR: {
+    wifiHint: 'Pas de données ? Connectez-vous au Wi-Fi gratuit de l’aéroport : AIFA-Gratuito',
+    networkStatus: { online: 'En ligne', offline: 'Mode hors ligne' },
     welcome: {
       brand: 'AIFA · Guide du passager',
       title: 'Bienvenue à l’AIFA !',
@@ -1099,6 +1270,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     podotactile: podotactileTranslations.FR
   },
   ZH: {
+    wifiHint: '没有流量？请连接机场免费 Wi-Fi：AIFA-Gratuito',
+    networkStatus: { online: '在线', offline: '离线模式' },
     welcome: {
       brand: 'AIFA · 旅客指南',
       title: '欢迎来到 AIFA！',

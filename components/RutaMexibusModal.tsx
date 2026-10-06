@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 
@@ -88,7 +89,7 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
             <p className="sr-only">Paso {currentStep.stepNumber} de {mexibusToDocRoute.length}</p>
           </div>
 
-          <div className="mt-5" aria-live="polite">
+          <div className="relative mt-5 h-52 w-full" aria-live="polite">
             {imageError ? (
                 <div className="flex h-52 w-full items-center justify-center rounded-2xl bg-slate-800 p-6 text-center shadow-md">
                 <div>
@@ -98,9 +99,11 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
                 </div>
               </div>
             ) : (
-              <img
+              <Image
                 src={currentStep.image}
                 alt={`${currentStep.title}: ${currentStep.stage}`}
+                fill
+                sizes="(max-width: 640px) calc(100vw - 2.5rem), 576px"
                 onError={() => setImageError(true)}
                 className="h-52 w-full rounded-2xl object-cover shadow-md"
               />

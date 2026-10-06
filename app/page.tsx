@@ -32,6 +32,9 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import QrScannerModal from './QrScannerModal';
+import ImageLightbox from '@/components/ImageLightbox';
+import NetworkStatusBanner from '@/components/NetworkStatusBanner';
+import RouteMapExplorer from '@/components/RouteMapExplorer';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
@@ -59,22 +62,26 @@ type FallbackImageProps = {
   sizes: string;
   className: string;
   fill?: boolean;
+  onOpenImage: (src: string, alt: string) => void;
+  openImageLabel: string;
 };
 
-function FallbackImage({ src, fallback, alt, sizes, className, fill }: FallbackImageProps) {
+function FallbackImage({ src, fallback, alt, sizes, className, fill, onOpenImage, openImageLabel }: FallbackImageProps) {
   const [imageSrc, setImageSrc] = useState(src);
 
   return (
-    <Image
-      src={imageSrc}
-      alt={alt}
-      fill={fill}
-      sizes={sizes}
-      className={className}
-      onError={() => {
-        if (imageSrc !== fallback) setImageSrc(fallback);
-      }}
-    />
+    <button type="button" onClick={() => onOpenImage(imageSrc, alt)} aria-label={`${openImageLabel}: ${alt}`} className="absolute inset-0 h-full w-full cursor-zoom-in">
+      <Image
+        src={imageSrc}
+        alt={alt}
+        fill={fill}
+        sizes={sizes}
+        className={className}
+        onError={() => {
+          if (imageSrc !== fallback) setImageSrc(fallback);
+        }}
+      />
+    </button>
   );
 }
 
@@ -193,6 +200,10 @@ export default function Home() {
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
   const [isWelcomeFading, setIsWelcomeFading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
+
+  const closeImageViewer = useCallback(() => setImageViewer(null), []);
+  const openImageViewer = (src: string, alt: string) => setImageViewer({ src, alt });
 
   useEffect(() => {
     const updateClock = () => setCurrentTime(new Date());
@@ -239,7 +250,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (screen !== 'role' || !['arrival', 'departure', 'pickup', 'tourism'].includes(selectedRole ?? '')) return;
+    if (imageViewer || screen !== 'role' || !['arrival', 'departure', 'pickup', 'tourism'].includes(selectedRole ?? '')) return;
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -250,7 +261,7 @@ export default function Home() {
 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [returnToMenu, screen, selectedRole]);
+  }, [imageViewer, returnToMenu, screen, selectedRole]);
 
   const openSurvey = () => {
     setSelectedSurveyOption(null);
@@ -658,14 +669,13 @@ export default function Home() {
                         </li>
                       ))}
                     </ul>
-                    <a
-                      href="/images/aifa-mapa.png"
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => openImageViewer('/images/aifa-mapa.png', detailCopy.routeMap.viewAirportMap)}
                       className="mt-4 block text-sm font-bold text-[#008767] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#008767] focus-visible:ring-offset-2"
                     >
                       {detailCopy.arrival.mapLink}
-                    </a>
+                    </button>
                   </motion.article>
                 ))}
               </motion.div>
@@ -788,14 +798,24 @@ export default function Home() {
                         </li>
                       ))}
                     </ul>
-                    <a
-                      href={href}
-                      target={href.startsWith('https://') ? '_blank' : undefined}
-                      rel={href.startsWith('https://') ? 'noreferrer' : undefined}
-                      className="mt-4 block text-sm font-bold text-[#fbbf24] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-                    >
-                      {linkLabel}
-                    </a>
+                    {href.startsWith('/images/') ? (
+                      <button
+                        type="button"
+                        onClick={() => openImageViewer(href, detailCopy.routeMap.viewAirportMap)}
+                        className="mt-4 block text-sm font-bold text-[#fbbf24] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                      >
+                        {linkLabel}
+                      </button>
+                    ) : (
+                      <a
+                        href={href}
+                        target={href.startsWith('https://') ? '_blank' : undefined}
+                        rel={href.startsWith('https://') ? 'noreferrer' : undefined}
+                        className="mt-4 block text-sm font-bold text-[#fbbf24] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                      >
+                        {linkLabel}
+                      </a>
+                    )}
                   </motion.article>
                 ))}
               </motion.div>
@@ -922,14 +942,24 @@ export default function Home() {
                         </li>
                       ))}
                     </ul>
-                    <a
-                      href={href}
-                      target={href.startsWith('https://') ? '_blank' : undefined}
-                      rel={href.startsWith('https://') ? 'noreferrer' : undefined}
-                      className="mt-4 block text-sm font-bold text-[#38bdf8] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#38bdf8] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-                    >
-                      {linkLabel}
-                    </a>
+                    {href.startsWith('/images/') ? (
+                      <button
+                        type="button"
+                        onClick={() => openImageViewer(href, detailCopy.routeMap.viewAirportMap)}
+                        className="mt-4 block text-sm font-bold text-[#38bdf8] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#38bdf8] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                      >
+                        {linkLabel}
+                      </button>
+                    ) : (
+                      <a
+                        href={href}
+                        target={href.startsWith('https://') ? '_blank' : undefined}
+                        rel={href.startsWith('https://') ? 'noreferrer' : undefined}
+                        className="mt-4 block text-sm font-bold text-[#38bdf8] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#38bdf8] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                      >
+                        {linkLabel}
+                      </a>
+                    )}
                   </motion.article>
                 ))}
               </motion.div>
@@ -1051,7 +1081,9 @@ export default function Home() {
                         className="overflow-hidden rounded-2xl border border-white/30 bg-white/10 shadow-lg backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)]"
                       >
                         <div className="relative aspect-[16/10] bg-slate-200">
-                          <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover" />
+                          <button type="button" onClick={() => openImageViewer(image, title)} aria-label={`${detailCopy.routeMap.openImageLabel}: ${title}`} className="absolute inset-0 cursor-zoom-in">
+                            <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover" />
+                          </button>
                         </div>
                         <div className="p-5">
                           <h3 className="text-lg font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h3>
@@ -1089,7 +1121,9 @@ export default function Home() {
                         className="overflow-hidden rounded-2xl border border-white/30 bg-white/10 shadow-lg backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)]"
                       >
                         <div className="relative aspect-[16/10] bg-slate-200">
-                          <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                          <button type="button" onClick={() => openImageViewer(image, title)} aria-label={`${detailCopy.routeMap.openImageLabel}: ${title}`} className="absolute inset-0 cursor-zoom-in">
+                            <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                          </button>
                         </div>
                         <div className="p-5">
                           <h3 className="text-lg font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h3>
@@ -1130,13 +1164,15 @@ export default function Home() {
                         <div className={`grid aspect-[16/10] gap-1 bg-slate-900 ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 grid-rows-2'}`}>
                           {images.map((image, imageIndex) => (
                             <div key={image} className={`relative min-h-0 ${images.length === 3 && imageIndex === 0 ? 'row-span-2' : ''}`}>
-                              <Image
-                                src={image}
-                                alt={`${title} ${imageIndex + 1}`}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                                className="object-cover"
-                              />
+                              <button type="button" onClick={() => openImageViewer(image, `${title} ${imageIndex + 1}`)} aria-label={`${detailCopy.routeMap.openImageLabel}: ${title} ${imageIndex + 1}`} className="absolute inset-0 cursor-zoom-in">
+                                <Image
+                                  src={image}
+                                  alt={`${title} ${imageIndex + 1}`}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                                  className="object-cover"
+                                />
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -1174,14 +1210,13 @@ export default function Home() {
                       <li key={badge} className="rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm">{badge}</li>
                     ))}
                   </ul>
-                  <a
-                    href="/images/aifa-mapa.png"
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openImageViewer('/images/aifa-mapa.png', detailCopy.routeMap.viewAirportMap)}
                     className="mt-5 block text-sm font-bold text-violet-200 hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2"
                   >
                     {detailCopy.tourism.photoLink}
-                  </a>
+                  </button>
                 </motion.section>
               </motion.div>
 
@@ -1283,6 +1318,8 @@ export default function Home() {
                                   sizes="(max-width: 1024px) 100vw, 50vw"
                                   className="object-cover"
                                   fill
+                                  onOpenImage={openImageViewer}
+                                  openImageLabel={detailCopy.routeMap.openImageLabel}
                                 />
                               </div>
                             )}
@@ -1307,6 +1344,9 @@ export default function Home() {
                     );
                   })}
                   {selectedRole === 'transport' && (
+                    <RouteMapExplorer copy={detailCopy.routeMap} onOpenImage={openImageViewer} />
+                  )}
+                  {selectedRole === 'transport' && (
                     <section aria-labelledby="transport-route-gallery-title" className="rounded-3xl border border-white/30 bg-white/10 p-5 text-white shadow-xl backdrop-blur-md sm:p-6">
                       <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
                         <h2 id="transport-route-gallery-title" className="text-xl font-bold text-white sm:text-2xl">{detailCopy.routeGallery.title}</h2>
@@ -1318,13 +1358,20 @@ export default function Home() {
                           return (
                           <li key={step.stepNumber} className="overflow-hidden rounded-3xl border border-white/30 bg-white/10 p-4 text-white shadow-xl backdrop-blur-md">
                             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/20">
-                              <Image
-                                src={step.image}
-                                alt={`${routeStep.title}: ${routeStep.stage}`}
-                                fill
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                className="object-cover"
-                              />
+                              <button
+                                type="button"
+                                onClick={() => openImageViewer(step.image, `${routeStep.title}: ${routeStep.stage}`)}
+                                aria-label={`${detailCopy.routeMap.openImageLabel}: ${routeStep.title}`}
+                                className="absolute inset-0 cursor-zoom-in"
+                              >
+                                <Image
+                                  src={step.image}
+                                  alt={`${routeStep.title}: ${routeStep.stage}`}
+                                  fill
+                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                  className="object-cover"
+                                />
+                              </button>
                             </div>
                             <div className="mt-4 flex items-start gap-3">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-sm font-bold text-slate-950">{step.stepNumber}</span>
@@ -1554,6 +1601,23 @@ export default function Home() {
             <p className="max-w-sm text-xs leading-relaxed text-slate-300 sm:text-right">{detailCopy.footerDescription}</p>
           </div>
         </footer>
+      )}
+      <ImageLightbox
+        src={imageViewer?.src ?? null}
+        alt={imageViewer?.alt ?? ''}
+        closeLabel={detailCopy.routeMap.closeViewerLabel}
+        zoomInLabel={detailCopy.routeMap.zoomInLabel}
+        zoomOutLabel={detailCopy.routeMap.zoomOutLabel}
+        resetLabel={detailCopy.routeMap.resetZoomLabel}
+        gestureHint={detailCopy.routeMap.gestureHint}
+        onClose={closeImageViewer}
+      />
+      {screen !== 'welcome' && (
+        <NetworkStatusBanner
+          wifiHint={copy.wifiHint}
+          onlineLabel={copy.networkStatus.online}
+          offlineLabel={copy.networkStatus.offline}
+        />
       )}
     </main>
   );
