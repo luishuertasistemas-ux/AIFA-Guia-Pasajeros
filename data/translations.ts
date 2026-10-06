@@ -41,6 +41,12 @@ type DetailTranslations = {
     sections: { title: string; description: string }[];
     culturalAttractions: { title: string; badges: string[] }[];
     commercialAttractions: { title: string; badges: string[] }[];
+    localAttractions: {
+      title: string;
+      description: string;
+      directionsLabel: string;
+      cards: { title: string; description: string; directions: string }[];
+    };
     photoBadges: string[];
     photoLink: string;
   };
@@ -398,6 +404,28 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     tourism: {
       title: 'Paseo y Turismo',
       description: 'Explora los museos, experiencias comerciales y espacios fotográficos del AIFA.',
+      localAttractions: {
+        title: 'Entorno Local · Tecámac Centro',
+        description: 'Descubre espacios naturales, históricos y culturales cerca del AIFA.',
+        directionsLabel: 'Cómo llegar desde Mexibús Línea 1',
+        cards: [
+          {
+            title: 'Parque Sierra Hermosa',
+            description: 'Un espacio natural y recreativo emblemático de Tecámac.',
+            directions: 'Desde la estación Terminal de Pasajeros del AIFA, aborda Mexibús Línea 1 hacia Ojo de Agua. En Ojo de Agua, conecta con taxi o transporte local hacia el parque; confirma el punto de descenso con el operador.'
+          },
+          {
+            title: 'Tecámac Centro & Plaza Principal',
+            description: 'Recorre el centro histórico y su plaza principal.',
+            directions: 'Desde Terminal de Pasajeros, viaja en Línea 1 dirección Ojo de Agua y baja en Ojo de Agua. Continúa en transporte local o taxi hacia el Centro de Tecámac y la Plaza Principal; la plaza no cuenta con estación de Mexibús.'
+          },
+          {
+            title: 'Corredor Cultural AIFA',
+            description: 'Museos, aviación y patrimonio histórico en el entorno del AIFA.',
+            directions: 'Baja en Terminal de Pasajeros del AIFA. Desde ahí sigue los señalamientos hacia el corredor cultural dentro del complejo; confirma horarios y acceso público de cada recinto antes de ir.'
+          }
+        ]
+      },
       sections: [
         { title: '1. Corredor Cultural y Museos', description: 'Descubre los espacios culturales únicos integrados dentro del área aeroportuaria.' },
         { title: '2. Experiencia Comercial y Baños Temáticos', description: 'Recorre los atractivos de la cultura popular mexicana dentro del terminal.' },
@@ -514,6 +542,28 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     tourism: {
       title: 'Tourism and leisure',
       description: 'Explore AIFA’s museums, shopping experiences, and photo spots.',
+      localAttractions: {
+        title: 'Local Area · Tecámac Center',
+        description: 'Discover natural, historic, and cultural sites near AIFA.',
+        directionsLabel: 'Getting there from Mexibús Line 1',
+        cards: [
+          {
+            title: 'Sierra Hermosa Park',
+            description: 'A landmark natural and recreational space in Tecámac.',
+            directions: 'From AIFA Passenger Terminal station, take Mexibús Line 1 toward Ojo de Agua. At Ojo de Agua, transfer to a local taxi or transit service to the park; confirm the drop-off point with the operator.'
+          },
+          {
+            title: 'Tecámac Center & Main Plaza',
+            description: 'Explore the historic town center and its main plaza.',
+            directions: 'From Passenger Terminal, take Line 1 toward Ojo de Agua and get off at Ojo de Agua. Continue by local transit or taxi to central Tecámac and the Main Plaza; there is no Mexibús station at the plaza.'
+          },
+          {
+            title: 'AIFA Cultural Corridor',
+            description: 'Museums, aviation, and historic heritage around AIFA.',
+            directions: 'Get off at AIFA Passenger Terminal station. Follow signs from there to the cultural corridor within the complex; check each venue’s opening hours and public access before visiting.'
+          }
+        ]
+      },
       sections: [
         { title: '1. Cultural Corridor and Museums', description: 'Discover unique cultural spaces within the airport grounds.' },
         { title: '2. Shopping and Themed Restrooms', description: 'Explore Mexican popular culture attractions inside the terminal.' },
@@ -628,6 +678,28 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     tourism: {
       title: 'Tourisme et loisirs',
       description: 'Explorez les musées, commerces et lieux de photographie de l’AIFA.',
+      localAttractions: {
+        title: 'Environs · Centre de Tecámac',
+        description: 'Découvrez des espaces naturels, historiques et culturels près de l’AIFA.',
+        directionsLabel: 'Itinéraire depuis le Mexibús ligne 1',
+        cards: [
+          {
+            title: 'Parc Sierra Hermosa',
+            description: 'Un espace naturel et de loisirs emblématique de Tecámac.',
+            directions: 'Depuis la station Terminal de pasajeros de l’AIFA, prenez le Mexibús ligne 1 en direction d’Ojo de Agua. À Ojo de Agua, prenez un taxi ou un transport local jusqu’au parc ; confirmez le point de descente auprès du conducteur.'
+          },
+          {
+            title: 'Centre de Tecámac et place principale',
+            description: 'Découvrez le centre historique et sa place principale.',
+            directions: 'Depuis la station Terminal de pasajeros, prenez la ligne 1 vers Ojo de Agua et descendez à Ojo de Agua. Continuez en transport local ou en taxi jusqu’au centre de Tecámac et à la place principale ; celle-ci ne dispose pas de station Mexibús.'
+          },
+          {
+            title: 'Corridor culturel de l’AIFA',
+            description: 'Musées, aviation et patrimoine historique autour de l’AIFA.',
+            directions: 'Descendez à la station Terminal de pasajeros de l’AIFA. Suivez ensuite les panneaux vers le corridor culturel dans le complexe ; vérifiez les horaires et l’accès public de chaque site avant votre visite.'
+          }
+        ]
+      },
       sections: [
         { title: '1. Corridor culturel et musées', description: 'Découvrez des espaces culturels uniques au sein de la zone aéroportuaire.' },
         { title: '2. Commerces et toilettes à thème', description: 'Parcourez les attractions de la culture populaire mexicaine dans le terminal.' },
@@ -742,6 +814,28 @@ const detailTranslations: Record<Language, DetailTranslations> = {
     tourism: {
       title: '观光与休闲',
       description: '探索 AIFA 的博物馆、商业体验和拍照地点。',
+      localAttractions: {
+        title: '周边地区 · Tecámac 市中心',
+        description: '探索 AIFA 附近的自然、历史与文化景点。',
+        directionsLabel: '从 Mexibús 1 号线前往',
+        cards: [
+          {
+            title: 'Sierra Hermosa 公园',
+            description: 'Tecámac 标志性的自然与休闲空间。',
+            directions: '从 AIFA 旅客航站楼站乘坐 Mexibús 1 号线，前往 Ojo de Agua。在 Ojo de Agua 换乘当地出租车或交通工具前往公园；请与运营人员确认下车地点。'
+          },
+          {
+            title: 'Tecámac 市中心与主广场',
+            description: '游览历史中心及其主广场。',
+            directions: '从旅客航站楼站乘坐 1 号线前往 Ojo de Agua，并在 Ojo de Agua 下车。之后乘坐当地交通工具或出租车前往 Tecámac 市中心和主广场；广场没有 Mexibús 车站。'
+          },
+          {
+            title: 'AIFA 文化长廊',
+            description: 'AIFA 周边的博物馆、航空与历史遗产。',
+            directions: '在 AIFA 旅客航站楼站下车，然后按照指示前往园区内的文化长廊；出发前请确认各场馆的开放时间及公众参观安排。'
+          }
+        ]
+      },
       sections: [
         { title: '1. 文化长廊与博物馆', description: '探索机场区域内独特的文化空间。' },
         { title: '2. 商业体验与主题洗手间', description: '在航站楼内体验墨西哥流行文化景点。' },

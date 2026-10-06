@@ -34,7 +34,7 @@ import {
 import QrScannerModal from './QrScannerModal';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { mexibusToDocRoute } from '@/data/mexibusToDocRoute';
-import { getLocalizedLocationInfo, MOCK_LOCATIONS } from '@/data/locations';
+import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
 import { LANGUAGES, translations, type Language } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
@@ -334,6 +334,10 @@ export default function Home() {
   const tourismCommercialAttractions = TOURISM_COMMERCIAL_ATTRACTIONS.map((item, index) => ({
     ...item,
     ...detailCopy.tourism.commercialAttractions[index]
+  }));
+  const localAttractions = LOCAL_ATTRACTION_IMAGES.map((images, index) => ({
+    images,
+    ...detailCopy.tourism.localAttractions.cards[index]
   }));
   const timeTheme = getTimeTheme(currentTime);
   const localizedQrLocation = qrTargetLocation
@@ -1094,6 +1098,58 @@ export default function Home() {
                               <li key={badge} className="rounded-xl border border-white/20 bg-white/15 px-3 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm">{badge}</li>
                             ))}
                           </ul>
+                        </div>
+                      </motion.article>
+                    ))}
+                  </div>
+                </motion.section>
+
+                <motion.section
+                  aria-labelledby="tourism-local-title"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
+                  }}
+                  className="rounded-3xl border border-white/30 bg-white/10 p-6 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.37)] backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)] md:p-10"
+                >
+                  <h2 id="tourism-local-title" className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:text-3xl">
+                    {detailCopy.tourism.localAttractions.title}
+                  </h2>
+                  <p className="mt-3 text-base leading-relaxed text-slate-100/90">
+                    {detailCopy.tourism.localAttractions.description}
+                  </p>
+                  <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {localAttractions.map(({ title, description, directions, images }) => (
+                      <motion.article
+                        key={title}
+                        whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.02 }}
+                        whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                        className="overflow-hidden rounded-2xl border border-white/30 bg-white/10 shadow-lg backdrop-blur-md backdrop-saturate-150 transition-all duration-300 hover:border-purple-300 hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_0_40px_rgba(168,85,247,0.4)]"
+                      >
+                        <div className={`grid aspect-[16/10] gap-1 bg-slate-900 ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 grid-rows-2'}`}>
+                          {images.map((image, imageIndex) => (
+                            <div key={image} className={`relative min-h-0 ${images.length === 3 && imageIndex === 0 ? 'row-span-2' : ''}`}>
+                              <Image
+                                src={image}
+                                alt={`${title} ${imageIndex + 1}`}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                                className="object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="p-5">
+                          <h3 className="text-lg font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h3>
+                          <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{description}</p>
+                          <div className="mt-4 rounded-xl border border-white/20 bg-black/20 p-4">
+                            <h4 className="flex items-center gap-2 text-sm font-bold text-violet-100">
+                              <Bus aria-hidden="true" size={18} />
+                              {detailCopy.tourism.localAttractions.directionsLabel}
+                            </h4>
+                            <p className="mt-2 text-sm leading-relaxed text-slate-100/90">{directions}</p>
+                          </div>
                         </div>
                       </motion.article>
                     ))}

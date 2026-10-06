@@ -57,6 +57,12 @@ const LOCALIZED_MAP_ZONES: Record<LocationMapZone, Record<SupportedLanguage, str
   }
 };
 
+export const LOCAL_ATTRACTION_IMAGES = [
+  ['/images/entorno/sierra-hermosa.jpg'],
+  ['/images/entorno/tecamac-centro.jpg', '/images/entorno/tecamac-parroquia.jpg'],
+  ['/images/museos/museo-aviacion.jpg', '/images/museos/museo-mamut.jpg', '/images/museos/tren-historico.jpg']
+];
+
 export const MOCK_LOCATIONS: Record<string, Location> = {
   'entrada-principal': {
     id: 'entrada-principal',
