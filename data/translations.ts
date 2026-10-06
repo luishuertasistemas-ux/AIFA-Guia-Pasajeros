@@ -58,6 +58,9 @@ export type TransportTranslations = {
   itineraryTitle: string;
   recommendationsTitle: string;
   boardingPointLabel: string;
+  prepaidCardLabel: string;
+  cardFrontLabel: string;
+  cardBackLabel: string;
   taxiFareNote: string;
   busFareNote: string;
   taxis: { title: string; summary: string; details: string; imageAlt: string };
@@ -538,6 +541,9 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       itineraryTitle: 'Itinerario y abordaje',
       recommendationsTitle: 'Recomendaciones para tu viaje',
       boardingPointLabel: 'Punto de abordaje',
+      prepaidCardLabel: 'Tarjeta de prepago requerida',
+      cardFrontLabel: 'Frente',
+      cardBackLabel: 'Reverso',
       taxiFareNote: 'Las tarifas varían según el destino y el servicio. Consulta y paga el precio vigente únicamente en la taquilla oficial antes de abordar.',
       busFareNote: 'Las tarifas y horarios dependen de la línea y el destino. Confirma precio, disponibilidad y andén en la taquilla o con el operador.',
       mexibus: {
@@ -752,6 +758,9 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       itineraryTitle: 'Itinerary and boarding',
       recommendationsTitle: 'Travel recommendations',
       boardingPointLabel: 'Boarding point',
+      prepaidCardLabel: 'Prepaid card required',
+      cardFrontLabel: 'Front',
+      cardBackLabel: 'Back',
       taxiFareNote: 'Fares vary by destination and service. Check and pay the current fare only at the official counter before boarding.',
       busFareNote: 'Fares and schedules depend on the operator and destination. Confirm the fare, availability, and bay at the counter or with the operator.',
       mexibus: {
@@ -966,6 +975,9 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       itineraryTitle: 'Itinéraire et embarquement',
       recommendationsTitle: 'Conseils pour votre trajet',
       boardingPointLabel: 'Point d’embarquement',
+      prepaidCardLabel: 'Carte prépayée requise',
+      cardFrontLabel: 'Recto',
+      cardBackLabel: 'Verso',
       taxiFareNote: 'Les tarifs varient selon la destination et le service. Vérifiez et payez le tarif en vigueur uniquement au guichet officiel avant de monter.',
       busFareNote: 'Les tarifs et horaires dépendent de la ligne et de la destination. Confirmez le tarif, la disponibilité et le quai au guichet ou auprès de l’opérateur.',
       mexibus: {
@@ -1180,6 +1192,9 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       itineraryTitle: '行程与乘车',
       recommendationsTitle: '出行建议',
       boardingPointLabel: '乘车地点',
+      prepaidCardLabel: '需要预付费卡',
+      cardFrontLabel: '正面',
+      cardBackLabel: '背面',
       taxiFareNote: '票价因目的地和服务而异。请在上车前仅于官方柜台查询并支付当前票价。',
       busFareNote: '票价和时刻表因线路及目的地而异。请在柜台或向运营方确认票价、班次和站台。',
       mexibus: {
