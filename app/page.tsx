@@ -663,7 +663,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {arrivalCards.map(({ title, description, badges, icon: StepIcon }, index) => (
+                {arrivalCards.map(({ title, description, badges, transportOptions, icon: StepIcon }) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -680,9 +680,9 @@ export default function Home() {
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
                     <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
-                    {index === 2 ? (
+                    {transportOptions ? (
                       <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
-                        {detailCopy.arrival.transportOptions.map(({ id, label }) => (
+                        {transportOptions.map(({ id, label }) => (
                           <li key={id}>
                             <button
                               type="button"

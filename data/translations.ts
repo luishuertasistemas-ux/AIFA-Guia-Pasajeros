@@ -11,6 +11,7 @@ type GuideCardTranslation = {
   description: string;
   badges: string[];
   linkLabel?: string;
+  transportOptions?: { id: TransportCategoryId; label: string }[];
 };
 
 type ModuleTranslation = {
@@ -104,7 +105,6 @@ export type DetailTranslations = {
     description: string;
     cards: GuideCardTranslation[];
     mapLink: string;
-    transportOptions: { id: TransportCategoryId; label: string }[];
   };
   departure: { title: string; description: string; cards: GuideCardTranslation[] };
   pickup: { title: string; description: string; cards: GuideCardTranslation[] };
@@ -496,16 +496,20 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cards: [
         { title: '1. Reclamo de Equipaje y Control', description: 'Dirígete a las bandas de reclamo de equipaje. Si llegas en un vuelo internacional, pasa por el filtro de Migración e INM.', badges: ['Bandas 1-6', 'Migración INM', 'Aduana'] },
         { title: '2. Servicios Esenciales en la Terminal', description: 'Encuentra cajeros automáticos, casas de cambio, sanitarios temáticos, atención médica y módulos de información a la salida.', badges: ['Cajeros ATM', 'Sanitarios', 'Info Turística'] },
-        { title: '3. Transporte y Salida del AIFA', description: 'Conecta directamente con la estación del Mexibús (Línea 1), taxis autorizados, autobuses foráneos o el área de estacionamiento.', badges: ['Mexibús Línea 1', 'Taxis Autorizados', 'Autobuses Foráneos', 'Estacionamiento'] }
+        {
+          title: '3. Transporte y Salida del AIFA',
+          description: 'Conecta directamente con la estación del Mexibús (Línea 1), taxis autorizados, autobuses foráneos o el área de estacionamiento.',
+          badges: ['Mexibús Línea 1', 'Taxis Autorizados', 'Autobuses Foráneos', 'Estacionamiento'],
+          transportOptions: [
+            { id: 'mexibus', label: 'Mexibús Línea 1' },
+            { id: 'suburban', label: 'Tren Lechería - AIFA' },
+            { id: 'taxis', label: 'Taxis Autorizados' },
+            { id: 'buses', label: 'Autobuses Foráneos' },
+            { id: 'parking', label: 'Estacionamiento' }
+          ]
+        }
       ],
-      mapLink: 'Ver mapa de ubicación →',
-      transportOptions: [
-        { id: 'mexibus', label: 'Mexibús Línea 1' },
-        { id: 'suburban', label: 'Tren Lechería - AIFA' },
-        { id: 'taxis', label: 'Taxis Autorizados' },
-        { id: 'buses', label: 'Autobuses Foráneos' },
-        { id: 'parking', label: 'Estacionamiento' }
-      ]
+      mapLink: 'Ver mapa de ubicación →'
     },
     departure: {
       title: 'Voy a viajar',
@@ -737,16 +741,20 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cards: [
         { title: '1. Baggage Claim and Customs', description: 'Head to the baggage claim belts. If you arrive on an international flight, go through Immigration (INM).', badges: ['Belts 1–6', 'Immigration', 'Customs'] },
         { title: '2. Essential Terminal Services', description: 'Find ATMs, currency exchange, themed restrooms, medical care, and information desks near the exit.', badges: ['ATMs', 'Restrooms', 'Tourist Information'] },
-        { title: '3. Transportation and Leaving AIFA', description: 'Connect directly to Mexibús Line 1, authorized taxis, intercity buses, or the parking area.', badges: ['Mexibús Line 1', 'Authorized Taxis', 'Intercity Buses', 'Parking'] }
+        {
+          title: '3. Transportation and Leaving AIFA',
+          description: 'Connect directly to Mexibús Line 1, authorized taxis, intercity buses, or the parking area.',
+          badges: ['Mexibús Line 1', 'Authorized Taxis', 'Intercity Buses', 'Parking'],
+          transportOptions: [
+            { id: 'mexibus', label: 'Mexibús Line 1' },
+            { id: 'suburban', label: 'Lechería - AIFA Train' },
+            { id: 'taxis', label: 'Authorized Taxis' },
+            { id: 'buses', label: 'Intercity Buses' },
+            { id: 'parking', label: 'Parking' }
+          ]
+        }
       ],
-      mapLink: 'View location map →',
-      transportOptions: [
-        { id: 'mexibus', label: 'Mexibús Line 1' },
-        { id: 'suburban', label: 'Lechería - AIFA Train' },
-        { id: 'taxis', label: 'Authorized Taxis' },
-        { id: 'buses', label: 'Intercity Buses' },
-        { id: 'parking', label: 'Parking' }
-      ]
+      mapLink: 'View location map →'
     },
     departure: {
       title: 'I am travelling',
@@ -976,16 +984,20 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cards: [
         { title: '1. Récupération des bagages et contrôle', description: 'Rendez-vous aux tapis de récupération des bagages. Pour un vol international, passez le contrôle de l’immigration (INM).', badges: ['Tapis 1–6', 'Immigration', 'Douane'] },
         { title: '2. Services essentiels du terminal', description: 'Trouvez des distributeurs, bureaux de change, toilettes à thème, soins médicaux et comptoirs d’information à la sortie.', badges: ['Distributeurs', 'Toilettes', 'Info touristique'] },
-        { title: '3. Transports et sortie de l’AIFA', description: 'Rejoignez directement le Mexibús ligne 1, les taxis autorisés, les autocars ou le parking.', badges: ['Mexibús ligne 1', 'Taxis autorisés', 'Autocars', 'Parking'] }
+        {
+          title: '3. Transports et sortie de l’AIFA',
+          description: 'Rejoignez directement le Mexibús ligne 1, les taxis autorisés, les autocars ou le parking.',
+          badges: ['Mexibús ligne 1', 'Taxis autorisés', 'Autocars', 'Parking'],
+          transportOptions: [
+            { id: 'mexibus', label: 'Mexibús ligne 1' },
+            { id: 'suburban', label: 'Train Lechería - AIFA' },
+            { id: 'taxis', label: 'Taxis autorisés' },
+            { id: 'buses', label: 'Autocars interurbains' },
+            { id: 'parking', label: 'Parking' }
+          ]
+        }
       ],
-      mapLink: 'Voir le plan de l’emplacement →',
-      transportOptions: [
-        { id: 'mexibus', label: 'Mexibús ligne 1' },
-        { id: 'suburban', label: 'Train Lechería - AIFA' },
-        { id: 'taxis', label: 'Taxis autorisés' },
-        { id: 'buses', label: 'Autocars interurbains' },
-        { id: 'parking', label: 'Parking' }
-      ]
+      mapLink: 'Voir le plan de l’emplacement →'
     },
     departure: {
       title: 'Je vais voyager',
@@ -1215,16 +1227,20 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cards: [
         { title: '1. 行李提取与入境检查', description: '前往行李提取转盘。国际航班旅客请通过移民局（INM）检查。', badges: ['1–6号转盘', '移民检查', '海关'] },
         { title: '2. 航站楼基本服务', description: '在出口附近查找自动取款机、货币兑换、主题洗手间、医疗服务和信息柜台。', badges: ['自动取款机', '洗手间', '旅游信息'] },
-        { title: '3. 交通与离开 AIFA', description: '可直接换乘 Mexibús 1号线、授权出租车、长途巴士或前往停车场。', badges: ['Mexibús 1号线', '授权出租车', '长途巴士', '停车场'] }
+        {
+          title: '3. 交通与离开 AIFA',
+          description: '可直接换乘 Mexibús 1号线、授权出租车、长途巴士或前往停车场。',
+          badges: ['Mexibús 1号线', '授权出租车', '长途巴士', '停车场'],
+          transportOptions: [
+            { id: 'mexibus', label: 'Mexibús 1号线' },
+            { id: 'suburban', label: 'Lechería - AIFA 铁路' },
+            { id: 'taxis', label: '授权出租车' },
+            { id: 'buses', label: '城际巴士' },
+            { id: 'parking', label: '停车场' }
+          ]
+        }
       ],
-      mapLink: '查看位置地图 →',
-      transportOptions: [
-        { id: 'mexibus', label: 'Mexibús 1号线' },
-        { id: 'suburban', label: 'Lechería - AIFA 铁路' },
-        { id: 'taxis', label: '授权出租车' },
-        { id: 'buses', label: '城际巴士' },
-        { id: 'parking', label: '停车场' }
-      ]
+      mapLink: '查看位置地图 →'
     },
     departure: {
       title: '我要出发',
