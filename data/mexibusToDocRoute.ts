@@ -30,7 +30,7 @@ export const mexibusToDocRoute: RouteStep[] = [
     stepNumber: 3,
     stage: "Área de Estacionamiento y Tren",
     title: "Tránsito por pasillo de columnas (F a C)",
-    description: "Cruza la cebra del estacionamiento. A tu derecha verás las columnas por área. Cruzando a la derecha queda la entrada/salida del Tren Suburbano y la Terminal de Autobuses.",
+    description: "Cruza la cebra del estacionamiento. A tu derecha verás las columnas por área. Cruzando a la derecha queda la entrada/salida del Tren Lechería-AIFA y la Terminal de Autobuses.",
     referencePoint: "Columnas marcadas con letras D y F, maceteros perimetrales.",
     image: "/images/rutas/mexibus-doc/paso-03.jpg"
   },

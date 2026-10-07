@@ -37,7 +37,7 @@ import TransportExperience from '@/components/TransportExperience';
 import VideoAssistance from '@/components/VideoAssistance';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
-import { LANGUAGES, translations, type Language } from '@/data/translations';
+import { LANGUAGES, translations, type Language, type TransportCategoryId } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
 import type { Location } from '@/types/location';
@@ -189,6 +189,8 @@ export default function Home() {
   const detailCopy = copy.details;
   const [screen, setScreen] = useState<Screen>('welcome');
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
+  const [initialTransportCategory, setInitialTransportCategory] = useState<TransportCategoryId | null>(null);
+  const [returnToArrivalAfterTransport, setReturnToArrivalAfterTransport] = useState(false);
   const [selectedSurveyOption, setSelectedSurveyOption] = useState<OpcionEncuesta | null>(null);
   const [surveyDetails, setSurveyDetails] = useState('');
   const [surveyFinished, setSurveyFinished] = useState(false);
@@ -234,14 +236,36 @@ export default function Home() {
   const openRole = (roleId: RoleId) => {
     setQrTargetLocation(null);
     setIsTiaBannerActive(false);
+    setInitialTransportCategory(null);
+    setReturnToArrivalAfterTransport(false);
     setSelectedRole(roleId);
     setScreen('role');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openArrivalTransport = (categoryId: TransportCategoryId) => {
+    setQrTargetLocation(null);
+    setIsTiaBannerActive(false);
+    setInitialTransportCategory(categoryId);
+    setReturnToArrivalAfterTransport(true);
+    setSelectedRole('transport');
+    setScreen('role');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const returnToArrival = useCallback(() => {
+    setInitialTransportCategory(null);
+    setReturnToArrivalAfterTransport(false);
+    setSelectedRole('arrival');
+    setScreen('role');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const returnToMenu = useCallback(() => {
     setQrTargetLocation(null);
     setIsTiaBannerActive(false);
+    setInitialTransportCategory(null);
+    setReturnToArrivalAfterTransport(false);
     setSelectedRole(null);
     setScreen('hub');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -639,7 +663,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {arrivalCards.map(({ title, description, badges, icon: StepIcon }) => (
+                {arrivalCards.map(({ title, description, badges, icon: StepIcon }, index) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -656,13 +680,29 @@ export default function Home() {
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
                     <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
-                    <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
-                      {badges.map((badge) => (
-                        <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30">
-                          {badge}
-                        </li>
-                      ))}
-                    </ul>
+                    {index === 2 ? (
+                      <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
+                        {detailCopy.arrival.transportOptions.map(({ id, label }) => (
+                          <li key={id}>
+                            <button
+                              type="button"
+                              onClick={() => openArrivalTransport(id)}
+                              className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                            >
+                              {label}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
+                        {badges.map((badge) => (
+                          <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30">
+                            {badge}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <button
                       type="button"
                       onClick={() => openImageViewer('/images/aifa-mapa.png', detailCopy.routeMap.viewAirportMap)}
@@ -1232,8 +1272,9 @@ export default function Home() {
             copy={detailCopy.transport}
             details={detailCopy}
             currentTimeLabel={currentTime ? formatDigitalClock(currentTime, language) : ''}
+            initialCategory={initialTransportCategory}
             onOpenImage={openImageViewer}
-            onBackToMenu={returnToMenu}
+            onBackToMenu={returnToArrivalAfterTransport ? returnToArrival : returnToMenu}
           />
         ) : (
         <motion.section key={`role-${selectedRole}`} className="relative isolate mx-auto flex min-h-[calc(100svh-15rem)] w-full max-w-5xl flex-col px-4 py-6 sm:min-h-[calc(100svh-12rem)] sm:px-8 sm:py-10">

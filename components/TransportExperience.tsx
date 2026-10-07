@@ -11,6 +11,7 @@ type TransportExperienceProps = {
   copy: TransportTranslations;
   details: DetailTranslations;
   currentTimeLabel: string;
+  initialCategory?: TransportCategoryId | null;
   onOpenImage: (src: string, alt: string) => void;
   onBackToMenu: () => void;
 };
@@ -19,10 +20,11 @@ const CATEGORY_IMAGES: Record<TransportCategoryId, string> = {
   mexibus: '/images/transporte/mexibus-terminal-aifa.jpg',
   suburban: '/images/rutas/mexibus-doc/paso-03.jpg',
   taxis: '/images/transporte/taxis-autorizados-aifa.jpg',
-  buses: '/images/transporte/autobuses-ejecutivos-aifa.jpg'
+  buses: '/images/transporte/autobuses-ejecutivos-aifa.jpg',
+  parking: '/images/aifa-mapa.png'
 };
 
-const CATEGORY_IDS: TransportCategoryId[] = ['mexibus', 'suburban', 'taxis', 'buses'];
+const CATEGORY_IDS: TransportCategoryId[] = ['mexibus', 'suburban', 'taxis', 'buses', 'parking'];
 
 const HERO_SLIDES: { categoryId: 'mexibus' | 'buses' | 'taxis'; src: string }[] = [
   { categoryId: 'mexibus', src: '/images/transporte/mexibus-terminal-aifa.jpg' },
@@ -34,12 +36,13 @@ export default function TransportExperience({
   copy,
   details,
   currentTimeLabel,
+  initialCategory = null,
   onOpenImage,
   onBackToMenu
 }: TransportExperienceProps) {
   const shouldReduceMotion = useReducedMotion();
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<TransportCategoryId | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<TransportCategoryId | null>(initialCategory);
   const taxiDetails = details.modules['taxis-autobuses'].steps;
   const selectedCopy = selectedCategory ? copy[selectedCategory] : null;
   const selectedImage = selectedCategory ? CATEGORY_IMAGES[selectedCategory] : null;
@@ -97,7 +100,7 @@ export default function TransportExperience({
             className="mb-7 inline-flex min-h-14 items-center gap-3 rounded-xl border border-sky-200/40 bg-black/50 px-5 py-3 text-base font-bold text-white shadow-lg drop-shadow-md transition hover:bg-blue-950/80 focus:outline-none focus-visible:ring-4 focus-visible:ring-sky-300"
           >
             <ArrowLeft aria-hidden="true" size={24} />
-            {selectedCategory ? copy.detailBack : details.backToMenu}
+            {selectedCategory ? copy.detailBack : initialCategory ? copy.backToArrival : details.backToMenu}
           </button>
           {!selectedCategory && (
             <div
@@ -178,7 +181,7 @@ export default function TransportExperience({
               />
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/10" />
               <p className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/55 px-4 py-2 text-sm font-bold text-white backdrop-blur-md">
-                {selectedCategory === 'mexibus' ? <Bus aria-hidden="true" size={18} /> : selectedCategory === 'suburban' ? <TrainFront aria-hidden="true" size={18} /> : <CarFront aria-hidden="true" size={18} />}
+                {selectedCategory === 'mexibus' || selectedCategory === 'buses' ? <Bus aria-hidden="true" size={18} /> : selectedCategory === 'suburban' ? <TrainFront aria-hidden="true" size={18} /> : <CarFront aria-hidden="true" size={18} />}
                 {selectedCopy.title}
               </p>
             </div>
@@ -219,6 +222,32 @@ export default function TransportExperience({
                   </div>
                 </section>
               </>
+            ) : selectedCategory === 'parking' ? (
+              <section aria-labelledby="parking-information-title" className="rounded-3xl border border-white/25 bg-slate-950/40 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">
+                <h2 id="parking-information-title" className="sr-only">{selectedCopy.title}</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <article className="rounded-2xl border border-white/15 bg-white/5 p-5">
+                    <h3 className="text-lg font-bold text-emerald-200">{selectedCopy.locationLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.locationDetails}</p>
+                    <button
+                      type="button"
+                      onClick={() => onOpenImage('/images/aifa-mapa.png', details.routeMap.viewAirportMap)}
+                      className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200/40 bg-emerald-500/20 px-4 py-2 text-sm font-bold text-emerald-50 transition hover:bg-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                    >
+                      <ArrowRight aria-hidden="true" size={17} />
+                      {details.routeMap.viewAirportMap}
+                    </button>
+                  </article>
+                  <article className="rounded-2xl border border-white/15 bg-white/5 p-5">
+                    <h3 className="text-lg font-bold text-emerald-200">{selectedCopy.levelsLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.levelsDetails}</p>
+                  </article>
+                  <article className="rounded-2xl border border-amber-200/20 bg-amber-300/10 p-5 md:col-span-2">
+                    <h3 className="text-lg font-bold text-amber-100">{selectedCopy.faresLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.faresNote}</p>
+                  </article>
+                </div>
+              </section>
             ) : (
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,0.65fr)]">
                 <section className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">

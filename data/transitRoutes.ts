@@ -20,12 +20,14 @@ export const transitRoutes: TransitRoute[] = [
       { id: 'loma-bonita', name: 'Loma Bonita' },
       { id: 'ozumbilla', name: 'Ozumbilla' },
       { id: 'san-francisco', name: 'San Francisco' },
-      { id: 'tecamac-centro', name: 'Tecámac Centro' },
-      { id: 'heroes-de-tecamac', name: 'Héroes de Tecámac' },
+      { id: 'quetzalcoatl', name: 'Quetzalcóatl' },
+      { id: 'tecamac', name: 'Tecámac' },
+      { id: 'la-redonda', name: 'La Redonda' },
       { id: 'glorieta-militar', name: 'Glorieta Militar' },
-      { id: 'lomas-de-san-francisco', name: 'Lomas de San Francisco' },
-      { id: 'san-pedro-pozohuacan', name: 'San Pedro Pozohuacan' },
-      { id: 'terminal-aifa', name: 'Terminal AIFA' }
+      { id: 'combustibles', name: 'Combustibles' },
+      { id: 'hacienda', name: 'Hacienda' },
+      { id: 'torre-de-control', name: 'Torre de Control' },
+      { id: 'terminal-pasajeros-aifa', name: 'Terminal de Pasajeros / AIFA' }
     ]
   },
   {
@@ -33,14 +35,18 @@ export const transitRoutes: TransitRoute[] = [
     frequencyMinutes: '5–10',
     travelTimeMinutes: '35–45',
     stations: [
+      { id: 'buenavista', name: 'Buenavista' },
+      { id: 'fortuna', name: 'Fortuna' },
+      { id: 'tlalnepantla', name: 'Tlalnepantla' },
+      { id: 'san-rafael', name: 'San Rafael' },
       { id: 'lecheria', name: 'Lechería' },
       { id: 'cueyamil', name: 'Cueyamil' },
-      { id: 'los-agaves', name: 'Los Agaves' },
+      { id: 'la-loma', name: 'La Loma' },
       { id: 'teyahualco', name: 'Teyahualco' },
       { id: 'prados-sur', name: 'Prados Sur' },
-      { id: 'nextlalpan', name: 'Nextlalpan' },
+      { id: 'cajiga', name: 'Cajiga' },
       { id: 'xaltocan', name: 'Xaltocan' },
-      { id: 'aifa', name: 'AIFA' }
+      { id: 'clara-krause-aifa', name: 'Clara Krause / AIFA' }
     ]
   }
 ];

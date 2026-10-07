@@ -46,26 +46,28 @@ export default function RouteMapExplorer({
         </button>
       </header>
 
-      <div className="mt-6">
-        <h3 className="mb-2 text-sm font-bold text-emerald-100">{copy.selectorLabel}</h3>
-        <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label={copy.selectorLabel}>
-          {transitRoutes.map((item) => {
-            const isSelected = item.id === route.id;
-            return (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => selectRoute(item.id)}
-                aria-pressed={isSelected}
-                className={`flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300 ${isSelected ? 'border-emerald-300 bg-emerald-400/20 text-white shadow-[0_0_24px_rgba(52,211,153,0.16)]' : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'}`}
-              >
-                <TrainFront aria-hidden="true" className="shrink-0" size={20} />
-                {item.id === 'mexibus' ? copy.mexibusLabel : copy.suburbanLabel}
-              </button>
-            );
-          })}
+      {initialRouteId === 'mexibus' && (
+        <div className="mt-6">
+          <h3 className="mb-2 text-sm font-bold text-emerald-100">{copy.selectorLabel}</h3>
+          <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label={copy.selectorLabel}>
+            {transitRoutes.map((item) => {
+              const isSelected = item.id === route.id;
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => selectRoute(item.id)}
+                  aria-pressed={isSelected}
+                  className={`flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300 ${isSelected ? 'border-emerald-300 bg-emerald-400/20 text-white shadow-[0_0_24px_rgba(52,211,153,0.16)]' : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'}`}
+                >
+                  <TrainFront aria-hidden="true" className="shrink-0" size={20} />
+                  {item.id === 'mexibus' ? copy.mexibusLabel : copy.suburbanLabel}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-white/15 bg-white/5 p-4">

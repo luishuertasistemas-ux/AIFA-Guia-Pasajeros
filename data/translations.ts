@@ -46,7 +46,7 @@ export type RouteMapTranslations = {
   stationDetails: Record<string, string>;
 };
 
-export type TransportCategoryId = 'mexibus' | 'suburban' | 'taxis' | 'buses';
+export type TransportCategoryId = 'mexibus' | 'suburban' | 'taxis' | 'buses' | 'parking';
 
 export type TransportTranslations = {
   welcomeTitle: string;
@@ -58,6 +58,7 @@ export type TransportTranslations = {
   categoriesTitle: string;
   categoryAction: string;
   detailBack: string;
+  backToArrival: string;
   itineraryTitle: string;
   recommendationsTitle: string;
   boardingPointLabel: string;
@@ -70,6 +71,17 @@ export type TransportTranslations = {
   buses: { title: string; summary: string; details: string; imageAlt: string };
   mexibus: { title: string; summary: string; imageAlt: string };
   suburban: { title: string; summary: string; imageAlt: string };
+  parking: {
+    title: string;
+    summary: string;
+    imageAlt: string;
+    locationLabel: string;
+    locationDetails: string;
+    levelsLabel: string;
+    levelsDetails: string;
+    faresLabel: string;
+    faresNote: string;
+  };
   taxiRecommendations: string[];
   busRecommendations: string[];
 };
@@ -87,7 +99,13 @@ export type DetailTranslations = {
   accessibility: string;
   photoPoints: string;
   roles: Record<'arrival' | 'departure' | 'pickup' | 'tourism' | 'transport' | 'lost-items' | 'pets', RoleTranslation & { description: string; steps: string[] }>;
-  arrival: { title: string; description: string; cards: GuideCardTranslation[]; mapLink: string };
+  arrival: {
+    title: string;
+    description: string;
+    cards: GuideCardTranslation[];
+    mapLink: string;
+    transportOptions: { id: TransportCategoryId; label: string }[];
+  };
   departure: { title: string; description: string; cards: GuideCardTranslation[] };
   pickup: { title: string; description: string; cards: GuideCardTranslation[] };
   tourism: {
@@ -480,7 +498,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         { title: '2. Servicios Esenciales en la Terminal', description: 'Encuentra cajeros automáticos, casas de cambio, sanitarios temáticos, atención médica y módulos de información a la salida.', badges: ['Cajeros ATM', 'Sanitarios', 'Info Turística'] },
         { title: '3. Transporte y Salida del AIFA', description: 'Conecta directamente con la estación del Mexibús (Línea 1), taxis autorizados, autobuses foráneos o el área de estacionamiento.', badges: ['Mexibús Línea 1', 'Taxis Autorizados', 'Autobuses Foráneos', 'Estacionamiento'] }
       ],
-      mapLink: 'Ver mapa de ubicación →'
+      mapLink: 'Ver mapa de ubicación →',
+      transportOptions: [
+        { id: 'mexibus', label: 'Mexibús Línea 1' },
+        { id: 'suburban', label: 'Tren Lechería - AIFA' },
+        { id: 'taxis', label: 'Taxis Autorizados' },
+        { id: 'buses', label: 'Autobuses Foráneos' },
+        { id: 'parking', label: 'Estacionamiento' }
+      ]
     },
     departure: {
       title: 'Voy a viajar',
@@ -586,6 +611,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       categoriesTitle: 'Elige cómo quieres continuar tu viaje',
       categoryAction: 'Ver ruta y detalles',
       detailBack: 'Volver a opciones de transporte',
+      backToArrival: 'Volver a Llegué en un vuelo',
       itineraryTitle: 'Itinerario y abordaje',
       recommendationsTitle: 'Recomendaciones para tu viaje',
       boardingPointLabel: 'Punto de abordaje',
@@ -600,14 +626,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         imageAlt: 'Acceso y andén del Mexibús',
       },
       suburban: {
-        title: 'Tren Suburbano Lechería – AIFA',
+        title: 'Tren Lechería-AIFA (Tren Felipe Ángeles)',
         summary: 'Conexión ferroviaria entre Lechería y la zona aeroportuaria del AIFA.',
-        imageAlt: 'Tren suburbano en una estación',
+        imageAlt: 'Tren Lechería-AIFA en una estación',
       },
       taxis: {
         title: 'Taxis autorizados y plataformas',
         summary: 'Traslados directos desde el área oficial de llegadas del aeropuerto.',
-        details: 'Los módulos de taxis autorizados se encuentran en el área pública de llegadas. Para servicios por plataforma, sigue las indicaciones del aeropuerto al punto de recogida designado.',
+        details: 'Las taquillas de taxis autorizados están en el área pública de llegadas. Aborda únicamente en la zona señalizada que te indiquen. Consulta allí las empresas disponibles y la tarifa vigente para tu destino antes de pagar.',
         imageAlt: 'Área de llegadas y acceso a transporte terrestre en el AIFA',
       },
       buses: {
@@ -615,6 +641,17 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         summary: 'Salidas a ciudades y terminales regionales desde la terminal de autobuses.',
         details: 'La terminal ofrece conexiones a Puebla, Querétaro, Pachuca, Toluca y terminales de Ciudad de México como TAPO, Norte y Sur. Confirma el destino y andén antes de abordar.',
         imageAlt: 'Señalización de conexiones de transporte en la terminal del AIFA',
+      },
+      parking: {
+        title: 'Estacionamiento principal',
+        summary: 'Consulta la orientación para llegar al estacionamiento principal del AIFA.',
+        imageAlt: 'Mapa del AIFA para ubicar el estacionamiento principal',
+        locationLabel: 'Ubicación',
+        locationDetails: 'El estacionamiento principal se encuentra junto al edificio terminal. Sigue los señalamientos oficiales de estacionamiento al aproximarte y consulta el mapa del AIFA.',
+        levelsLabel: 'Niveles',
+        levelsDetails: 'Los niveles del estacionamiento están señalizados en sitio. Revisa las indicaciones en los accesos, identifica el nivel y sector donde dejes el vehículo y conserva esa referencia.',
+        faresLabel: 'Tarifas',
+        faresNote: 'Las tarifas vigentes se consultan en sitio, en los accesos y puntos de pago del estacionamiento. Verifica el importe antes de estacionarte.'
       },
       taxiRecommendations: [
         'Compra el servicio solo en taquillas oficiales y verifica el destino y el total antes de pagar.',
@@ -632,7 +669,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       description: 'Explora las estaciones de cada conexión. Selecciona una estación para consultar su zona, conexiones locales y lugares de interés cercanos.',
       selectorLabel: 'Selecciona una ruta',
       mexibusLabel: 'Mexibús Línea 1 · Ojo de Agua — Terminal AIFA',
-      suburbanLabel: 'Tren Suburbano · Lechería — AIFA',
+      suburbanLabel: 'Tren Lechería-AIFA (Tren Felipe Ángeles)',
       stationListLabel: 'Estaciones',
       stationDetailsLabel: 'Detalles de estación',
       frequencyLabel: 'Frecuencia estimada',
@@ -643,7 +680,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cardFareLabel: 'Tarjeta Mexipase / Movimex (incluye 1 viaje)',
       transferTitle: 'Transbordo en Ojo de Agua',
       transferDescription: 'Gratuito con la misma tarjeta dentro de la misma línea. Presenta la tarjeta al hacer el transbordo.',
-      estimateNote: 'Frecuencias y tiempos son estimados; pueden variar según operación y horario. Confirma información vigente con el operador. La tarifa del Tren Suburbano no se muestra aquí.',
+      estimateNote: 'Frecuencias y tiempos son estimados; pueden variar según operación y horario. Confirma información vigente con el operador. La tarifa del Tren Lechería-AIFA no se muestra aquí.',
       viewAirportMap: 'Ampliar mapa del AIFA',
       openImageLabel: 'Ampliar imagen en pantalla completa',
       closeViewerLabel: 'Cerrar visor de imagen',
@@ -654,10 +691,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       stationDetails: {
         default: 'Ubicación: zona de {station}. Conexiones: consulta en sitio las rutas de transporte local disponibles. Cerca: servicios y comercios de la zona; confirma accesos y horarios.',
         'ojo-de-agua': 'Ubicación: estación Ojo de Agua, punto de conexión de la Línea 1. Conexiones: transbordo gratuito con la misma tarjeta dentro de la misma línea. Cerca: servicios y transporte local; confirma el punto de ascenso.',
-        'tecamac-centro': 'Ubicación: centro de Tecámac. Conexiones: consulta transporte local hacia el centro y su plaza principal. Cerca: centro histórico; el Parque Sierra Hermosa requiere traslado local, confirma la ruta.',
-        'terminal-aifa': 'Ubicación: terminal de pasajeros del AIFA. Conexiones: accesos a la terminal, taxis autorizados, autobuses y Tren Suburbano. Cerca: Corredor Cultural y museos del AIFA; revisa horarios y acceso público.',
-        lecheria: 'Ubicación: estación Lechería, punto de conexión con el Tren Suburbano existente. Conexiones: servicios ferroviarios hacia el Valle de México; confirma transbordos y horarios.',
-        aifa: 'Ubicación: estación de la zona aeroportuaria del AIFA. Conexiones: acceso al aeropuerto; sigue la señalización oficial hacia la terminal. Cerca: Corredor Cultural y museos; revisa horarios y acceso público.'
+        tecamac: 'Ubicación: estación Tecámac. Conexiones: consulta transporte local hacia el centro y su plaza principal. Cerca: centro histórico; el Parque Sierra Hermosa requiere traslado local, confirma la ruta.',
+        'terminal-pasajeros-aifa': 'Ubicación: terminal de pasajeros del AIFA. Conexiones: accesos a la terminal y transporte terrestre. Cerca: Corredor Cultural y museos del AIFA; revisa horarios y acceso público.',
+        lecheria: 'Ubicación: estación Lechería, punto de conexión con el Tren Lechería-AIFA. Conexiones: servicios ferroviarios hacia el Valle de México; confirma transbordos y horarios.',
+        'clara-krause-aifa': 'Ubicación: estación Clara Krause / AIFA, terminal del Tren Lechería-AIFA. Sigue la señalización oficial para llegar a la terminal aeroportuaria.'
       }
     },
     routeGallery: {
@@ -666,7 +703,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       steps: [
         { stage: 'Estación Mexibús', title: 'Llegada y salida por torniquetes', description: 'Llegas a la estación Terminal de Pasajeros (última estación) y sales por los torniquetes para avanzar.', referencePoint: 'Piso podotáctil con franjas amarillas en relieve para guía visual y táctil.', accessibilityNote: 'Línea podotáctil presente en todo el trayecto inicial.' },
         { stage: 'Explanada de Conexión', title: 'Giro a la izquierda y paso peatonal', description: 'Avanza de 12 a 15 metros al frente y gira a la izquierda siguiendo la línea podotáctil. Cruza el paso cebra con precaución.', referencePoint: 'Bolardos lumínicos y bolardos metálicos de seguridad con franja reflectante.' },
-        { stage: 'Área de Estacionamiento y Tren', title: 'Tránsito por pasillo de columnas (F a C)', description: 'Cruza la cebra del estacionamiento. A tu derecha verás las columnas por área. Cruzando a la derecha queda la entrada y salida del Tren Suburbano y la Terminal de Autobuses.', referencePoint: 'Columnas marcadas con letras D y F, maceteros perimetrales.' },
+        { stage: 'Área de Estacionamiento y Tren', title: 'Tránsito por pasillo de columnas (F a C)', description: 'Cruza la cebra del estacionamiento. A tu derecha verás las columnas por área. Cruzando a la derecha queda la entrada y salida del Tren Lechería-AIFA y la Terminal de Autobuses.', referencePoint: 'Columnas marcadas con letras D y F, maceteros perimetrales.' },
         { stage: 'Ingreso al Edificio Terminal', title: 'Acceso por Puerta 5 (Llegadas)', description: 'Continúa pasando las columnas C, B y A. Gira ligeramente a la izquierda para ingresar por la Puerta 5 de Llegadas.', referencePoint: 'Escultura gigante de dinosaurio volador (Pterodáctilo) suspendido en el techo.' },
         { stage: 'Ascenso a Salidas', title: 'Escaleras eléctricas a Vuelos de Salida', description: 'Cruza las puertas automáticas y gira a la izquierda. Toma las escaleras eléctricas señalizadas hacia Vuelos de Salida.', referencePoint: 'Letrero Vuelos de Salida al inicio de las escaleras.' },
         { stage: 'Área de Documentación', title: 'Llegada a mostradores de equipaje', description: 'Al subir las escaleras, gira a la derecha. Encontrarás los módulos de documentación de equipaje nacionales e internacionales.', referencePoint: 'Módulos de check-in y mostradores de aerolíneas.' }
@@ -702,7 +739,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         { title: '2. Essential Terminal Services', description: 'Find ATMs, currency exchange, themed restrooms, medical care, and information desks near the exit.', badges: ['ATMs', 'Restrooms', 'Tourist Information'] },
         { title: '3. Transportation and Leaving AIFA', description: 'Connect directly to Mexibús Line 1, authorized taxis, intercity buses, or the parking area.', badges: ['Mexibús Line 1', 'Authorized Taxis', 'Intercity Buses', 'Parking'] }
       ],
-      mapLink: 'View location map →'
+      mapLink: 'View location map →',
+      transportOptions: [
+        { id: 'mexibus', label: 'Mexibús Line 1' },
+        { id: 'suburban', label: 'Lechería - AIFA Train' },
+        { id: 'taxis', label: 'Authorized Taxis' },
+        { id: 'buses', label: 'Intercity Buses' },
+        { id: 'parking', label: 'Parking' }
+      ]
     },
     departure: {
       title: 'I am travelling',
@@ -806,6 +850,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       categoriesTitle: 'Choose how to continue your journey',
       categoryAction: 'View route and details',
       detailBack: 'Back to transportation options',
+      backToArrival: 'Back to arrivals',
       itineraryTitle: 'Itinerary and boarding',
       recommendationsTitle: 'Travel recommendations',
       boardingPointLabel: 'Boarding point',
@@ -820,14 +865,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         imageAlt: 'Mexibús station entrance and platform',
       },
       suburban: {
-        title: 'Suburban Train Lechería – AIFA',
+        title: 'Lechería-AIFA Train (Felipe Ángeles Train)',
         summary: 'Rail connection between Lechería and the AIFA airport area.',
-        imageAlt: 'Suburban train at a station',
+        imageAlt: 'Lechería-AIFA Train at a station',
       },
       taxis: {
         title: 'Authorized taxis and ride-hailing',
         summary: 'Direct rides from the airport’s official arrivals area.',
-        details: 'Authorized taxi counters are in the public arrivals area. For ride-hailing services, follow airport signs to the designated pickup point.',
+        details: 'Authorized taxi counters are in the public arrivals area. Board only in the signed zone indicated by airport staff. Check the available operators and current fare for your destination at the counter before paying.',
         imageAlt: 'Arrivals area and ground transportation access at AIFA',
       },
       buses: {
@@ -835,6 +880,17 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         summary: 'Services to cities and regional terminals from the bus terminal.',
         details: 'The terminal offers connections to Puebla, Querétaro, Pachuca, Toluca, and Mexico City terminals such as TAPO, North, and South. Confirm your destination and bay before boarding.',
         imageAlt: 'Transportation connection signs inside the AIFA terminal',
+      },
+      parking: {
+        title: 'Main parking',
+        summary: 'Find guidance for reaching AIFA’s main parking area.',
+        imageAlt: 'AIFA map showing the main parking area',
+        locationLabel: 'Location',
+        locationDetails: 'The main parking area is next to the terminal building. Follow official parking signs as you approach and consult the AIFA map.',
+        levelsLabel: 'Levels',
+        levelsDetails: 'Parking levels are marked on site. Check signs at the entrances, note the level and section where you leave your vehicle, and keep that reference.',
+        faresLabel: 'Fares',
+        faresNote: 'Current rates are posted on site at the parking entrances and payment points. Check the amount before parking.'
       },
       taxiRecommendations: [
         'Buy service only at official counters and verify your destination and total fare before paying.',
@@ -852,7 +908,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       description: 'Explore the stations on each connection. Select a station to see its area, local connections, and nearby points of interest.',
       selectorLabel: 'Choose a route',
       mexibusLabel: 'Mexibús Line 1 · Ojo de Agua — AIFA Terminal',
-      suburbanLabel: 'Suburban Train · Lechería — AIFA',
+      suburbanLabel: 'Lechería-AIFA Train (Felipe Ángeles Train)',
       stationListLabel: 'Stations',
       stationDetailsLabel: 'Station details',
       frequencyLabel: 'Estimated frequency',
@@ -863,7 +919,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cardFareLabel: 'Mexipase / Movimex card (includes 1 ride)',
       transferTitle: 'Transfer at Ojo de Agua',
       transferDescription: 'Free with the same card on the same line. Present your card when transferring.',
-      estimateNote: 'Frequencies and journey times are estimates and may vary by service and time of day. Confirm current information with the operator. The Suburban Train fare is not listed here.',
+      estimateNote: 'Frequencies and journey times are estimates and may vary by service and time of day. Confirm current information with the operator. The Lechería-AIFA Train fare is not listed here.',
       viewAirportMap: 'Enlarge AIFA map',
       openImageLabel: 'View image full screen',
       closeViewerLabel: 'Close image viewer',
@@ -874,10 +930,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       stationDetails: {
         default: 'Location: {station} area. Connections: check locally for available transport links. Nearby: local services and shops; confirm access and opening times.',
         'ojo-de-agua': 'Location: Ojo de Agua station, a Line 1 connection point. Connections: free transfer with the same card on the same line. Nearby: local services and transport; confirm the boarding point.',
-        'tecamac-centro': 'Location: central Tecámac. Connections: check local transport to the town center and main square. Nearby: historic center; Sierra Hermosa Park requires local transport, so confirm the route.',
-        'terminal-aifa': 'Location: AIFA passenger terminal. Connections: terminal access, authorized taxis, buses, and the Suburban Train. Nearby: AIFA Cultural Corridor and museums; check opening times and public access.',
-        lecheria: 'Location: Lechería station, connected to the existing Suburban Train. Connections: rail services across the Valley of Mexico; confirm transfers and schedules.',
-        aifa: 'Location: AIFA airport-area station. Connections: airport access; follow official signs to the terminal. Nearby: Cultural Corridor and museums; check opening times and public access.'
+        tecamac: 'Location: Tecámac station. Connections: check local transport to the town center and main square. Nearby: historic center; Sierra Hermosa Park requires local transport, so confirm the route.',
+        'terminal-pasajeros-aifa': 'Location: AIFA passenger terminal. Connections: terminal access and ground transportation. Nearby: AIFA Cultural Corridor and museums; check opening times and public access.',
+        lecheria: 'Location: Lechería station, part of the Lechería-AIFA Train. Connections: rail services across the Valley of Mexico; confirm transfers and schedules.',
+        'clara-krause-aifa': 'Location: Clara Krause / AIFA station, the terminus of the Lechería-AIFA Train. Follow official signs to reach the airport terminal.'
       }
     },
     routeGallery: {
@@ -886,7 +942,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       steps: [
         { stage: 'Mexibús Station', title: 'Arrival and exit through turnstiles', description: 'Arrive at the Passenger Terminal station (the last stop) and exit through the turnstiles to continue.', referencePoint: 'Tactile paving with raised yellow stripes for visual and tactile guidance.', accessibilityNote: 'Tactile paving runs along the entire initial route.' },
         { stage: 'Connection Plaza', title: 'Turn left and use the pedestrian crossing', description: 'Walk 12 to 15 meters straight ahead and turn left, following the tactile paving. Cross the zebra crossing carefully.', referencePoint: 'Lighted bollards and metal safety bollards with reflective stripes.' },
-        { stage: 'Parking and Train Area', title: 'Walk along the column corridor (F to C)', description: 'Cross the parking-lot crossing. The area columns are on your right. Beyond them are the Suburban Train and Bus Terminal entrances.', referencePoint: 'Columns marked D and F, with planters around the perimeter.' },
+        { stage: 'Parking and Train Area', title: 'Walk along the column corridor (F to C)', description: 'Cross the parking-lot crossing. The area columns are on your right. Beyond them are the Lechería-AIFA Train and Bus Terminal entrances.', referencePoint: 'Columns marked D and F, with planters around the perimeter.' },
         { stage: 'Terminal Building Entrance', title: 'Enter through Gate 5 (Arrivals)', description: 'Continue past columns C, B, and A. Turn slightly left to enter through Gate 5 for Arrivals.', referencePoint: 'A large flying dinosaur (pterodactyl) sculpture hanging from the ceiling.' },
         { stage: 'Up to Departures', title: 'Escalators to Departures', description: 'Go through the automatic doors and turn left. Take the escalators marked Departures.', referencePoint: 'Departures sign at the foot of the escalators.' },
         { stage: 'Check-in Area', title: 'Arrive at the baggage counters', description: 'At the top of the escalators, turn right. You will find domestic and international baggage check-in counters.', referencePoint: 'Check-in kiosks and airline counters.' }
@@ -922,7 +978,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         { title: '2. Services essentiels du terminal', description: 'Trouvez des distributeurs, bureaux de change, toilettes à thème, soins médicaux et comptoirs d’information à la sortie.', badges: ['Distributeurs', 'Toilettes', 'Info touristique'] },
         { title: '3. Transports et sortie de l’AIFA', description: 'Rejoignez directement le Mexibús ligne 1, les taxis autorisés, les autocars ou le parking.', badges: ['Mexibús ligne 1', 'Taxis autorisés', 'Autocars', 'Parking'] }
       ],
-      mapLink: 'Voir le plan de l’emplacement →'
+      mapLink: 'Voir le plan de l’emplacement →',
+      transportOptions: [
+        { id: 'mexibus', label: 'Mexibús ligne 1' },
+        { id: 'suburban', label: 'Train Lechería - AIFA' },
+        { id: 'taxis', label: 'Taxis autorisés' },
+        { id: 'buses', label: 'Autocars interurbains' },
+        { id: 'parking', label: 'Parking' }
+      ]
     },
     departure: {
       title: 'Je vais voyager',
@@ -1026,6 +1089,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       categoriesTitle: 'Choisissez la suite de votre voyage',
       categoryAction: 'Voir l’itinéraire et les détails',
       detailBack: 'Retour aux options de transport',
+      backToArrival: 'Retour aux arrivées',
       itineraryTitle: 'Itinéraire et embarquement',
       recommendationsTitle: 'Conseils pour votre trajet',
       boardingPointLabel: 'Point d’embarquement',
@@ -1040,14 +1104,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         imageAlt: 'Accès et quai de la station Mexibús',
       },
       suburban: {
-        title: 'Train suburbain Lechería – AIFA',
+        title: 'Train Lechería-AIFA (train Felipe Ángeles)',
         summary: 'Liaison ferroviaire entre Lechería et la zone aéroportuaire de l’AIFA.',
-        imageAlt: 'Train suburbain en gare',
+        imageAlt: 'Train Lechería-AIFA en gare',
       },
       taxis: {
         title: 'Taxis autorisés et plateformes',
         summary: 'Trajets directs depuis la zone officielle des arrivées de l’aéroport.',
-        details: 'Les guichets des taxis autorisés se trouvent dans la zone publique des arrivées. Pour les plateformes, suivez les panneaux de l’aéroport jusqu’au point de prise en charge désigné.',
+        details: 'Les guichets des taxis autorisés se trouvent dans la zone publique des arrivées. Embarquez uniquement dans la zone indiquée. Vérifiez au guichet les opérateurs disponibles et le tarif en vigueur pour votre destination avant de payer.',
         imageAlt: 'Zone des arrivées et accès aux transports terrestres de l’AIFA',
       },
       buses: {
@@ -1055,6 +1119,17 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         summary: 'Départs vers des villes et gares régionales depuis la gare routière.',
         details: 'La gare routière dessert Puebla, Querétaro, Pachuca, Toluca et les gares de Mexico telles que TAPO, Norte et Sur. Confirmez la destination et le quai avant l’embarquement.',
         imageAlt: 'Panneaux de correspondance dans le terminal de l’AIFA',
+      },
+      parking: {
+        title: 'Parking principal',
+        summary: 'Repérez le parking principal de l’AIFA.',
+        imageAlt: 'Plan de l’AIFA indiquant le parking principal',
+        locationLabel: 'Emplacement',
+        locationDetails: 'Le parking principal se trouve à côté du terminal. Suivez les panneaux officiels de stationnement à l’approche et consultez le plan de l’AIFA.',
+        levelsLabel: 'Niveaux',
+        levelsDetails: 'Les niveaux du parking sont indiqués sur place. Consultez les panneaux aux accès, notez le niveau et le secteur où vous laissez votre véhicule et gardez ce repère.',
+        faresLabel: 'Tarifs',
+        faresNote: 'Les tarifs en vigueur sont affichés sur place aux accès et aux points de paiement du parking. Vérifiez le montant avant de vous garer.'
       },
       taxiRecommendations: [
         'Achetez votre trajet uniquement aux guichets officiels et vérifiez la destination et le prix total avant de payer.',
@@ -1072,7 +1147,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       description: 'Explorez les stations de chaque liaison. Sélectionnez une station pour connaître son secteur, les correspondances locales et les lieux d’intérêt à proximité.',
       selectorLabel: 'Choisir un itinéraire',
       mexibusLabel: 'Mexibús ligne 1 · Ojo de Agua — Terminal AIFA',
-      suburbanLabel: 'Train suburbain · Lechería — AIFA',
+      suburbanLabel: 'Train Lechería-AIFA (train Felipe Ángeles)',
       stationListLabel: 'Stations',
       stationDetailsLabel: 'Détails de la station',
       frequencyLabel: 'Fréquence estimée',
@@ -1083,7 +1158,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cardFareLabel: 'Carte Mexipase / Movimex (1 voyage inclus)',
       transferTitle: 'Correspondance à Ojo de Agua',
       transferDescription: 'Gratuite avec la même carte sur la même ligne. Présentez votre carte lors de la correspondance.',
-      estimateNote: 'Les fréquences et durées sont estimatives et peuvent varier selon le service et l’horaire. Confirmez les informations auprès de l’opérateur. Le tarif du train suburbain n’est pas indiqué ici.',
+      estimateNote: 'Les fréquences et durées sont estimatives et peuvent varier selon le service et l’horaire. Confirmez les informations auprès de l’opérateur. Le tarif du train Lechería-AIFA n’est pas indiqué ici.',
       viewAirportMap: 'Agrandir le plan de l’AIFA',
       openImageLabel: 'Afficher l’image en plein écran',
       closeViewerLabel: 'Fermer la visionneuse',
@@ -1094,10 +1169,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       stationDetails: {
         default: 'Emplacement : secteur de {station}. Correspondances : renseignez-vous sur place sur les transports locaux disponibles. À proximité : commerces et services du quartier ; vérifiez les accès et horaires.',
         'ojo-de-agua': 'Emplacement : station Ojo de Agua, point de correspondance de la ligne 1. Correspondances : gratuites avec la même carte sur la même ligne. À proximité : services et transports locaux ; confirmez le point de montée.',
-        'tecamac-centro': 'Emplacement : centre de Tecámac. Correspondances : renseignez-vous sur les transports locaux vers le centre et sa place principale. À proximité : centre historique ; le parc Sierra Hermosa nécessite un transport local, confirmez l’itinéraire.',
-        'terminal-aifa': 'Emplacement : terminal passagers de l’AIFA. Correspondances : accès au terminal, taxis autorisés, autocars et train suburbain. À proximité : corridor culturel et musées de l’AIFA ; vérifiez les horaires et l’accès public.',
-        lecheria: 'Emplacement : station Lechería, reliée au train suburbain existant. Correspondances : services ferroviaires dans la vallée de Mexico ; confirmez les correspondances et horaires.',
-        aifa: 'Emplacement : station dans la zone aéroportuaire de l’AIFA. Correspondances : accès à l’aéroport ; suivez la signalisation officielle vers le terminal. À proximité : corridor culturel et musées ; vérifiez les horaires et l’accès public.'
+        tecamac: 'Emplacement : station Tecámac. Correspondances : renseignez-vous sur les transports locaux vers le centre et sa place principale. À proximité : centre historique ; le parc Sierra Hermosa nécessite un transport local, confirmez l’itinéraire.',
+        'terminal-pasajeros-aifa': 'Emplacement : terminal passagers de l’AIFA. Correspondances : accès au terminal et transports terrestres. À proximité : corridor culturel et musées de l’AIFA ; vérifiez les horaires et l’accès public.',
+        lecheria: 'Emplacement : station Lechería, sur le train Lechería-AIFA. Correspondances : services ferroviaires dans la vallée de Mexico ; confirmez les correspondances et horaires.',
+        'clara-krause-aifa': 'Emplacement : station Clara Krause / AIFA, terminus du train Lechería-AIFA. Suivez la signalisation officielle pour rejoindre le terminal de l’aéroport.'
       }
     },
     routeGallery: {
@@ -1106,7 +1181,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       steps: [
         { stage: 'Station Mexibús', title: 'Arrivée et sortie par les tourniquets', description: 'Descendez à la station Terminal des passagers (dernier arrêt) et sortez par les tourniquets pour continuer.', referencePoint: 'Bandes podotactiles jaunes en relief pour un guidage visuel et tactile.', accessibilityNote: 'Une ligne podotactile est présente sur tout le début du parcours.' },
         { stage: 'Esplanade de correspondance', title: 'Tourner à gauche et traverser', description: 'Avancez de 12 à 15 mètres puis tournez à gauche en suivant la ligne podotactile. Traversez prudemment le passage piéton.', referencePoint: 'Potelets lumineux et potelets de sécurité métalliques avec bandes réfléchissantes.' },
-        { stage: 'Parking et train', title: 'Passage le long des colonnes (F à C)', description: 'Traversez le passage piéton du parking. Les colonnes se trouvent à droite. Plus loin se trouvent les accès au train suburbain et à la gare routière.', referencePoint: 'Colonnes marquées D et F, jardinières périphériques.' },
+        { stage: 'Parking et train', title: 'Passage le long des colonnes (F à C)', description: 'Traversez le passage piéton du parking. Les colonnes se trouvent à droite. Plus loin se trouvent les accès au train Lechería-AIFA et à la gare routière.', referencePoint: 'Colonnes marquées D et F, jardinières périphériques.' },
         { stage: 'Entrée du terminal', title: 'Accès par la porte 5 (Arrivées)', description: 'Continuez après les colonnes C, B et A. Tournez légèrement à gauche pour entrer par la porte 5 des arrivées.', referencePoint: 'Une grande sculpture de ptérodactyle suspendue au plafond.' },
         { stage: 'Montée vers les départs', title: 'Escaliers mécaniques vers les départs', description: 'Franchissez les portes automatiques et tournez à gauche. Prenez les escaliers mécaniques indiqués vers les départs.', referencePoint: 'Panneau Départs au début des escaliers.' },
         { stage: 'Zone d’enregistrement', title: 'Arrivée aux comptoirs à bagages', description: 'En haut des escaliers, tournez à droite. Vous trouverez les comptoirs d’enregistrement des bagages nationaux et internationaux.', referencePoint: 'Bornes d’enregistrement et comptoirs des compagnies.' }
@@ -1142,7 +1217,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         { title: '2. 航站楼基本服务', description: '在出口附近查找自动取款机、货币兑换、主题洗手间、医疗服务和信息柜台。', badges: ['自动取款机', '洗手间', '旅游信息'] },
         { title: '3. 交通与离开 AIFA', description: '可直接换乘 Mexibús 1号线、授权出租车、长途巴士或前往停车场。', badges: ['Mexibús 1号线', '授权出租车', '长途巴士', '停车场'] }
       ],
-      mapLink: '查看位置地图 →'
+      mapLink: '查看位置地图 →',
+      transportOptions: [
+        { id: 'mexibus', label: 'Mexibús 1号线' },
+        { id: 'suburban', label: 'Lechería - AIFA 铁路' },
+        { id: 'taxis', label: '授权出租车' },
+        { id: 'buses', label: '城际巴士' },
+        { id: 'parking', label: '停车场' }
+      ]
     },
     departure: {
       title: '我要出发',
@@ -1246,6 +1328,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       categoriesTitle: '选择继续行程的方式',
       categoryAction: '查看线路和详情',
       detailBack: '返回交通选项',
+      backToArrival: '返回到达页面',
       itineraryTitle: '行程与乘车',
       recommendationsTitle: '出行建议',
       boardingPointLabel: '乘车地点',
@@ -1260,14 +1343,14 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         imageAlt: 'Mexibús 车站入口和站台',
       },
       suburban: {
-        title: '城郊铁路 Lechería – AIFA',
+        title: 'Lechería-AIFA 铁路（Felipe Ángeles 列车）',
         summary: '连接 Lechería 与 AIFA 机场区域的铁路线路。',
-        imageAlt: '车站内的城郊列车',
+        imageAlt: 'Lechería-AIFA 车站列车',
       },
       taxis: {
         title: '授权出租车和网约车',
         summary: '从机场官方到达区出发的直达服务。',
-        details: '授权出租车柜台位于公共到达区。如使用网约车，请按照机场指示前往指定上车点。',
+        details: '授权出租车柜台位于公共到达区。请仅在指示的区域上车。付款前，请在柜台确认可用运营商及前往目的地的现行票价。',
         imageAlt: 'AIFA 到达区及地面交通入口',
       },
       buses: {
@@ -1275,6 +1358,17 @@ const detailTranslations: Record<Language, DetailTranslations> = {
         summary: '从巴士站前往各城市和区域汽车站。',
         details: '巴士站提供前往 Puebla、Querétaro、Pachuca、Toluca 以及墨西哥城 TAPO、北站和南站的线路。上车前请确认目的地和站台。',
         imageAlt: 'AIFA 航站楼内的交通换乘指示牌',
+      },
+      parking: {
+        title: '主停车场',
+        summary: '查看前往 AIFA 主停车场的指引。',
+        imageAlt: '标示主停车场位置的 AIFA 地图',
+        locationLabel: '位置',
+        locationDetails: '主停车场紧邻航站楼。驶近机场时请按照官方停车指示牌行驶，并查看 AIFA 地图。',
+        levelsLabel: '楼层',
+        levelsDetails: '停车场楼层以现场指示牌标明。请在入口处查看指示，记下停车楼层和区域，并保留相关信息。',
+        faresLabel: '收费',
+        faresNote: '现行收费标准请在停车场入口和缴费点现场查询。停车前请确认收费金额。'
       },
       taxiRecommendations: [
         '仅在官方柜台购买服务，付款前确认目的地和总价。',
@@ -1292,7 +1386,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       description: '查看各条线路的车站。选择车站可了解所在区域、本地换乘和附近景点。',
       selectorLabel: '选择线路',
       mexibusLabel: 'Mexibús 1号线 · Ojo de Agua — AIFA 航站楼',
-      suburbanLabel: '城郊铁路 · Lechería — AIFA',
+      suburbanLabel: 'Lechería-AIFA 铁路（Felipe Ángeles 列车）',
       stationListLabel: '车站',
       stationDetailsLabel: '车站详情',
       frequencyLabel: '预计发车间隔',
@@ -1303,7 +1397,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       cardFareLabel: 'Mexipase / Movimex 卡（含 1 次乘车）',
       transferTitle: 'Ojo de Agua 换乘',
       transferDescription: '同一线路使用同一张卡可免费换乘。换乘时请出示卡片。',
-      estimateNote: '发车间隔和行程时间为估算值，可能因运营情况和时段而变化。请向运营方确认最新信息。此处未列出城郊铁路票价。',
+      estimateNote: '发车间隔和行程时间为估算值，可能因运营情况和时段而变化。请向运营方确认最新信息。此处未列出 Lechería-AIFA 铁路票价。',
       viewAirportMap: '放大 AIFA 地图',
       openImageLabel: '全屏查看图片',
       closeViewerLabel: '关闭图片查看器',
@@ -1314,10 +1408,10 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       stationDetails: {
         default: '位置：{station} 区域。换乘：请在现场查询可用的本地交通线路。附近：周边服务和商店；请确认开放时间及通行情况。',
         'ojo-de-agua': '位置：Ojo de Agua 车站，1号线换乘点。换乘：同一线路使用同一张卡可免费换乘。附近：本地服务和交通；请确认乘车地点。',
-        'tecamac-centro': '位置：Tecámac 市中心。换乘：查询前往市中心和主广场的本地交通。附近：历史中心；前往 Sierra Hermosa 公园需乘坐本地交通，请确认路线。',
-        'terminal-aifa': '位置：AIFA 旅客航站楼。换乘：航站楼入口、授权出租车、巴士和城郊铁路。附近：AIFA 文化长廊和博物馆；请确认开放时间及公众通行安排。',
-        lecheria: '位置：Lechería 车站，与现有城郊铁路相连。换乘：墨西哥谷地铁路服务；请确认换乘方式和时刻表。',
-        aifa: '位置：AIFA 机场区域车站。换乘：前往机场；请遵循官方指示前往航站楼。附近：文化长廊和博物馆；请确认开放时间及公众通行安排。'
+        tecamac: '位置：Tecámac 车站。换乘：查询前往市中心和主广场的本地交通。附近：历史中心；前往 Sierra Hermosa 公园需乘坐本地交通，请确认路线。',
+        'terminal-pasajeros-aifa': '位置：AIFA 旅客航站楼。换乘：航站楼入口和地面交通。附近：AIFA 文化长廊和博物馆；请确认开放时间及公众通行安排。',
+        lecheria: '位置：Lechería 车站，属于 Lechería-AIFA 铁路。换乘：墨西哥谷地铁路服务；请确认换乘方式和时刻表。',
+        'clara-krause-aifa': '位置：Clara Krause / AIFA 车站，Lechería-AIFA 铁路终点站。请遵循官方指示前往机场航站楼。'
       }
     },
     routeGallery: {
@@ -1326,7 +1420,7 @@ const detailTranslations: Record<Language, DetailTranslations> = {
       steps: [
         { stage: 'Mexibús 车站', title: '抵达并从闸机离开', description: '在旅客航站楼站（终点站）下车，从出口闸机离开并继续前行。', referencePoint: '带凸起黄色条纹的触觉地面，提供视觉和触觉引导。', accessibilityNote: '起始路线全程设有触觉引导线。' },
         { stage: '换乘广场', title: '左转并通过人行横道', description: '向前行走12至15米后，沿触觉引导线左转。小心通过斑马线。', referencePoint: '照明路桩和带反光条的金属安全路桩。' },
-        { stage: '停车场与列车区域', title: '沿柱廊通行（F至C）', description: '穿过停车场人行横道，右侧可见分区立柱。右侧前方是城郊铁路和巴士站的出入口。', referencePoint: '标有 D 和 F 字母的立柱及周边花盆。' },
+        { stage: '停车场与列车区域', title: '沿柱廊通行（F至C）', description: '穿过停车场人行横道，右侧可见分区立柱。右侧前方是 Lechería-AIFA 铁路和巴士站的出入口。', referencePoint: '标有 D 和 F 字母的立柱及周边花盆。' },
         { stage: '航站楼入口', title: '从5号门进入（到达）', description: '经过 C、B、A 号立柱后稍向左转，从到达区5号门进入。', referencePoint: '天花板上悬挂着大型飞行翼龙雕塑。' },
         { stage: '前往出发层', title: '乘自动扶梯前往出发航班', description: '通过自动门后左转，乘坐标有“出发航班”的自动扶梯。', referencePoint: '扶梯入口处的“出发航班”标志。' },
         { stage: '值机区域', title: '抵达行李托运柜台', description: '上楼后右转，即可找到国内和国际航班的行李托运柜台。', referencePoint: '值机自助机和航空公司柜台。' }
