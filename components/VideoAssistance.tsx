@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataConnection, MediaConnection, Peer as PeerInstance } from 'peerjs';
 import { Camera, Mic, PhoneOff, Star, X } from 'lucide-react';
 import type { VideoCallTranslations } from '@/data/translations';
@@ -23,7 +23,6 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   const [ratingSaved, setRatingSaved] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<PeerInstance | null>(null);
   const callRef = useRef<MediaConnection | null>(null);
@@ -32,10 +31,10 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   const recordRef = useRef<VideoCallRecord | null>(null);
   const callEndedRef = useRef(false);
 
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().catch((err) => console.warn('Error al reproducir video local:', err));
+  const setLocalVideoRef = useCallback((node: HTMLVideoElement | null) => {
+    if (node && localStream) {
+      node.srcObject = localStream;
+      node.play().catch((err) => console.log('Autoplay local bloqueado:', err));
     }
   }, [localStream]);
 
@@ -260,16 +259,11 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
                   <div className="space-y-3">
                     <figure className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-black">
                       <video
-                        ref={localVideoRef}
+                        ref={setLocalVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block'
-                        }}
+                        className="w-full h-full object-cover rounded-lg"
                         aria-label={copy.localVideoLabel}
                       />
                     </figure>
