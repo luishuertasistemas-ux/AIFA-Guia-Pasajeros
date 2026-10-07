@@ -23,7 +23,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   const [ratingSaved, setRatingSaved] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<PeerInstance | null>(null);
   const callRef = useRef<MediaConnection | null>(null);
@@ -33,7 +33,9 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   const callEndedRef = useRef(false);
 
   useEffect(() => {
-    if (videoRef.current) videoRef.current.srcObject = localStream;
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
   }, [localStream]);
 
   useEffect(() => {
@@ -256,7 +258,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
                   </figure>
                   <div className="space-y-3">
                     <figure className="relative aspect-video overflow-hidden rounded-2xl border border-emerald-200/30 bg-black">
-                      <video ref={videoRef} autoPlay muted playsInline className="object-cover w-full h-full" aria-label={copy.localVideoLabel} />
+                      <video ref={localVideoRef} autoPlay muted playsInline className="object-cover w-full h-full" aria-label={copy.localVideoLabel} />
                     </figure>
                     <p className="flex items-center gap-2 text-xs text-slate-300"><Camera aria-hidden="true" size={15} />{copy.localVideoLabel}<Mic aria-hidden="true" size={15} /></p>
                   </div>
