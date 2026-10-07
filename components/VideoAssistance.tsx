@@ -35,7 +35,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().catch((err) => console.log('Error al reproducir video local:', err));
+      localVideoRef.current.play().catch((err) => console.warn('Error al reproducir video local:', err));
     }
   }, [localStream]);
 
@@ -264,7 +264,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
                         autoPlay
                         playsInline
                         muted
-                        className="w-full h-full object-cover"
+                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                         aria-label={copy.localVideoLabel}
                       />
                     </figure>
