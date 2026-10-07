@@ -35,6 +35,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch((err) => console.log('Error al reproducir video local:', err));
     }
   }, [localStream]);
 
@@ -258,7 +259,14 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
                   </figure>
                   <div className="space-y-3">
                     <figure className="relative aspect-video overflow-hidden rounded-2xl border border-emerald-200/30 bg-black">
-                      <video ref={localVideoRef} autoPlay muted playsInline className="object-cover w-full h-full" aria-label={copy.localVideoLabel} />
+                      <video
+                        ref={localVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                        aria-label={copy.localVideoLabel}
+                      />
                     </figure>
                     <p className="flex items-center gap-2 text-xs text-slate-300"><Camera aria-hidden="true" size={15} />{copy.localVideoLabel}<Mic aria-hidden="true" size={15} /></p>
                   </div>
