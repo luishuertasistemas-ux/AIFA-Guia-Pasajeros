@@ -251,19 +251,25 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
             {(phase === 'ringing' || phase === 'active') && (
               <>
                 {phase === 'ringing' && <p className="mt-1 text-sm text-slate-300">{copy.waiting}</p>}
-                <div className="mt-5 grid gap-4 md:grid-cols-[1fr_220px]">
-                  <figure className="relative aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
-                    <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" aria-label={copy.remoteVideoLabel} />
+                <div className="mt-5 flex h-full flex-col gap-2 p-2 md:grid md:grid-cols-[1fr_220px] md:gap-4">
+                  <figure className="relative flex-1 w-full overflow-hidden rounded-xl bg-black">
+                    <video
+                      ref={remoteVideoRef}
+                      autoPlay
+                      playsInline
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      aria-label={copy.remoteVideoLabel}
+                    />
                     {!remoteStream && <figcaption className="absolute inset-0 flex items-center justify-center text-sm text-slate-300">{copy.remoteVideoLabel}</figcaption>}
                   </figure>
-                  <div className="space-y-3">
-                    <figure className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-black">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <figure className="relative flex-1 w-full overflow-hidden rounded-xl bg-black">
                       <video
                         ref={setLocalVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        className="w-full h-full object-cover rounded-lg"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         aria-label={copy.localVideoLabel}
                       />
                     </figure>
