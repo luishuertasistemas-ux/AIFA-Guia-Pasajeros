@@ -258,13 +258,18 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
                     {!remoteStream && <figcaption className="absolute inset-0 flex items-center justify-center text-sm text-slate-300">{copy.remoteVideoLabel}</figcaption>}
                   </figure>
                   <div className="space-y-3">
-                    <figure className="relative aspect-video overflow-hidden rounded-2xl border border-emerald-200/30 bg-black">
+                    <figure className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-black">
                       <video
                         ref={localVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
                         aria-label={copy.localVideoLabel}
                       />
                     </figure>
