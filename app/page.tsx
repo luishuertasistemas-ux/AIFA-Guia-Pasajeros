@@ -682,17 +682,51 @@ export default function Home() {
                     <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
                     {transportOptions ? (
                       <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
-                        {transportOptions.map(({ id, label }) => (
-                          <li key={id}>
-                            <button
-                              type="button"
-                              onClick={() => openArrivalTransport(id)}
-                              className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
-                            >
-                              {label}
-                            </button>
-                          </li>
-                        ))}
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => openArrivalTransport('mexibus')}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                          >
+                            {transportOptions.find(({ id }) => id === 'mexibus')?.label ?? 'Mexibús Línea 1'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => openArrivalTransport('suburban')}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                          >
+                            {transportOptions.find(({ id }) => id === 'suburban')?.label ?? 'Tren Lechería - AIFA'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => openArrivalTransport('taxis')}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                          >
+                            {transportOptions.find(({ id }) => id === 'taxis')?.label ?? 'Taxis Autorizados'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => openArrivalTransport('buses')}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                          >
+                            {transportOptions.find(({ id }) => id === 'buses')?.label ?? 'Autobuses Foráneos'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => openArrivalTransport('parking')}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-left text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                          >
+                            {transportOptions.find(({ id }) => id === 'parking')?.label ?? 'Estacionamiento'}
+                          </button>
+                        </li>
                       </ul>
                     ) : (
                       <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">

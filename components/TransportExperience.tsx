@@ -227,8 +227,8 @@ export default function TransportExperience({
                 <h2 id="parking-information-title" className="sr-only">{selectedCopy.title}</h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   <article className="rounded-2xl border border-white/15 bg-white/5 p-5">
-                    <h3 className="text-lg font-bold text-emerald-200">{selectedCopy.locationLabel}</h3>
-                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.locationDetails}</p>
+                    <h3 className="text-lg font-bold text-emerald-200">{copy.parking.locationLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{copy.parking.locationDetails}</p>
                     <button
                       type="button"
                       onClick={() => onOpenImage('/images/aifa-mapa.png', details.routeMap.viewAirportMap)}
@@ -239,12 +239,12 @@ export default function TransportExperience({
                     </button>
                   </article>
                   <article className="rounded-2xl border border-white/15 bg-white/5 p-5">
-                    <h3 className="text-lg font-bold text-emerald-200">{selectedCopy.levelsLabel}</h3>
-                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.levelsDetails}</p>
+                    <h3 className="text-lg font-bold text-emerald-200">{copy.parking.levelsLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{copy.parking.levelsDetails}</p>
                   </article>
                   <article className="rounded-2xl border border-amber-200/20 bg-amber-300/10 p-5 md:col-span-2">
-                    <h3 className="text-lg font-bold text-amber-100">{selectedCopy.faresLabel}</h3>
-                    <p className="mt-2 leading-relaxed text-slate-100">{selectedCopy.faresNote}</p>
+                    <h3 className="text-lg font-bold text-amber-100">{copy.parking.faresLabel}</h3>
+                    <p className="mt-2 leading-relaxed text-slate-100">{copy.parking.faresNote}</p>
                   </article>
                 </div>
               </section>
