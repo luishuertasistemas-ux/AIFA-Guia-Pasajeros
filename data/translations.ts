@@ -209,6 +209,8 @@ export type VideoCallTranslations = {
   endCall: string;
   permissionError: string;
   connectionError: string;
+  connectionLostMessage: string;
+  retryCall: string;
   ratingTitle: string;
   ratingPrompt: string;
   commentLabel: string;
@@ -1447,6 +1449,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       endCall: 'Finalizar videollamada',
       permissionError: 'No se pudo acceder a la cámara o al micrófono. Revisa los permisos del navegador y vuelve a intentarlo.',
       connectionError: 'No fue posible conectar con el gestor. Comprueba tu conexión a internet e inténtalo de nuevo.',
+      connectionLostMessage: 'Se ha perdido la conexión a internet. Intenta reconectarte.',
+      retryCall: 'Reintentar llamada',
       ratingTitle: 'Califica la atención recibida',
       ratingPrompt: '¿Cómo fue tu experiencia con el gestor?',
       commentLabel: 'Comentario (opcional)',
@@ -1539,6 +1543,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       endCall: 'End video call',
       permissionError: 'Could not access your camera or microphone. Check browser permissions and try again.',
       connectionError: 'Could not connect to the manager. Check your internet connection and try again.',
+      connectionLostMessage: 'The internet connection was lost. Try reconnecting.',
+      retryCall: 'Retry call',
       ratingTitle: 'Rate the assistance you received',
       ratingPrompt: 'How was your experience with the manager?',
       commentLabel: 'Comment (optional)',
@@ -1631,6 +1637,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       endCall: 'Terminer l’appel vidéo',
       permissionError: 'Impossible d’accéder à la caméra ou au microphone. Vérifiez les autorisations du navigateur et réessayez.',
       connectionError: 'Impossible de joindre le responsable. Vérifiez votre connexion Internet et réessayez.',
+      connectionLostMessage: 'La connexion Internet a été perdue. Essayez de vous reconnecter.',
+      retryCall: 'Réessayer l’appel',
       ratingTitle: 'Évaluez l’assistance reçue',
       ratingPrompt: 'Comment s’est passée votre expérience avec le responsable ?',
       commentLabel: 'Commentaire (facultatif)',
@@ -1723,6 +1731,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       endCall: '结束视频通话',
       permissionError: '无法访问摄像头或麦克风。请检查浏览器权限后重试。',
       connectionError: '无法连接管理员。请检查网络连接后重试。',
+      connectionLostMessage: '网络连接已断开。请尝试重新连接。',
+      retryCall: '重试通话',
       ratingTitle: '请评价您获得的服务',
       ratingPrompt: '您对管理员的服务体验如何？',
       commentLabel: '评论（可选）',

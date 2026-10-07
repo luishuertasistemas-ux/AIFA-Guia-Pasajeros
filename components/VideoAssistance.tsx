@@ -21,6 +21,8 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [ratingSaved, setRatingSaved] = useState(false);
+  const [connectionLost, setConnectionLost] = useState(false);
+  const connectionLostRef = useRef(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -99,6 +101,8 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
 
   const startCall = async () => {
     setError('');
+    connectionLostRef.current = false;
+    setConnectionLost(false);
     setPhase('connecting');
     setRating(0);
     setComment('');
@@ -136,6 +140,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
       });
       peerRef.current = peer;
       peer.on('error', (peerError) => {
+        if (peerRef.current !== peer) return;
         setError(peerError.type === 'unavailable-id' ? copy.connectionError : peerError.message);
         abortPendingCall();
       });
@@ -152,16 +157,44 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
             metadata: { callId: managementId, startedAt }
           });
           callRef.current = mediaCall;
+          const peerConnection = mediaCall.peerConnection;
+          const handleConnectionStateChange = () => {
+            if (callRef.current !== mediaCall) return;
+
+            const connectionState = peerConnection.connectionState;
+            const iceConnectionState = peerConnection.iceConnectionState;
+            if (
+              connectionState === 'disconnected' ||
+              connectionState === 'failed' ||
+              iceConnectionState === 'disconnected' ||
+              iceConnectionState === 'failed'
+            ) {
+              connectionLostRef.current = true;
+              setConnectionLost(true);
+            } else if (
+              connectionState === 'connected' &&
+              (iceConnectionState === 'connected' || iceConnectionState === 'completed')
+            ) {
+              connectionLostRef.current = false;
+              setConnectionLost(false);
+            }
+          };
+          peerConnection.addEventListener('iceconnectionstatechange', handleConnectionStateChange);
+          peerConnection.addEventListener('connectionstatechange', handleConnectionStateChange);
           mediaCall.on('stream', (remote) => {
             setRemoteStream(remote);
             setPhase('active');
+            connectionLostRef.current = false;
+            setConnectionLost(false);
           });
           mediaCall.on('close', () => {
-            if (!callEndedRef.current) finishCall();
+            if (callRef.current === mediaCall && !callEndedRef.current && !connectionLostRef.current) finishCall();
           });
           mediaCall.on('error', () => {
-            setError(copy.connectionError);
-            if (!callEndedRef.current) finishCall();
+            if (callRef.current === mediaCall && !callEndedRef.current) {
+              connectionLostRef.current = true;
+              setConnectionLost(true);
+            }
           });
         });
         connection.on('data', (payload) => {
@@ -170,7 +203,9 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
             finishCall(message.endedAt, message.durationSeconds);
           }
         });
-        connection.on('error', abortPendingCall);
+        connection.on('error', () => {
+          if (connectionRef.current === connection) abortPendingCall();
+        });
       });
     } catch (callError) {
       localStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -216,9 +251,32 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
     peerRef.current = null;
     recordRef.current = null;
     callEndedRef.current = false;
+    connectionLostRef.current = false;
+    setConnectionLost(false);
     setError('');
     setRatingSaved(false);
     setPhase('idle');
+  };
+
+  const retryCall = () => {
+    callEndedRef.current = true;
+    const previousCall = callRef.current;
+    const previousConnection = connectionRef.current;
+    const previousPeer = peerRef.current;
+    callRef.current = null;
+    connectionRef.current = null;
+    peerRef.current = null;
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    localStreamRef.current = null;
+    previousCall?.close();
+    previousConnection?.close();
+    previousPeer?.destroy();
+    setLocalStream(null);
+    setRemoteStream(null);
+    connectionLostRef.current = false;
+    setConnectionLost(false);
+    setError('');
+    void startCall();
   };
 
   return (
@@ -251,6 +309,18 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
             {(phase === 'ringing' || phase === 'active') && (
               <>
                 {phase === 'ringing' && <p className="mt-1 text-sm text-slate-300">{copy.waiting}</p>}
+                {connectionLost && (
+                  <div role="alert" className="mt-4 rounded-xl border border-rose-200/40 bg-rose-950/70 p-4 text-rose-100">
+                    <p>{copy.connectionLostMessage}</p>
+                    <button
+                      type="button"
+                      onClick={retryCall}
+                      className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-emerald-200/50 bg-emerald-400 px-4 py-2 font-bold text-slate-950 hover:bg-emerald-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white"
+                    >
+                      {copy.retryCall}
+                    </button>
+                  </div>
+                )}
                 <div className="mt-5 flex h-full flex-col gap-2 p-2 md:grid md:grid-cols-[1fr_220px] md:gap-4">
                   <figure className="relative flex-1 w-full overflow-hidden rounded-xl bg-black">
                     <video
