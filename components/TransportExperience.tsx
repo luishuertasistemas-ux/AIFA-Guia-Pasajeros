@@ -18,7 +18,7 @@ type TransportExperienceProps = {
 
 const CATEGORY_IMAGES: Record<TransportCategoryId, string> = {
   mexibus: '/images/transporte/mexibus-terminal-aifa.jpg',
-  suburban: '/images/museos/tren-historico.jpg',
+  suburban: '/images/btn-transporte.jpg',
   taxis: '/images/transporte/taxis-autorizados-aifa.jpg',
   buses: '/images/transporte/autobuses-ejecutivos-aifa.jpg',
   parking: '/images/aifa-mapa.png'
