@@ -30,7 +30,7 @@ export default function RouteMapExplorer({
   };
 
   return (
-    <section aria-labelledby="route-map-title" className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-2xl backdrop-blur-2xl sm:p-7">
+    <section aria-labelledby="route-map-title" className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-2xl backdrop-blur-md sm:p-7">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 id="route-map-title" className="text-2xl font-extrabold tracking-tight text-emerald-200 sm:text-3xl">{copy.title}</h2>

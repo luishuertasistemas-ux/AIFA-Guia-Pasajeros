@@ -149,7 +149,7 @@ export function PodotactileGuideModule() {
   const currentStep = route.steps[stepIndex];
 
   return (
-    <section className="rounded-3xl border border-white/25 bg-slate-950/75 p-5 text-white shadow-2xl backdrop-blur-xl sm:p-7" aria-labelledby="podotactile-guide-title">
+    <section className="rounded-3xl border border-white/25 bg-slate-950/75 p-5 text-white shadow-2xl backdrop-blur-md sm:p-7" aria-labelledby="podotactile-guide-title">
       <header className="mb-5">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-200/30 bg-emerald-300/15 text-emerald-100">

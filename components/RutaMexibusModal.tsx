@@ -46,7 +46,7 @@ export default function RutaMexibusModal({ isOpen, onClose }: RutaMexibusModalPr
       aria-modal="true"
       aria-labelledby="ruta-mexibus-modal-title"
     >
-      <div className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-900/95 text-white shadow-2xl backdrop-blur-2xl">
+      <div className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-900/95 text-white shadow-2xl backdrop-blur-md">
         <div
           className="flex w-full gap-1.5 bg-slate-950/80 px-5 py-3 sm:px-7"
           aria-label={`Progreso: paso ${currentStep.stepNumber} de ${mexibusToDocRoute.length}`}

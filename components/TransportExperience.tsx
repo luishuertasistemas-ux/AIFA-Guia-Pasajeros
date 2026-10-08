@@ -160,7 +160,7 @@ export default function TransportExperience({
               <p className="mt-3 max-w-4xl rounded-2xl border border-emerald-100/20 bg-slate-950/55 p-4 text-justify text-lg font-medium leading-relaxed text-white shadow-lg drop-shadow-md backdrop-blur-md md:text-xl">
                 {copy.welcomeDescription}
               </p>
-              <p className="mt-4 flex max-w-4xl items-start gap-3 rounded-2xl border border-sky-200/25 bg-slate-950/35 p-4 text-sm leading-relaxed text-white shadow-xl backdrop-blur-xl sm:text-base">
+              <p className="mt-4 flex max-w-4xl items-start gap-3 rounded-2xl border border-sky-200/25 bg-slate-950/35 p-4 text-sm leading-relaxed text-white shadow-xl backdrop-blur-md sm:text-base">
                 <Clock3 aria-hidden="true" className="mt-0.5 shrink-0 text-emerald-200" size={20} />
                 <span>{copy.liveMessage} <span className="ml-1 whitespace-nowrap font-bold text-emerald-200">{currentTimeLabel}</span></span>
               </p>
@@ -194,7 +194,7 @@ export default function TransportExperience({
                   initialRouteId={selectedCategory}
                   onOpenImage={onOpenImage}
                 />
-                <section aria-labelledby="prepaid-card-title" className="rounded-3xl border border-emerald-200/25 bg-slate-950/40 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">
+                <section aria-labelledby="prepaid-card-title" className="rounded-3xl border border-emerald-200/25 bg-slate-950/40 p-5 text-white shadow-xl backdrop-blur-md sm:p-7">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 id="prepaid-card-title" className="text-xl font-extrabold text-emerald-200 sm:text-2xl">{copy.prepaidCardLabel}</h2>
                     <span className="rounded-full border border-emerald-200/30 bg-emerald-300/10 px-3 py-1 text-xs font-bold text-emerald-100">{selectedCopy.title}</span>
@@ -223,7 +223,7 @@ export default function TransportExperience({
                 </section>
               </>
             ) : selectedCategory === 'parking' ? (
-              <section aria-labelledby="parking-information-title" className="rounded-3xl border border-white/25 bg-slate-950/40 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">
+              <section aria-labelledby="parking-information-title" className="rounded-3xl border border-white/25 bg-slate-950/40 p-5 text-white shadow-xl backdrop-blur-md sm:p-7">
                 <h2 id="parking-information-title" className="sr-only">{selectedCopy.title}</h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   <article className="rounded-2xl border border-white/15 bg-white/5 p-5">
@@ -250,7 +250,7 @@ export default function TransportExperience({
               </section>
             ) : (
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,0.65fr)]">
-                <section className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">
+                <section className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-xl backdrop-blur-md sm:p-7">
                   <h2 className="text-2xl font-extrabold text-emerald-200">{copy.itineraryTitle}</h2>
                   <h3 className="mt-4 text-lg font-bold text-emerald-100">{roadStep.title}</h3>
                   <p className="mt-2 leading-relaxed text-slate-100">{roadCopy.details}</p>
@@ -265,7 +265,7 @@ export default function TransportExperience({
                     </p>
                   </div>
                 </section>
-                <aside className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-xl backdrop-blur-xl sm:p-7">
+                <aside className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-xl backdrop-blur-md sm:p-7">
                   <h2 className="text-xl font-extrabold text-emerald-200">{copy.recommendationsTitle}</h2>
                   <ul className="mt-4 space-y-3">
                     {recommendations.map((recommendation) => (
@@ -300,7 +300,7 @@ export default function TransportExperience({
                     <button
                       type="button"
                       onClick={() => setSelectedCategory(categoryId)}
-                      className="relative isolate flex min-h-72 w-full flex-col justify-end overflow-hidden rounded-[calc(1.5rem-1px)] bg-slate-900/70 p-5 text-left backdrop-blur-lg focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 sm:min-h-80 sm:p-7"
+                      className="relative isolate flex min-h-72 w-full flex-col justify-end overflow-hidden rounded-[calc(1.5rem-1px)] bg-slate-900/70 p-5 text-left backdrop-blur-md focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 sm:min-h-80 sm:p-7"
                     >
                       <Image
                         src={categoryImage}

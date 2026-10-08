@@ -82,7 +82,7 @@ export default function QRPage() {
               {copy.description}
             </p>
           </div>
-          <div className="inline-flex w-fit shrink-0 gap-1 rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg shadow-blue-950/30 backdrop-blur-xl" role="group" aria-label="Language selector">
+          <div className="inline-flex w-fit shrink-0 gap-1 rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg shadow-blue-950/30 backdrop-blur-md" role="group" aria-label="Language selector">
             {LANGUAGE_OPTIONS.map((option) => (
               <button
                 key={option.code}

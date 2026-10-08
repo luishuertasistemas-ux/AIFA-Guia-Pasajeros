@@ -32,7 +32,7 @@ export default function NetworkStatusBanner({
   return (
     <aside
       aria-live="polite"
-      className="fixed inset-x-3 bottom-3 z-40 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-2xl border border-white/15 bg-slate-950/80 px-4 py-3 text-white shadow-xl backdrop-blur-xl sm:inset-x-auto sm:bottom-5 sm:right-5 sm:max-w-md"
+      className="fixed inset-x-3 bottom-3 z-40 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-2xl border border-white/15 bg-slate-950/80 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:inset-x-auto sm:bottom-5 sm:right-5 sm:max-w-md"
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-300/15 text-amber-200">
         <span aria-hidden="true">💡</span>

@@ -285,7 +285,7 @@ export default function VideoAssistance({ copy }: { copy: VideoCallTranslations 
         <button
           type="button"
           onClick={startCall}
-          className="fixed bottom-20 right-4 z-40 inline-flex min-h-14 items-center gap-3 rounded-2xl border border-emerald-100/50 bg-slate-950/75 px-5 py-3 text-left text-sm font-bold text-white shadow-[0_0_24px_rgba(52,211,153,0.3)] backdrop-blur-xl transition hover:border-emerald-200 hover:bg-emerald-950/80 focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300 sm:bottom-24 sm:right-6 sm:text-base"
+          className="fixed bottom-20 right-4 z-40 inline-flex min-h-14 items-center gap-3 rounded-2xl border border-emerald-100/50 bg-slate-950/75 px-5 py-3 text-left text-sm font-bold text-white shadow-[0_0_24px_rgba(52,211,153,0.3)] backdrop-blur-md transition hover:border-emerald-200 hover:bg-emerald-950/80 focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300 sm:bottom-24 sm:right-6 sm:text-base"
         >
           <Camera aria-hidden="true" className="shrink-0 text-emerald-200" size={22} />
           {copy.button}

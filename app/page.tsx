@@ -404,7 +404,7 @@ export default function Home() {
             </button>
             <div className="mt-4 flex flex-col items-center gap-2">
               <p className="text-xs font-medium tracking-wide text-white/75" id="welcome-language-label">{copy.welcome.languageLabel}</p>
-              <div className="rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg backdrop-blur-xl">
+              <div className="rounded-full border border-white/25 bg-white/10 p-1.5 shadow-lg backdrop-blur-md">
                 <div role="group" aria-labelledby="welcome-language-label" className="flex items-center gap-1">
                   {LANGUAGES.map((option) => (
                     <button
@@ -449,7 +449,7 @@ export default function Home() {
               whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-              className="group relative isolate mb-7 flex min-h-64 w-full cursor-pointer items-center overflow-hidden rounded-3xl border border-cyan-100/70 bg-white/10 p-6 text-left text-white shadow-[0_0_32px_rgba(34,211,238,0.24)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-100 focus:outline-none focus:ring-4 focus:ring-cyan-100 sm:mb-9 sm:min-h-72 sm:p-10"
+              className="group relative isolate mb-7 flex min-h-64 w-full cursor-pointer items-center overflow-hidden rounded-3xl border border-cyan-100/70 bg-white/10 p-6 text-left text-white shadow-[0_0_32px_rgba(34,211,238,0.24)] backdrop-blur-md transition-all duration-300 hover:border-cyan-100 focus:outline-none focus:ring-4 focus:ring-cyan-100 sm:mb-9 sm:min-h-72 sm:p-10"
               aria-label={copy.superCard.ariaLabel}
             >
               <Image
@@ -499,11 +499,16 @@ export default function Home() {
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className={`group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-white/20 ${cardStyle.base} px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-52 sm:p-8`}
                   >
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                      style={cardStyle.image ? { backgroundImage: `url("${cardStyle.image}")` } : undefined}
-                    />
+                    {cardStyle.image && (
+                      <Image
+                        src={cardStyle.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 576px"
+                        loading="lazy"
+                        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
                     <span aria-hidden="true" className={`absolute inset-0 ${cardStyle.overlay}`} />
                     <span className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white drop-shadow-md transition-colors group-hover:bg-white/30">
                       <Icon aria-hidden="true" size={32} strokeWidth={1.8} />
@@ -1150,7 +1155,7 @@ export default function Home() {
                       >
                         <div className="relative aspect-[16/10] bg-slate-200">
                           <button type="button" onClick={() => openImageViewer(image, title)} aria-label={`${detailCopy.routeMap.openImageLabel}: ${title}`} className="absolute inset-0 cursor-zoom-in">
-                            <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover" />
+                            <Image src={image} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" className="object-cover" />
                           </button>
                         </div>
                         <div className="p-5">
