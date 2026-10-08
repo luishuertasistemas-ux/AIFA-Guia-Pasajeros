@@ -509,8 +509,8 @@ export default function Home() {
                       <Icon aria-hidden="true" size={32} strokeWidth={1.8} />
                     </span>
                     <span className="relative z-10 min-w-0 flex-1 drop-shadow-md">
-                      <span className="block text-2xl font-bold leading-snug text-white md:text-3xl">{copy.navigation.roles[roleId].title}</span>
-                      <span className="mt-2 block text-base font-semibold leading-relaxed text-white md:text-lg">{copy.navigation.roles[roleId].subtitle}</span>
+                      <span className="block text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-3xl">{copy.navigation.roles[roleId].title}</span>
+                      <span className="mt-2 block text-base font-medium leading-relaxed text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-lg">{copy.navigation.roles[roleId].subtitle}</span>
                     </span>
                     <ArrowRight aria-hidden="true" className="relative z-10 shrink-0 text-white/75 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
                   </motion.button>
@@ -829,7 +829,7 @@ export default function Home() {
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } }
                   }}
-                  className="mt-3 max-w-3xl text-lg leading-relaxed text-amber-100 drop-shadow-md md:text-xl"
+                  className="mt-3 max-w-3xl text-lg font-medium leading-relaxed text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-xl"
                 >
                   {detailCopy.pickup.description}
                 </motion.p>
@@ -858,10 +858,10 @@ export default function Home() {
                       <StepIcon aria-hidden="true" size={38} strokeWidth={1.8} />
                     </div>
                     <h2 className="mb-3 text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{title}</h2>
-                    <p className="mb-6 text-base leading-relaxed text-slate-100/90">{description}</p>
+                    <p className="mb-6 text-base font-medium leading-relaxed text-slate-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{description}</p>
                     <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
                       {badges.map((badge) => (
-                        <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-amber-100 backdrop-blur-sm transition-all hover:border-amber-300 hover:bg-amber-500/30">
+                        <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-amber-100 drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)] backdrop-blur-sm transition-all hover:border-amber-300 hover:bg-amber-500/30">
                           {badge}
                         </li>
                       ))}
@@ -870,7 +870,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => openImageViewer(href, detailCopy.routeMap.viewAirportMap)}
-                        className="mt-4 block text-sm font-bold text-[#fbbf24] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                        className="mt-4 block text-sm font-bold text-[#fbbf24] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                       >
                         {linkLabel}
                       </button>
@@ -879,7 +879,7 @@ export default function Home() {
                         href={href}
                         target={href.startsWith('https://') ? '_blank' : undefined}
                         rel={href.startsWith('https://') ? 'noreferrer' : undefined}
-                        className="mt-4 block text-sm font-bold text-[#fbbf24] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                        className="mt-4 block text-sm font-bold text-[#fbbf24] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)] hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                       >
                         {linkLabel}
                       </a>
