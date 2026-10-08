@@ -33,7 +33,7 @@ export const transitRoutes: TransitRoute[] = [
   {
     id: 'suburban',
     frequencyMinutes: '5–10',
-    travelTimeMinutes: '35–45',
+    travelTimeMinutes: '50-60',
     stations: [
       { id: 'buenavista', name: 'Buenavista' },
       { id: 'fortuna', name: 'Fortuna' },

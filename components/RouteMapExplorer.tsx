@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPinned, TrainFront } from 'lucide-react';
+import { MapPinned } from 'lucide-react';
 import { MEXIBUS_FARES, transitRoutes } from '@/data/transitRoutes';
 import type { RouteMapTranslations } from '@/data/translations';
 
@@ -16,18 +16,10 @@ export default function RouteMapExplorer({
   onOpenImage,
   initialRouteId = 'mexibus'
 }: RouteMapExplorerProps) {
-  const [selectedRouteId, setSelectedRouteId] = useState<'mexibus' | 'suburban'>(initialRouteId);
-  const route = transitRoutes.find(({ id }) => id === selectedRouteId) ?? transitRoutes[0];
+  const route = transitRoutes.find(({ id }) => id === initialRouteId) ?? transitRoutes[0];
   const [selectedStationId, setSelectedStationId] = useState(route.stations[0].id);
   const selectedStation = route.stations.find(({ id }) => id === selectedStationId) ?? route.stations[0];
   const stationDescription = copy.stationDetails[selectedStation.id] ?? copy.stationDetails.default;
-
-  const selectRoute = (id: 'mexibus' | 'suburban') => {
-    const nextRoute = transitRoutes.find((item) => item.id === id);
-    if (!nextRoute) return;
-    setSelectedRouteId(id);
-    setSelectedStationId(nextRoute.stations[0].id);
-  };
 
   return (
     <section aria-labelledby="route-map-title" className="rounded-3xl border border-white/25 bg-slate-950/35 p-5 text-white shadow-2xl backdrop-blur-md sm:p-7">
@@ -45,29 +37,6 @@ export default function RouteMapExplorer({
           {copy.viewAirportMap}
         </button>
       </header>
-
-      {initialRouteId === 'mexibus' && (
-        <div className="mt-6">
-          <h3 className="mb-2 text-sm font-bold text-emerald-100">{copy.selectorLabel}</h3>
-          <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label={copy.selectorLabel}>
-            {transitRoutes.map((item) => {
-              const isSelected = item.id === route.id;
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => selectRoute(item.id)}
-                  aria-pressed={isSelected}
-                  className={`flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300 ${isSelected ? 'border-emerald-300 bg-emerald-400/20 text-white shadow-[0_0_24px_rgba(52,211,153,0.16)]' : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'}`}
-                >
-                  <TrainFront aria-hidden="true" className="shrink-0" size={20} />
-                  {item.id === 'mexibus' ? copy.mexibusLabel : copy.suburbanLabel}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
@@ -111,7 +80,7 @@ export default function RouteMapExplorer({
           <p className="mt-3 text-sm leading-relaxed text-slate-100">
             {stationDescription.replace(/\{station\}/g, selectedStation.name)}
           </p>
-          {selectedRouteId === 'mexibus' && (
+          {route.id === 'mexibus' && (
             <div className="mt-5 border-t border-white/15 pt-4">
               <h4 className="font-bold text-amber-100">{copy.faresTitle}</h4>
               <p className="mt-2 text-sm text-slate-100">
