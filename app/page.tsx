@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -20,8 +20,10 @@ import {
   MapPin,
   MessageCircle,
   PawPrint,
+  Pause,
   Plane,
   PlaneTakeoff,
+  Play,
   QrCode,
   ShieldCheck,
   Ticket,
@@ -154,6 +156,16 @@ const TIME_THEMES: Record<'morning' | 'afternoon' | 'night', TimeTheme> = {
   afternoon: { image: '/images/hero-tarde.jpg' },
   night: { image: '/images/hero-noche.jpg' }
 };
+const WELCOME_AUDIO_SOURCES: Record<string, string> = {
+  es: '/audio/bienvenida-en-esp.mp3',
+  en: '/audio/bienvenida-en-ing.mp3',
+  fr: '/audio/bienvenida-en-fran.mp3',
+  zh: '/audio/bienvenida-en-chino.mp3'
+};
+
+function getWelcomeAudioSource(language: string): string {
+  return WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-en-chino.mp3';
+}
 
 function getTimeTheme(date: Date | null): TimeTheme {
   if (!date) return TIME_THEMES.morning;
@@ -185,6 +197,7 @@ export default function Home() {
   const shouldReduceMotion = useReducedMotion();
   const playClickSound = useClickSound();
   const { language, setLanguage } = useLanguage();
+  const welcomeAudioRef = useRef<HTMLAudioElement>(null);
   const copy = translations[language];
   const detailCopy = copy.details;
   const [screen, setScreen] = useState<Screen>('welcome');
@@ -199,6 +212,7 @@ export default function Home() {
   const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
   const [isWelcomeFading, setIsWelcomeFading] = useState(false);
+  const [isWelcomeAudioPlaying, setIsWelcomeAudioPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
 
@@ -300,7 +314,46 @@ export default function Home() {
   };
 
   const beginExperience = () => {
-    if (!isWelcomeFading) setIsWelcomeFading(true);
+    if (!isWelcomeFading) {
+      welcomeAudioRef.current?.pause();
+      setIsWelcomeAudioPlaying(false);
+      setIsWelcomeFading(true);
+    }
+  };
+
+  const playWelcomeAudio = (audio: HTMLAudioElement) => {
+    void audio.play().catch((error: unknown) => {
+      console.error('No se pudo reproducir el audio de bienvenida.', error);
+      setIsWelcomeAudioPlaying(false);
+    });
+  };
+
+  const handleWelcomeLanguageChange = (nextLanguage: Language) => {
+    if (nextLanguage === language) return;
+
+    const audio = welcomeAudioRef.current;
+    const shouldResumeAudio = audio !== null && !audio.paused;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = getWelcomeAudioSource(nextLanguage);
+      audio.load();
+    }
+    setIsWelcomeAudioPlaying(false);
+    setLanguage(nextLanguage);
+
+    if (shouldResumeAudio && audio) playWelcomeAudio(audio);
+  };
+
+  const toggleWelcomeAudio = () => {
+    const audio = welcomeAudioRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      playWelcomeAudio(audio);
+    } else {
+      audio.pause();
+    }
   };
 
   const handleQrScan = (value: string) => {
@@ -383,6 +436,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
+      <audio
+        ref={welcomeAudioRef}
+        src={getWelcomeAudioSource(language)}
+        preload="none"
+        onPlay={() => setIsWelcomeAudioPlaying(true)}
+        onPause={() => setIsWelcomeAudioPlaying(false)}
+        onEnded={() => setIsWelcomeAudioPlaying(false)}
+        onError={() => console.error('No se pudo cargar el audio de bienvenida:', welcomeAudioRef.current?.currentSrc)}
+      />
       {screen === 'welcome' && (
         <section
           aria-labelledby="welcome-title"
@@ -410,7 +472,7 @@ export default function Home() {
                     <button
                       key={option}
                       type="button"
-                      onClick={() => setLanguage(option)}
+                      onClick={() => handleWelcomeLanguageChange(option)}
                       aria-label={copy.welcome.languageNames[option]}
                       aria-pressed={language === option}
                       className={`min-h-9 rounded-full px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-white sm:px-3.5 ${language === option ? 'bg-white text-slate-950 shadow' : 'text-white/90 hover:bg-white/15'}`}
@@ -420,6 +482,16 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={toggleWelcomeAudio}
+                aria-label={isWelcomeAudioPlaying ? copy.welcome.pauseAudio : copy.welcome.playAudio}
+                aria-pressed={isWelcomeAudioPlaying}
+                className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 text-xs font-medium text-white/85 shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                {isWelcomeAudioPlaying ? <Pause aria-hidden="true" size={14} /> : <Play aria-hidden="true" size={14} />}
+                {isWelcomeAudioPlaying ? copy.welcome.pauseAudio : copy.welcome.playAudio}
+              </button>
             </div>
           </div>
         </section>

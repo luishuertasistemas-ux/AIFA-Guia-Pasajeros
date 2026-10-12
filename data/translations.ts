@@ -1457,6 +1457,8 @@ type TranslationDictionary = {
     description: string;
     start: string;
     languageLabel: string;
+    playAudio: string;
+    pauseAudio: string;
     languageNames: Record<Language, string>;
   };
   superCard: {
@@ -1505,6 +1507,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       description: 'Tu experiencia en el aeropuerto, guiada paso a paso con la tranquilidad y claridad que mereces.',
       start: 'Iniciar experiencia',
       languageLabel: 'Elige tu idioma',
+      playAudio: 'Reproducir bienvenida',
+      pauseAudio: 'Pausar audio',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
@@ -1599,6 +1603,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       description: 'Your airport experience, guided step by step with the calm and clarity you deserve.',
       start: 'Start your experience',
       languageLabel: 'Select language',
+      playAudio: 'Play welcome audio',
+      pauseAudio: 'Pause audio',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
@@ -1693,6 +1699,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       description: 'Découvrez l’aéroport étape par étape, avec la sérénité et la clarté que vous méritez.',
       start: 'Commencer',
       languageLabel: 'Choisissez votre langue',
+      playAudio: 'Lire le message de bienvenue',
+      pauseAudio: 'Mettre en pause',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
@@ -1787,6 +1795,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       description: '我们将为您逐步指引机场之行，让您的旅程更加安心、清晰。',
       start: '开始体验',
       languageLabel: '选择语言',
+      playAudio: '播放欢迎语音',
+      pauseAudio: '暂停音频',
       languageNames: { ES: 'Español', EN: 'English', FR: 'Français', ZH: '中文' }
     },
     superCard: {
