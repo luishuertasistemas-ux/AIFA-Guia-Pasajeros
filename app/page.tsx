@@ -321,7 +321,7 @@ export default function Home() {
 
   const playWelcomeAudio = (audio: HTMLAudioElement) => {
     void audio.play().catch((error: unknown) => {
-      console.error('No se pudo reproducir el audio de bienvenida.', error);
+      console.log('Autoplay bloqueado:', error);
     });
   };
 
@@ -341,15 +341,34 @@ export default function Home() {
     welcomeAudio.src = getWelcomeAudioSource(selectedLanguage);
     welcomeAudio.load();
 
+    let welcomeAudioReady = Promise.resolve();
     statusAudio.onended = () => {
       if (sequenceId === welcomeAudioSequenceRef.current) {
-        playWelcomeAudio(welcomeAudio);
+        void welcomeAudioReady.then(() => {
+          if (sequenceId === welcomeAudioSequenceRef.current) {
+            playWelcomeAudio(welcomeAudio);
+          }
+        });
       }
     };
     statusAudio.currentTime = 0;
     void statusAudio.play().catch((error: unknown) => {
       if (sequenceId === welcomeAudioSequenceRef.current) {
-        console.error('No se pudo reproducir el audio de estado.', error);
+        console.log('Autoplay bloqueado:', error);
+      }
+    });
+
+    welcomeAudio.muted = true;
+    welcomeAudioReady = welcomeAudio.play().then(() => {
+      if (sequenceId === welcomeAudioSequenceRef.current) {
+        welcomeAudio.pause();
+        welcomeAudio.currentTime = 0;
+        welcomeAudio.muted = false;
+      }
+    }).catch((error: unknown) => {
+      if (sequenceId === welcomeAudioSequenceRef.current) {
+        welcomeAudio.muted = false;
+        console.log('Autoplay bloqueado:', error);
       }
     });
   };
