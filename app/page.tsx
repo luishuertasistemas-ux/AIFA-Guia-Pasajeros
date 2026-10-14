@@ -162,7 +162,8 @@ const WELCOME_AUDIO_SOURCES: Record<string, string> = {
 };
 
 function getWelcomeAudioSource(language: string): string {
-  return WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-zh.mp3';
+  const source = WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-zh.mp3';
+  return `${source}?v=2`;
 }
 
 function getTimeTheme(date: Date | null): TimeTheme {
@@ -460,7 +461,7 @@ export default function Home() {
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
       <audio
         ref={statusAudioRef}
-        src="/audio/estado-es.mp3"
+        src="/audio/estado-es.mp3?v=2"
         preload="none"
         onError={() => console.error('No se pudo cargar el audio de estado:', statusAudioRef.current?.currentSrc)}
       />
