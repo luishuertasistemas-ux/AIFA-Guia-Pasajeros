@@ -31,12 +31,14 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import QrScannerModal from './QrScannerModal';
+import CategoryModal from '@/components/CategoryModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import NetworkStatusBanner from '@/components/NetworkStatusBanner';
 import TransportExperience from '@/components/TransportExperience';
 import VideoAssistance from '@/components/VideoAssistance';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
+import { MENU_SECTIONS, type MenuAction, type MenuSectionId } from '@/data/menuSections';
 import { LANGUAGES, translations, type Language, type TransportCategoryId } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
@@ -49,7 +51,7 @@ import {
 } from '@/data/pasajeros';
 
 type Screen = 'welcome' | 'hub' | 'role' | 'survey';
-type RoleId = 'arrival' | 'departure' | 'pickup' | 'tourism' | 'transport' | 'lost-items' | 'pets';
+type RoleId = MenuAction;
 type QrRoute = { role?: RoleId; locationId?: string; activateTia?: boolean };
 type RoleInfo = { id: RoleId; icon: LucideIcon };
 type TimeTheme = { image: string };
@@ -93,9 +95,6 @@ const ROLE_INFO: Record<RoleId, RoleInfo> = {
   pets: { id: 'pets', icon: PawPrint }
 };
 
-type MainRoleId = 'arrival' | 'departure' | 'pickup' | 'tourism';
-
-const MAIN_ROLE_IDS: MainRoleId[] = ['arrival', 'departure', 'pickup', 'tourism'];
 const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
 const ARRIVAL_GUIDE_ICONS: LucideIcon[] = [Luggage, Building2, Bus];
 const DEPARTURE_GUIDE_META = [
@@ -127,24 +126,29 @@ const QR_CODE_ROUTES: Record<string, QrRoute> = {
   'QR-PUNTO-REUNION': { role: 'pickup' },
   'QR-MODULO-TIA': { activateTia: true }
 };
-const MAIN_ROLE_CARD_STYLES: Record<MainRoleId, { image?: string; base: string; overlay: string }> = {
-  arrival: {
+const MENU_SECTION_CARD_STYLES: Record<MenuSectionId, { image: string; base: string; overlay: string }> = {
+  flights: {
     image: '/images/llegadas-bg.jpg',
     base: 'bg-[#008767]',
     overlay: 'bg-gradient-to-t from-[#00382b]/90 via-[#008767]/60 to-transparent'
   },
-  departure: {
-    image: '/images/salidas-bg.jpg',
+  'ground-transport': {
+    image: '/images/btn-transporte.jpg',
     base: 'bg-[#2563eb]',
     overlay: 'bg-gradient-to-t from-[#0f172a]/90 via-[#2563eb]/60 to-transparent'
   },
-  pickup: {
-    image: '/images/encuentro-bg.jpg',
+  'passenger-services': {
+    image: '/images/btn-experiencia.jpg',
     base: 'bg-[#f97316]',
     overlay: 'bg-gradient-to-t from-[#7c2d12]/90 via-[#ea580c]/60 to-transparent'
   },
-  tourism: {
+  'culture-museums': {
     image: '/images/turismo-bg.jpg',
+    base: 'bg-[#a855f7]',
+    overlay: 'bg-gradient-to-t from-[#581c87]/90 via-[#8b5cf6]/60 to-transparent'
+  },
+  'pets-regulations': {
+    image: '/images/btn-mascotas.jpg',
     base: 'bg-[#a855f7]',
     overlay: 'bg-gradient-to-t from-[#581c87]/90 via-[#8b5cf6]/60 to-transparent'
   }
@@ -164,6 +168,10 @@ const WELCOME_AUDIO_SOURCES: Record<string, string> = {
 function getWelcomeAudioSource(language: string, version: string): string {
   const source = WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-zh.mp3';
   return `${source}?v=${version}`;
+}
+
+function getAudioVersion(sequenceId: number): string {
+  return `${Date.now()}-${sequenceId}`;
 }
 
 function getTimeTheme(date: Date | null): TimeTheme {
@@ -202,6 +210,7 @@ export default function Home() {
   const copy = translations[language];
   const detailCopy = copy.details;
   const [screen, setScreen] = useState<Screen>('welcome');
+  const [activeSection, setActiveSection] = useState<MenuSectionId | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(null);
   const [initialTransportCategory, setInitialTransportCategory] = useState<TransportCategoryId | null>(null);
   const [returnToArrivalAfterTransport, setReturnToArrivalAfterTransport] = useState(false);
@@ -248,6 +257,7 @@ export default function Home() {
   }, [isTiaBannerActive, screen]);
 
   const openRole = (roleId: RoleId) => {
+    setActiveSection(null);
     setQrTargetLocation(null);
     setIsTiaBannerActive(false);
     setInitialTransportCategory(null);
@@ -336,7 +346,7 @@ export default function Home() {
     }
 
     const sequenceId = ++welcomeAudioSequenceRef.current;
-    const audioVersion = `${Date.now()}-${sequenceId}`;
+    const audioVersion = getAudioVersion(sequenceId);
     statusAudio.pause();
     statusAudio.src = `/audio/estado-es.mp3?v=${audioVersion}`;
     statusAudio.load();
@@ -575,39 +585,35 @@ export default function Home() {
             )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              {MAIN_ROLE_IDS.map((roleId) => {
-                const role = ROLE_INFO[roleId];
-                const Icon = role.icon;
-                const cardStyle = MAIN_ROLE_CARD_STYLES[roleId];
+              {MENU_SECTIONS.map((section) => {
+                const Icon = section.icon;
+                const cardStyle = MENU_SECTION_CARD_STYLES[section.id];
                 return (
                   <motion.button
-                    key={role.id}
+                    key={section.id}
                     type="button"
                     onClick={() => {
                       playClickSound();
-                      openRole(role.id);
+                      setActiveSection(section.id);
                     }}
-                    layoutId={roleId === 'arrival' ? 'card-llegue' : roleId === 'departure' ? 'card-viajar' : roleId === 'pickup' ? 'card-vengo' : roleId === 'tourism' ? 'card-turismo' : undefined}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className={`group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-white/20 ${cardStyle.base} px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-white sm:min-h-52 sm:p-8`}
                   >
-                    {cardStyle.image && (
-                      <Image
-                        src={cardStyle.image}
-                        alt=""
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 576px"
-                        loading="lazy"
-                        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                      />
-                    )}
+                    <Image
+                      src={cardStyle.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 576px"
+                      loading="lazy"
+                      className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                    />
                     <span aria-hidden="true" className={`absolute inset-0 ${cardStyle.overlay}`} />
                     <span className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white drop-shadow-md transition-colors group-hover:bg-white/30">
                       <Icon aria-hidden="true" size={32} strokeWidth={1.8} />
                     </span>
                     <span className="relative z-10 min-w-0 flex-1 drop-shadow-md">
-                      <span className="block text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-3xl">{copy.navigation.roles[roleId].title}</span>
-                      <span className="mt-2 block text-base font-medium leading-relaxed text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-lg">{copy.navigation.roles[roleId].subtitle}</span>
+                      <span className="block text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-3xl">{section.title}</span>
+                      <span className="mt-2 block text-base font-medium leading-relaxed text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-lg">{section.description}</span>
                     </span>
                     <ArrowRight aria-hidden="true" className="relative z-10 shrink-0 text-white/75 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
                   </motion.button>
@@ -1538,6 +1544,16 @@ export default function Home() {
         )
       )}
       </AnimatePresence>
+
+      <CategoryModal
+        key={activeSection ?? 'closed'}
+        section={MENU_SECTIONS.find((section) => section.id === activeSection) ?? null}
+        onClose={() => setActiveSection(null)}
+        onAction={(action) => {
+          playClickSound();
+          openRole(action);
+        }}
+      />
 
       {screen === 'hub' && (
         <QrScannerModal
