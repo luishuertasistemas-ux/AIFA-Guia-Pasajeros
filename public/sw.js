@@ -130,6 +130,21 @@ async function cacheFirst(request) {
   return cacheSuccessfulResponse(cache, request, response);
 }
 
+async function networkFirstAudio(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const url = new URL(request.url);
+  const cacheKey = new Request(`${url.origin}${url.pathname}`);
+
+  try {
+    const response = await fetch(request, { cache: 'no-cache' });
+    return cacheSuccessfulResponse(cache, cacheKey, response);
+  } catch (error) {
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+    throw error;
+  }
+}
+
 async function cacheFirstImage(request) {
   try {
     return await cacheFirst(request);
@@ -150,6 +165,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.startsWith('/audio/')) {
+    event.respondWith(networkFirstAudio(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(staleWhileRevalidate(request));

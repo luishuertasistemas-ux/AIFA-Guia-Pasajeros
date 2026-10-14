@@ -161,9 +161,9 @@ const WELCOME_AUDIO_SOURCES: Record<string, string> = {
   zh: '/audio/bienvenida-zh.mp3'
 };
 
-function getWelcomeAudioSource(language: string): string {
+function getWelcomeAudioSource(language: string, version: string): string {
   const source = WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-zh.mp3';
-  return `${source}?v=2`;
+  return `${source}?v=${version}`;
 }
 
 function getTimeTheme(date: Date | null): TimeTheme {
@@ -321,6 +321,7 @@ export default function Home() {
   };
 
   const playWelcomeAudio = (audio: HTMLAudioElement) => {
+    audio.currentTime = 0;
     void audio.play().catch((error: unknown) => {
       console.log('Autoplay bloqueado:', error);
     });
@@ -335,12 +336,15 @@ export default function Home() {
     }
 
     const sequenceId = ++welcomeAudioSequenceRef.current;
+    const audioVersion = `${Date.now()}-${sequenceId}`;
     statusAudio.pause();
+    statusAudio.src = `/audio/estado-es.mp3?v=${audioVersion}`;
+    statusAudio.load();
     statusAudio.currentTime = 0;
     welcomeAudio.pause();
-    welcomeAudio.currentTime = 0;
-    welcomeAudio.src = getWelcomeAudioSource(selectedLanguage);
+    welcomeAudio.src = getWelcomeAudioSource(selectedLanguage, audioVersion);
     welcomeAudio.load();
+    welcomeAudio.currentTime = 0;
 
     let welcomeAudioReady = Promise.resolve();
     statusAudio.onended = () => {
@@ -360,6 +364,7 @@ export default function Home() {
     });
 
     welcomeAudio.muted = true;
+    welcomeAudio.currentTime = 0;
     welcomeAudioReady = welcomeAudio.play().then(() => {
       if (sequenceId === welcomeAudioSequenceRef.current) {
         welcomeAudio.pause();
@@ -467,7 +472,6 @@ export default function Home() {
       />
       <audio
         ref={welcomeAudioRef}
-        src={getWelcomeAudioSource(language)}
         preload="none"
         onError={() => console.error('No se pudo cargar el audio de bienvenida:', welcomeAudioRef.current?.currentSrc)}
       />
