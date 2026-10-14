@@ -20,10 +20,8 @@ import {
   MapPin,
   MessageCircle,
   PawPrint,
-  Pause,
   Plane,
   PlaneTakeoff,
-  Play,
   QrCode,
   ShieldCheck,
   Ticket,
@@ -157,14 +155,14 @@ const TIME_THEMES: Record<'morning' | 'afternoon' | 'night', TimeTheme> = {
   night: { image: '/images/hero-noche.jpg' }
 };
 const WELCOME_AUDIO_SOURCES: Record<string, string> = {
-  es: '/audio/bienvenida-en-esp.mp3',
-  en: '/audio/bienvenida-en-ing.mp3',
-  fr: '/audio/bienvenida-en-fran.mp3',
-  zh: '/audio/bienvenida-en-chino.mp3'
+  es: '/audio/bienvenida-es.mp3',
+  en: '/audio/bienvenida-en.mp3',
+  fr: '/audio/bienvenida-fr.mp3',
+  zh: '/audio/bienvenida-zh.mp3'
 };
 
 function getWelcomeAudioSource(language: string): string {
-  return WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-en-chino.mp3';
+  return WELCOME_AUDIO_SOURCES[language.toLowerCase()] ?? '/audio/bienvenida-zh.mp3';
 }
 
 function getTimeTheme(date: Date | null): TimeTheme {
@@ -197,7 +195,9 @@ export default function Home() {
   const shouldReduceMotion = useReducedMotion();
   const playClickSound = useClickSound();
   const { language, setLanguage } = useLanguage();
+  const statusAudioRef = useRef<HTMLAudioElement>(null);
   const welcomeAudioRef = useRef<HTMLAudioElement>(null);
+  const welcomeAudioSequenceRef = useRef(0);
   const copy = translations[language];
   const detailCopy = copy.details;
   const [screen, setScreen] = useState<Screen>('welcome');
@@ -212,7 +212,6 @@ export default function Home() {
   const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
   const [isWelcomeFading, setIsWelcomeFading] = useState(false);
-  const [isWelcomeAudioPlaying, setIsWelcomeAudioPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
 
@@ -315,8 +314,7 @@ export default function Home() {
 
   const beginExperience = () => {
     if (!isWelcomeFading) {
-      welcomeAudioRef.current?.pause();
-      setIsWelcomeAudioPlaying(false);
+      playWelcomeAudioSequence(language);
       setIsWelcomeFading(true);
     }
   };
@@ -324,36 +322,41 @@ export default function Home() {
   const playWelcomeAudio = (audio: HTMLAudioElement) => {
     void audio.play().catch((error: unknown) => {
       console.error('No se pudo reproducir el audio de bienvenida.', error);
-      setIsWelcomeAudioPlaying(false);
+    });
+  };
+
+  const playWelcomeAudioSequence = (selectedLanguage: Language) => {
+    const statusAudio = statusAudioRef.current;
+    const welcomeAudio = welcomeAudioRef.current;
+    if (!statusAudio || !welcomeAudio) {
+      console.error('No se pudieron inicializar los audios de bienvenida.');
+      return;
+    }
+
+    const sequenceId = ++welcomeAudioSequenceRef.current;
+    statusAudio.pause();
+    statusAudio.currentTime = 0;
+    welcomeAudio.pause();
+    welcomeAudio.currentTime = 0;
+    welcomeAudio.src = getWelcomeAudioSource(selectedLanguage);
+    welcomeAudio.load();
+
+    statusAudio.onended = () => {
+      if (sequenceId === welcomeAudioSequenceRef.current) {
+        playWelcomeAudio(welcomeAudio);
+      }
+    };
+    statusAudio.currentTime = 0;
+    void statusAudio.play().catch((error: unknown) => {
+      if (sequenceId === welcomeAudioSequenceRef.current) {
+        console.error('No se pudo reproducir el audio de estado.', error);
+      }
     });
   };
 
   const handleWelcomeLanguageChange = (nextLanguage: Language) => {
-    if (nextLanguage === language) return;
-
-    const audio = welcomeAudioRef.current;
-    const shouldResumeAudio = audio !== null && !audio.paused;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = getWelcomeAudioSource(nextLanguage);
-      audio.load();
-    }
-    setIsWelcomeAudioPlaying(false);
-    setLanguage(nextLanguage);
-
-    if (shouldResumeAudio && audio) playWelcomeAudio(audio);
-  };
-
-  const toggleWelcomeAudio = () => {
-    const audio = welcomeAudioRef.current;
-    if (!audio) return;
-
-    if (audio.paused) {
-      playWelcomeAudio(audio);
-    } else {
-      audio.pause();
-    }
+    if (nextLanguage !== language) setLanguage(nextLanguage);
+    playWelcomeAudioSequence(nextLanguage);
   };
 
   const handleQrScan = (value: string) => {
@@ -437,12 +440,15 @@ export default function Home() {
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
       <audio
+        ref={statusAudioRef}
+        src="/audio/estado-es.mp3"
+        preload="none"
+        onError={() => console.error('No se pudo cargar el audio de estado:', statusAudioRef.current?.currentSrc)}
+      />
+      <audio
         ref={welcomeAudioRef}
         src={getWelcomeAudioSource(language)}
         preload="none"
-        onPlay={() => setIsWelcomeAudioPlaying(true)}
-        onPause={() => setIsWelcomeAudioPlaying(false)}
-        onEnded={() => setIsWelcomeAudioPlaying(false)}
         onError={() => console.error('No se pudo cargar el audio de bienvenida:', welcomeAudioRef.current?.currentSrc)}
       />
       {screen === 'welcome' && (
@@ -482,16 +488,6 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={toggleWelcomeAudio}
-                aria-label={isWelcomeAudioPlaying ? copy.welcome.pauseAudio : copy.welcome.playAudio}
-                aria-pressed={isWelcomeAudioPlaying}
-                className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 text-xs font-medium text-white/85 shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
-              >
-                {isWelcomeAudioPlaying ? <Pause aria-hidden="true" size={14} /> : <Play aria-hidden="true" size={14} />}
-                {isWelcomeAudioPlaying ? copy.welcome.pauseAudio : copy.welcome.playAudio}
-              </button>
             </div>
           </div>
         </section>

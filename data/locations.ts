@@ -125,7 +125,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     translations: {
       ES: { title: 'Puerta de Abordaje 105', description: 'Puerta de embarque en la zona norte.' },
       EN: { title: 'Boarding Gate 105', description: 'Boarding gate in the north zone.' },
-      FR: { title: 'Porte d’embarquement 105', description: 'Porte d’embarquement dans la zone nord.' },
+      FR: { title: 'Porte d\'embarquement 105', description: 'Porte d\'embarquement dans la zone nord.' },
       ZH: { title: '105号登机口', description: '位于北区的登机口。' }
     },
     walkTimeMinutes: 8,
@@ -139,7 +139,7 @@ export const MOCK_LOCATIONS: Record<string, Location> = {
     translations: {
       ES: { title: 'Puerta de Abordaje 108', description: 'Puerta de embarque en la zona sur.' },
       EN: { title: 'Boarding Gate 108', description: 'Boarding gate in the south zone.' },
-      FR: { title: 'Porte d’embarquement 108', description: 'Porte d’embarquement dans la zone sud.' },
+      FR: { title: 'Porte d\'embarquement 108', description: 'Porte d\'embarquement dans la zone sud.' },
       ZH: { title: '108号登机口', description: '位于南区的登机口。' }
    },
     walkTimeMinutes: 10,
