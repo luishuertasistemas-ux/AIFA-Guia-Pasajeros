@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -34,11 +35,13 @@ import QrScannerModal from './QrScannerModal';
 import CategoryModal from '@/components/CategoryModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import NetworkStatusBanner from '@/components/NetworkStatusBanner';
+import MamutGuideModal from '@/components/MamutGuideModal';
 import TransportExperience from '@/components/TransportExperience';
 import VideoAssistance from '@/components/VideoAssistance';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
 import { MENU_SECTIONS, type MenuAction, type MenuSectionId } from '@/data/menuSections';
+import type { MamutStartNodeId } from '@/data/officeRouteDemo';
 import { LANGUAGES, translations, type Language, type TransportCategoryId } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
@@ -65,6 +68,25 @@ type FallbackImageProps = {
   onOpenImage: (src: string, alt: string) => void;
   openImageLabel: string;
 };
+
+type MamutUrlLauncherProps = {
+  onOpen: (node: MamutStartNodeId) => void;
+};
+
+function isMamutStartNode(value: string | null): value is MamutStartNodeId {
+  return value === 'oficina' || value === 'interseccion_pared' || value === 'sala_juntas';
+}
+
+function MamutUrlLauncher({ onOpen }: MamutUrlLauncherProps) {
+  const searchParams = useSearchParams();
+  const node = searchParams.get('node');
+
+  useEffect(() => {
+    if (isMamutStartNode(node)) onOpen(node);
+  }, [node, onOpen]);
+
+  return null;
+}
 
 function FallbackImage({ src, fallback, alt, sizes, className, fill, onOpenImage, openImageLabel }: FallbackImageProps) {
   const [imageSrc, setImageSrc] = useState(src);
@@ -218,6 +240,8 @@ export default function Home() {
   const [surveyDetails, setSurveyDetails] = useState('');
   const [surveyFinished, setSurveyFinished] = useState(false);
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [isMamutGuideOpen, setIsMamutGuideOpen] = useState(false);
+  const [mamutStartNode, setMamutStartNode] = useState<MamutStartNodeId | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState('');
   const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
@@ -227,6 +251,12 @@ export default function Home() {
 
   const closeImageViewer = useCallback(() => setImageViewer(null), []);
   const openImageViewer = (src: string, alt: string) => setImageViewer({ src, alt });
+  const openMamutGuideAtNode = useCallback((node: MamutStartNodeId) => {
+    setMamutStartNode(node);
+    setScreen('hub');
+    setIsWelcomeFading(false);
+    setIsMamutGuideOpen(true);
+  }, [setIsMamutGuideOpen, setIsWelcomeFading, setMamutStartNode, setScreen]);
 
   useEffect(() => {
     const updateClock = () => setCurrentTime(new Date());
@@ -474,6 +504,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
+      <Suspense fallback={null}>
+        <MamutUrlLauncher onOpen={openMamutGuideAtNode} />
+      </Suspense>
       <audio
         ref={statusAudioRef}
         src="/audio/estado-es.mp3?v=2"
@@ -576,6 +609,20 @@ export default function Home() {
                   </span>
                 </span>
               </span>
+            </motion.button>
+
+            <motion.button
+              type="button"
+              onClick={() => {
+                setMamutStartNode(null);
+                setIsMamutGuideOpen(true);
+              }}
+              whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+              className="mb-7 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-amber-200/50 bg-amber-300 px-5 py-4 text-center text-base font-extrabold text-slate-950 shadow-lg transition hover:bg-amber-200 focus:outline-none focus:ring-4 focus:ring-amber-100 sm:mb-9 sm:text-lg"
+            >
+              <span aria-hidden="true" className="text-2xl">🦣</span>
+              Probar Guía Mamut (Demostración Oficina)
             </motion.button>
 
             {qrScanMessage && (
@@ -1562,6 +1609,13 @@ export default function Home() {
           onScan={handleQrScan}
         />
       )}
+
+      <MamutGuideModal
+        key={mamutStartNode ?? 'default'}
+        isOpen={isMamutGuideOpen}
+        initialNode={mamutStartNode}
+        onClose={() => setIsMamutGuideOpen(false)}
+      />
 
       {screen === 'survey' && (
         <motion.section
