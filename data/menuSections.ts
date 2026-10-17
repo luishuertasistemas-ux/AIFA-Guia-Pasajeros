@@ -127,13 +127,6 @@ export const MENU_SECTIONS: MenuSection[] = [
         description: 'Consulta los pasos para reportar o recuperar pertenencias.',
         action: 'lost-items',
         icon: Backpack
-      },
-      {
-        id: 'accessibility',
-        title: 'Accesibilidad',
-        description: 'Consulta la guía de accesibilidad y orientación del aeropuerto.',
-        href: '/accessibility',
-        icon: ShieldCheck
       }
     ]
   },

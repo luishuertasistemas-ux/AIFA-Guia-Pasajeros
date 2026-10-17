@@ -1,8 +1,7 @@
 /* global self, caches */
-const CACHE_NAME = 'aifa-guide-v1';
+const CACHE_NAME = 'aifa-guide-v2';
 const CORE_ASSETS = [
   '/',
-  '/accessibility',
   '/manifest.json',
   '/offline.html',
   '/icons/aifa-192.svg',
@@ -50,7 +49,7 @@ const CORE_ASSETS = [
 
 async function cacheInitialBundles(cache) {
   const bundleUrls = new Set();
-  const documentPaths = ['/', '/accessibility'];
+  const documentPaths = ['/'];
 
   for (const path of documentPaths) {
     const documentResponse = await cache.match(path);

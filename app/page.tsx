@@ -2,8 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -35,13 +34,12 @@ import QrScannerModal from './QrScannerModal';
 import CategoryModal from '@/components/CategoryModal';
 import ImageLightbox from '@/components/ImageLightbox';
 import NetworkStatusBanner from '@/components/NetworkStatusBanner';
-import MamutGuideModal from '@/components/MamutGuideModal';
+import AirportIsometricMap from '@/components/AirportIsometricMap';
 import TransportExperience from '@/components/TransportExperience';
 import VideoAssistance from '@/components/VideoAssistance';
 import { FlightTimeModule } from '@/components/flight-time/FlightTimeModule';
 import { getLocalizedLocationInfo, LOCAL_ATTRACTION_IMAGES, MOCK_LOCATIONS } from '@/data/locations';
 import { MENU_SECTIONS, type MenuAction, type MenuSectionId } from '@/data/menuSections';
-import type { MamutStartNodeId } from '@/data/officeRouteDemo';
 import { LANGUAGES, translations, type Language, type TransportCategoryId } from '@/data/translations';
 import { useClickSound } from '@/hooks/useClickSound';
 import { useLanguage } from '@/LanguageContext';
@@ -68,25 +66,6 @@ type FallbackImageProps = {
   onOpenImage: (src: string, alt: string) => void;
   openImageLabel: string;
 };
-
-type MamutUrlLauncherProps = {
-  onOpen: (node: MamutStartNodeId) => void;
-};
-
-function isMamutStartNode(value: string | null): value is MamutStartNodeId {
-  return value === 'oficina' || value === 'interseccion_pared' || value === 'sala_juntas';
-}
-
-function MamutUrlLauncher({ onOpen }: MamutUrlLauncherProps) {
-  const searchParams = useSearchParams();
-  const node = searchParams.get('node');
-
-  useEffect(() => {
-    if (isMamutStartNode(node)) onOpen(node);
-  }, [node, onOpen]);
-
-  return null;
-}
 
 function FallbackImage({ src, fallback, alt, sizes, className, fill, onOpenImage, openImageLabel }: FallbackImageProps) {
   const [imageSrc, setImageSrc] = useState(src);
@@ -240,8 +219,6 @@ export default function Home() {
   const [surveyDetails, setSurveyDetails] = useState('');
   const [surveyFinished, setSurveyFinished] = useState(false);
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
-  const [isMamutGuideOpen, setIsMamutGuideOpen] = useState(false);
-  const [mamutStartNode, setMamutStartNode] = useState<MamutStartNodeId | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState('');
   const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
@@ -251,12 +228,6 @@ export default function Home() {
 
   const closeImageViewer = useCallback(() => setImageViewer(null), []);
   const openImageViewer = (src: string, alt: string) => setImageViewer({ src, alt });
-  const openMamutGuideAtNode = useCallback((node: MamutStartNodeId) => {
-    setMamutStartNode(node);
-    setScreen('hub');
-    setIsWelcomeFading(false);
-    setIsMamutGuideOpen(true);
-  }, [setIsMamutGuideOpen, setIsWelcomeFading, setMamutStartNode, setScreen]);
 
   useEffect(() => {
     const updateClock = () => setCurrentTime(new Date());
@@ -504,9 +475,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white motion-reduce:scroll-auto">
-      <Suspense fallback={null}>
-        <MamutUrlLauncher onOpen={openMamutGuideAtNode} />
-      </Suspense>
       <audio
         ref={statusAudioRef}
         src="/audio/estado-es.mp3?v=2"
@@ -611,20 +579,9 @@ export default function Home() {
               </span>
             </motion.button>
 
-            <motion.button
-              type="button"
-              onClick={() => {
-                setMamutStartNode(null);
-                setIsMamutGuideOpen(true);
-              }}
-              whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }}
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
-              className="mb-7 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-amber-200/50 bg-amber-300 px-5 py-4 text-center text-base font-extrabold text-slate-950 shadow-lg transition hover:bg-amber-200 focus:outline-none focus:ring-4 focus:ring-amber-100 sm:mb-9 sm:text-lg"
-            >
-              <span aria-hidden="true" className="text-2xl">🦣</span>
-              Probar Guía Mamut (Demostración Oficina)
-            </motion.button>
-
+            <div id="airport-map" className="mb-7 w-full scroll-mt-6">
+              <AirportIsometricMap />
+            </div>
             {qrScanMessage && (
               <p className="mb-4 rounded-xl border border-emerald-200/40 bg-emerald-900/80 px-4 py-3 text-sm font-semibold text-white" role="status" aria-live="polite">
                 {qrScanMessage}
@@ -632,6 +589,38 @@ export default function Home() {
             )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <motion.button
+                type="button"
+                onClick={() => {
+                  playClickSound();
+                  document.getElementById('airport-map')?.scrollIntoView({
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                    block: 'start'
+                  });
+                  document.getElementById('airport-destination-search')?.focus({ preventScroll: true });
+                }}
+                whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.02 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="group relative isolate flex min-h-[200px] cursor-pointer items-center gap-5 overflow-hidden rounded-2xl border border-amber-500/30 px-6 py-8 text-left text-white shadow-lg transition-all duration-500 hover:scale-[1.02] hover:border-amber-400 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-amber-200 sm:min-h-52 sm:p-8"
+              >
+                <Image
+                  src="/images/mamut-avatar.jpg"
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 100vw, 576px"
+                  className="absolute inset-0 z-0 h-full w-full object-cover object-center brightness-105 transition-transform duration-500 group-hover:scale-105"
+                />
+                <span aria-hidden="true" className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <span aria-hidden="true" className="relative z-20 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-amber-200/35 bg-black/20 text-4xl text-white shadow-lg backdrop-blur-md">
+                  🦣
+                </span>
+                <span className="relative z-20 min-w-0 flex-1 text-white drop-shadow-md">
+                  <span className="block text-2xl font-bold leading-snug text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-3xl">Abrir asistente de Santa Lucía</span>
+                  <span className="mt-2 block text-base font-medium leading-relaxed text-amber-50 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] md:text-lg">Busca un destino y sigue la ruta en el mapa interactivo.</span>
+                </span>
+                <ArrowRight aria-hidden="true" className="relative z-20 shrink-0 text-amber-100/85 drop-shadow-md transition group-hover:translate-x-1 group-hover:text-white" size={20} />
+              </motion.button>
               {MENU_SECTIONS.map((section) => {
                 const Icon = section.icon;
                 const cardStyle = MENU_SECTION_CARD_STYLES[section.id];
@@ -1609,13 +1598,6 @@ export default function Home() {
           onScan={handleQrScan}
         />
       )}
-
-      <MamutGuideModal
-        key={mamutStartNode ?? 'default'}
-        isOpen={isMamutGuideOpen}
-        initialNode={mamutStartNode}
-        onClose={() => setIsMamutGuideOpen(false)}
-      />
 
       {screen === 'survey' && (
         <motion.section
