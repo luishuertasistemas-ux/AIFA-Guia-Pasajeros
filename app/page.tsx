@@ -28,6 +28,7 @@ import {
   TrainFront,
   TriangleAlert,
   UsersRound,
+  X,
   type LucideIcon
 } from 'lucide-react';
 import QrScannerModal from './QrScannerModal';
@@ -56,6 +57,7 @@ type RoleId = MenuAction;
 type QrRoute = { role?: RoleId; locationId?: string; activateTia?: boolean };
 type RoleInfo = { id: RoleId; icon: LucideIcon };
 type TimeTheme = { image: string };
+type ArrivalInfo = { title: string; location: string; details: string };
 type FallbackImageProps = {
   src: string;
   fallback: string;
@@ -97,6 +99,36 @@ const ROLE_INFO: Record<RoleId, RoleInfo> = {
 };
 
 const SUPPORT_ROLE_IDS: RoleId[] = ['transport', 'lost-items', 'pets'];
+const ARRIVAL_BADGE_DETAILS: Record<number, Record<number, Omit<ArrivalInfo, 'title'>>> = {
+  0: {
+    0: {
+      location: 'Sala de Llegadas, Nivel 1',
+      details: 'Consulta las pantallas de vuelo para ubicar la banda asignada. Carritos portaequipaje gratuitos disponibles en la zona.'
+    },
+    1: {
+      location: 'Filtro Internacional de Llegada',
+      details: 'Ten a la mano pasaporte e identificación oficial. Personal del INM te asistirá en el proceso de ingreso.'
+    },
+    2: {
+      location: 'Salida del Área de Equipajes',
+      details: 'Inspección a cargo de la ANAM. Presenta tu declaración si transportas mercancías sujetas a impuesto.'
+    }
+  },
+  1: {
+    0: {
+      location: 'Corredor Comercial Nivel 1 y Mezzanine',
+      details: 'Cajeros automáticos 24/7 (BBVA, Banorte, Santander, HSBC) y módulos de cambio de divisas.'
+    },
+    1: {
+      location: 'Pasillos Principales de la Terminal',
+      details: 'Sanitarios temáticos culturales con accesibilidad para personas con movilidad reducida y cambiadores.'
+    },
+    2: {
+      location: 'Módulo Central de Información a Pasajeros',
+      details: 'Atención personalizada para rutas de transporte, hoteles, destinos turísticos y dudas generales.'
+    }
+  }
+};
 const ARRIVAL_GUIDE_ICONS: LucideIcon[] = [Luggage, Building2, Bus];
 const DEPARTURE_GUIDE_META = [
   { href: '/images/aifa-mapa.png', icon: Ticket },
@@ -219,6 +251,8 @@ export default function Home() {
   const [surveyDetails, setSurveyDetails] = useState('');
   const [surveyFinished, setSurveyFinished] = useState(false);
   const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [arrivalInfo, setArrivalInfo] = useState<ArrivalInfo | null>(null);
   const [qrScanMessage, setQrScanMessage] = useState('');
   const [qrTargetLocation, setQrTargetLocation] = useState<Location | null>(null);
   const [isTiaBannerActive, setIsTiaBannerActive] = useState(false);
@@ -227,6 +261,7 @@ export default function Home() {
   const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
 
   const closeImageViewer = useCallback(() => setImageViewer(null), []);
+  const closeMapFullscreen = useCallback(() => setIsMapFullscreen(false), []);
   const openImageViewer = (src: string, alt: string) => setImageViewer({ src, alt });
 
   useEffect(() => {
@@ -245,6 +280,37 @@ export default function Home() {
     }, duration);
     return () => window.clearTimeout(timeoutId);
   }, [isWelcomeFading]);
+
+  useEffect(() => {
+    if (!isMapFullscreen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMapFullscreen();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeMapFullscreen, isMapFullscreen]);
+
+  useEffect(() => {
+    if (!arrivalInfo) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setArrivalInfo(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [arrivalInfo]);
 
   useEffect(() => {
     if (screen !== 'hub' || !isTiaBannerActive) return;
@@ -593,12 +659,9 @@ export default function Home() {
                 type="button"
                 onClick={() => {
                   playClickSound();
-                  document.getElementById('airport-map')?.scrollIntoView({
-                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-                    block: 'start'
-                  });
-                  document.getElementById('airport-destination-search')?.focus({ preventScroll: true });
+                  setIsMapFullscreen(true);
                 }}
+                aria-haspopup="dialog"
                 whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.02 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -802,7 +865,7 @@ export default function Home() {
                   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.12 } }
                 }}
               >
-                {arrivalCards.map(({ title, description, badges, transportOptions, icon: StepIcon }) => (
+                {arrivalCards.map(({ title, description, badges, transportOptions, icon: StepIcon }, cardIndex) => (
                   <motion.article
                     key={title}
                     variants={{
@@ -869,11 +932,26 @@ export default function Home() {
                       </ul>
                     ) : (
                       <ul aria-label={`${detailCopy.services}: ${title}`} className="flex flex-wrap gap-3">
-                        {badges.map((badge) => (
-                          <li key={badge} className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30">
-                            {badge}
-                          </li>
-                        ))}
+                        {badges.map((badge, badgeIndex) => {
+                          const info = ARRIVAL_BADGE_DETAILS[cardIndex]?.[badgeIndex];
+                          return (
+                            <li key={badge}>
+                              {info ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setArrivalInfo({ title: badge, ...info })}
+                                  className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-300 hover:bg-emerald-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                                >
+                                  {badge}
+                                </button>
+                              ) : (
+                                <span className="inline-flex min-h-11 items-center rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-sm">
+                                  {badge}
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                     <button
@@ -886,6 +964,48 @@ export default function Home() {
                   </motion.article>
                 ))}
               </motion.div>
+
+              <AnimatePresence>
+                {arrivalInfo && (
+                  <motion.div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm sm:p-6"
+                    role="presentation"
+                    onMouseDown={(event) => {
+                      if (event.target === event.currentTarget) setArrivalInfo(null);
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <motion.section
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="arrival-info-title"
+                      className="relative w-full max-w-lg rounded-3xl border border-emerald-200/40 bg-slate-950/90 p-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.2)] backdrop-blur-xl sm:p-8"
+                      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setArrivalInfo(null)}
+                        aria-label="Cerrar información"
+                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-slate-200 transition hover:bg-white/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"
+                      >
+                        <X aria-hidden="true" size={20} />
+                      </button>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Información de llegada</p>
+                      <h2 id="arrival-info-title" className="mt-2 pr-10 text-2xl font-bold leading-tight">{arrivalInfo.title}</h2>
+                      <p className="mt-5 flex items-start gap-2 text-base font-semibold text-emerald-100">
+                        <MapPin aria-hidden="true" className="mt-0.5 shrink-0" size={19} />
+                        {arrivalInfo.location}
+                      </p>
+                      <p className="mt-4 border-t border-white/15 pt-4 text-base leading-relaxed text-slate-200">{arrivalInfo.details}</p>
+                    </motion.section>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {qrTargetLocation && localizedQrLocation && (
                 <section className="mt-7 rounded-2xl border-2 border-emerald-300/50 bg-black/70 p-6 text-white shadow-xl backdrop-blur-md" aria-labelledby="qr-location-title">
@@ -1579,6 +1699,36 @@ export default function Home() {
         </motion.section>
         )
       )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isMapFullscreen && (
+          <motion.div
+            className="fixed inset-0 z-[90] flex flex-col bg-slate-950/95 p-4 text-white backdrop-blur-md sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mapa interactivo del AIFA en pantalla completa"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+          >
+            <button
+              type="button"
+              onClick={closeMapFullscreen}
+              aria-label="Cerrar mapa en pantalla completa"
+              autoFocus
+              className="absolute right-4 top-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-200/40 bg-slate-900/80 text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.25)] backdrop-blur-md transition hover:border-cyan-100 hover:bg-slate-800 focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300 sm:right-6 sm:top-6"
+            >
+              <X aria-hidden="true" size={24} />
+            </button>
+            <div className="relative z-0 min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pt-12 sm:pt-14">
+              <div className="mx-auto w-full max-w-7xl">
+                <AirportIsometricMap />
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <CategoryModal

@@ -3,7 +3,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { ArrowRight, Search, X } from 'lucide-react';
-import type { MenuAction, MenuSection } from '@/data/menuSections';
+import type { MenuAction, MenuSection, MenuSectionId } from '@/data/menuSections';
+
+const modalBackgrounds: Record<MenuSectionId, string> = {
+  flights: '/vuelos-bg.jpg',
+  'ground-transport': '/transporte-bg.jpg',
+  'passenger-services': '/servicios-bg.jpg',
+  'culture-museums': '/cultura-bg.jpg',
+  'pets-regulations': '/mascotas-bg.jpg'
+};
 
 type CategoryModalProps = {
   section: MenuSection | null;
@@ -39,7 +47,7 @@ export default function CategoryModal({ section, onClose, onAction }: CategoryMo
     <AnimatePresence>
       {section && (
         <motion.div
-          className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/80 p-4 backdrop-blur-xl sm:p-6"
+          className="fixed inset-0 z-[80] isolate flex items-center justify-center overflow-y-auto p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="category-modal-title"
@@ -50,8 +58,14 @@ export default function CategoryModal({ section, onClose, onAction }: CategoryMo
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url('${modalBackgrounds[section.id]}')` }}
+          />
+          <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-slate-950/30" />
           <motion.section
-            className="relative my-auto flex max-h-[min(90svh,56rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-900/80 text-white shadow-[0_24px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+            className="relative z-10 my-auto flex max-h-[min(90svh,56rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-900/55 text-white shadow-[0_24px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
