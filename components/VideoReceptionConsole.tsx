@@ -34,6 +34,50 @@ export default function VideoReceptionConsole({ copy }: { copy: VideoCallTransla
   const [records, setRecords] = useState<VideoCallRecord[]>([]);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [passengerStream, setPassengerStream] = useState<MediaStream | null>(null);
+// Información del operador en turno para auditoría
+  const [operatorInfo] = useState({
+    name: 'Lic. Roberto Gómez',
+    badgeId: 'OP-AIFA-042',
+    station: 'Módulo 3 - Terminal de Pasajeros',
+  });
+
+  // Función para mover llamada de la cola a la bitácora de auditoría
+  // Función para mover llamada de la cola a la bitácora de auditoría
+  // Función para mover llamada de la cola a la bitácora de auditoría
+ // Función para mover llamada de la cola a la bitácora de auditoría
+ const handleAttendCall = (call: { id: string; location: string; waitTime: string }, index: number) => {
+    // 1. Remover de la cola de espera
+    setIncomingCalls(prev => prev.filter((_, i) => i !== index));
+
+    // 2. Crear el nuevo registro de auditoría
+    const now = new Date();
+    const startTime = new Date(now.getTime() - 60000);
+
+    const newRecord: any = {
+      id: call.id,
+      callId: call.id,
+      timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: now.toLocaleDateString(),
+      startedAt: startTime.getTime(),
+      endedAt: now.getTime(),
+      duration: '01:00',
+      durationSeconds: 60,
+      status: 'Atendida',
+      location: call.location,
+      operator: operatorInfo ? `${operatorInfo.name} (${operatorInfo.badgeId})` : 'Operador',
+      rating: 5,
+      comment: `Atendido en ${call.location}`,
+    };
+
+    // 3. Agregar el registro a la bitácora
+    setRecords((prev: any) => [newRecord, ...prev]);
+  };
+    
+  // Estado para la cola de pasajeros en espera (simulación visual)
+  const [incomingCalls, setIncomingCalls] = useState([
+    { id: 'PAS-1024', location: 'Banda 3 (Reclamo)', waitTime: '00:45' },
+    { id: 'PAS-1025', location: 'Filtro INM (Migración)', waitTime: '00:12' },
+  ]);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const passengerVideoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<PeerInstance | null>(null);
@@ -298,6 +342,46 @@ export default function VideoReceptionConsole({ copy }: { copy: VideoCallTransla
             </div>
             <p className="mt-3 flex items-center gap-2 text-xs text-slate-300"><Camera aria-hidden="true" size={14} /><Mic aria-hidden="true" size={14} />{copy.localVideoLabel}</p>
           </aside>
+          {/* Panel Lateral de Cola de Pasajeros en Espera */}
+<div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-md mt-4">
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+      <span>📞</span> Cola de Atención ({incomingCalls.length})
+    </h3>
+    {incomingCalls.length > 0 && (
+      <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">
+        Llamadas pendientes
+      </span>
+    )}
+  </div>
+
+  {incomingCalls.length === 0 ? (
+    <p className="text-xs text-slate-500 py-3 text-center italic">
+      Sin llamadas en espera
+    </p>
+  ) : (
+    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+      {incomingCalls.map((call, idx) => (
+        <div key={call.id} className="p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between text-xs hover:border-slate-700 transition-colors">
+          <div>
+            <div className="font-semibold text-slate-200">{call.id}</div>
+            <div className="text-[11px] text-slate-400">{call.location}</div>
+          </div>
+          <div className="text-right flex items-center gap-2">
+            <span className="font-mono text-[10px] text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-800/40">
+              ⏱ {call.waitTime}
+            </span>
+            <button
+onClick={() => handleAttendCall(call, idx)}              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-[11px] transition-all"
+            >
+              Atender
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
         </section>
 
         <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
